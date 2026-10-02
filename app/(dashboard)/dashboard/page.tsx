@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     .eq('id', user?.id)
     .single()
 
-  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Học viên'
+  const displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Học viên'
 
   // Fetch stats
   const [

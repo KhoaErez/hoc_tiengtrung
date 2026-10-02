@@ -1,4 +1,4 @@
-﻿import { login } from '@/app/auth/actions'
+import { login } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,36 +8,66 @@ import Link from 'next/link'
 export default async function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-[#fdfdfc] p-4 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply" />
-      <Card className="w-full max-w-md z-10 shadow-sm border-[#e5e7eb] rounded-none border-t-[12px] border-t-red-700/80 bg-white/95 backdrop-blur">
-        <CardHeader className="space-y-1 pb-8">
-          <CardTitle className="text-2xl font-serif text-slate-800">Đăng nhập</CardTitle>
-          <CardDescription className="text-slate-500 font-serif">
-            Chinese Notebook AI
+    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 p-4 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-red-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-80 h-80 bg-amber-200/40 rounded-full blur-3xl pointer-events-none" />
+      
+      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')] opacity-40 pointer-events-none mix-blend-multiply" />
+      
+      <Card className="w-full max-w-md z-10 shadow-2xl border border-white/60 rounded-2xl bg-white/60 backdrop-blur-xl overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 to-amber-500" />
+        
+        <CardHeader className="space-y-2 pb-8 pt-10 text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl flex items-center justify-center shadow-lg shadow-red-700/20 mb-4 transform rotate-3">
+            <span className="text-white text-3xl font-serif">汉</span>
+          </div>
+          <CardTitle className="text-3xl font-serif text-slate-800 font-bold tracking-tight">Đăng nhập</CardTitle>
+          <CardDescription className="text-slate-500 font-serif text-base">
+            Chào mừng trở lại với Hán Ngữ AI
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-8 pb-8">
           <form action={login} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="font-serif text-slate-600">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="m@example.com" required className="rounded-none border-b-2 border-t-0 border-l-0 border-r-0 border-slate-200 bg-transparent focus-visible:ring-0 focus-visible:border-blue-400 px-0 font-serif text-lg h-10 shadow-none" />
+            <div className="space-y-2 relative group">
+              <Label htmlFor="email" className="font-serif text-slate-700 font-medium">Email</Label>
+              <Input 
+                id="email" 
+                name="email" 
+                type="email" 
+                placeholder="m@example.com" 
+                required 
+                className="rounded-xl border-slate-200/80 bg-white/50 focus-visible:ring-2 focus-visible:ring-red-500/20 focus-visible:border-red-500 transition-all duration-300 font-serif text-base h-12 shadow-sm" 
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="font-serif text-slate-600">Mật khẩu</Label>
-              <Input id="password" name="password" type="password" required className="rounded-none border-b-2 border-t-0 border-l-0 border-r-0 border-slate-200 bg-transparent focus-visible:ring-0 focus-visible:border-blue-400 px-0 font-serif text-lg h-10 shadow-none" />
+            <div className="space-y-2 relative group">
+              <Label htmlFor="password" className="font-serif text-slate-700 font-medium">Mật khẩu</Label>
+              <Input 
+                id="password" 
+                name="password" 
+                type="password" 
+                required 
+                className="rounded-xl border-slate-200/80 bg-white/50 focus-visible:ring-2 focus-visible:ring-red-500/20 focus-visible:border-red-500 transition-all duration-300 font-serif text-base h-12 shadow-sm" 
+              />
             </div>
+            
             {searchParams?.error && (
-              <p className="text-sm text-red-500 font-serif">{searchParams.error}</p>
+              <div className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-start gap-2">
+                <span className="text-red-500 mt-0.5">⚠️</span>
+                <p className="text-sm text-red-600 font-serif leading-relaxed">{searchParams.error}</p>
+              </div>
             )}
-            <Button type="submit" className="w-full rounded-sm font-serif bg-slate-800 hover:bg-slate-700 text-md h-12 mt-4">Đăng nhập</Button>
+            
+            <Button type="submit" className="w-full rounded-xl font-serif bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 text-white text-base h-12 mt-6 shadow-lg shadow-red-700/20 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
+              Đăng nhập ngay
+            </Button>
           </form>
         </CardContent>
-        <CardFooter className="pt-4 border-t border-slate-100">
+        <CardFooter className="pt-6 pb-8 border-t border-slate-200/50 bg-slate-50/30">
           <p className="text-sm text-slate-500 font-serif w-full text-center">
             Chưa có tài khoản?{' '}
-            <Link href="/register" className="text-blue-600 hover:underline">
-              Đăng ký
+            <Link href="/register" className="text-red-600 font-medium hover:text-red-700 hover:underline transition-colors">
+              Tạo tài khoản mới
             </Link>
           </p>
         </CardFooter>
