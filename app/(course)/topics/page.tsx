@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { PlayCircle, FileText, ChevronDown, ChevronRight, BookOpen, Layers } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
-export default function TopicPage() {
+function TopicContent() {
   const searchParams = useSearchParams()
   const topicName = searchParams?.get('q') || 'HSK 1'
   
@@ -95,5 +95,13 @@ export default function TopicPage() {
         </div>
       </aside>
     </div>
+  )
+}
+
+export default function TopicPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center font-sans text-slate-500">Đang tải...</div>}>
+      <TopicContent />
+    </Suspense>
   )
 }
