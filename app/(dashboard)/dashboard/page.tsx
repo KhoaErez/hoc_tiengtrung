@@ -14,6 +14,8 @@ export default async function DashboardPage() {
     .eq('id', user?.id)
     .single()
 
+  const displayName = profile?.display_name || user?.email?.split('@')[0] || 'Học viên'
+
   // Fetch stats
   const [
     { count: savedVocabCount },
@@ -27,11 +29,15 @@ export default async function DashboardPage() {
     supabase.from('user_vocabularies').select('id, vocabularies(hanzi, pinyin, meaning_vi)').eq('user_id', user?.id).lte('next_review_at', new Date().toISOString()).limit(4)
   ]);
 
-  const reviewWords = reviewWordsData?.map((r: any) => ({
-    hanzi: r.vocabularies.hanzi,
-    pinyin: r.vocabularies.pinyin,
-    vi: r.vocabularies.meaning_vi
-  })) || [];
+  const reviewWords = reviewWordsData?.map((r: unknown) => {
+    const item = r as { vocabularies: { hanzi: string; pinyin: string; meaning_vi: string } | { hanzi: string; pinyin: string; meaning_vi: string }[] };
+    const vocab = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies;
+    return {
+      hanzi: vocab?.hanzi || '',
+      pinyin: vocab?.pinyin || '',
+      vi: vocab?.meaning_vi || ''
+    };
+  }) || [];
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">
@@ -92,7 +98,7 @@ export default async function DashboardPage() {
           <div className="text-slate-500 text-sm font-serif italic py-4">Bạn không có từ vựng nào cần ôn tập hôm nay.</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {reviewWords.map((word: any) => (
+            {reviewWords.map((word: { hanzi: string, pinyin: string, vi: string }) => (
               <div key={word.hanzi} className="border-2 border-slate-200 p-3 flex flex-col items-center justify-center rounded-sm bg-white/40 hover:bg-white/80 hover:border-red-700/30 transition-colors cursor-pointer group relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-8 h-8 bg-red-700/5 rotate-45 translate-x-4 -translate-y-4 group-hover:bg-red-700/10 transition-colors"></div>
                 <span className="text-xs text-slate-400 mb-1 font-sans tracking-wide">{word.pinyin}</span>

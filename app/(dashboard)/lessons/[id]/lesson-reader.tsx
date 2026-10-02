@@ -18,7 +18,7 @@ type AiData = {
   grammar?: Grammar[]
 }
 
-export default function LessonReader({ lesson, aiData, originalText, runAiAction, hasAiData }: { lesson: any, aiData: AiData, originalText: string, runAiAction: any, hasAiData: boolean }) {
+export default function LessonReader({ lesson, aiData, originalText, runAiAction, hasAiData }: { lesson: { id: string, title: string, subtitle?: string | null }, aiData: AiData, originalText: string, runAiAction: (payload: FormData) => void, hasAiData: boolean }) {
   const [selectedWord, setSelectedWord] = useState<Word | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)

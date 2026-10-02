@@ -25,8 +25,9 @@ export async function correctWritingAction(text: string) {
     })
     
     return JSON.parse(response.text || "{}")
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('AI Error:', error)
-    throw new Error('Lỗi từ AI: ' + error.message)
+    const err = error instanceof Error ? error : new Error(String(error));
+    throw new Error('Lỗi từ AI: ' + err.message)
   }
 }

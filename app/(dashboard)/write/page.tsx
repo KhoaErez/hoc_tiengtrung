@@ -17,7 +17,7 @@ export default function WritingClient() {
     try {
       const res = await correctWritingAction(text)
       setResult(res)
-    } catch (e) {
+    } catch {
       alert("Lỗi kết nối AI")
     }
     setIsSubmitting(false)

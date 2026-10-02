@@ -21,12 +21,16 @@ export default async function ReviewPage() {
     .order('next_review_at', { ascending: true })
 
   // Transform data format
-  const formattedVocabs = reviews?.map((r: any) => ({
-    id: r.id,
-    hanzi: r.vocabularies.hanzi,
-    pinyin: r.vocabularies.pinyin,
-    meaning_vi: r.vocabularies.meaning_vi
-  })) || []
+  const formattedVocabs = reviews?.map((r: unknown) => {
+    const item = r as { id: string, vocabularies: { hanzi: string; pinyin: string; meaning_vi: string } | { hanzi: string; pinyin: string; meaning_vi: string }[] };
+    const vocab = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies;
+    return {
+      id: item.id,
+      hanzi: vocab?.hanzi || '',
+      pinyin: vocab?.pinyin || '',
+      meaning_vi: vocab?.meaning_vi || ''
+    };
+  }) || [];
 
   return (
     <div className="max-w-4xl mx-auto pb-20">

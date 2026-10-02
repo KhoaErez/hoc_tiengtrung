@@ -1,8 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Edit, Sparkles, BookOpen } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { analyzeLessonAction } from '../actions'
 import LessonReader from './lesson-reader'
 
@@ -22,7 +19,7 @@ export default async function LessonDetailPage(props: { params: Promise<{ id: st
     notFound()
   }
 
-  let aiData: any = null
+  let aiData: { words?: { hanzi: string, pinyin: string, vi: string }[], key_vocab?: { hanzi: string, pinyin: string, vi: string }[], pinyin_text?: string, translation?: string, grammar?: { structure: string, explanation: string }[] } | null = null
   let hasAiData = false
   if (lesson.pinyin) {
     try {

@@ -85,14 +85,15 @@ ${lesson.original_text}`;
         }
       });
       break; 
-    } catch (error: any) {
-      if (error.message && error.message.includes("503") && retries > 1) {
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      if (err.message && err.message.includes("503") && retries > 1) {
         retries--;
         await new Promise(r => setTimeout(r, 2000));
         continue;
       }
       console.error('AI Error:', error)
-      throw new Error('Lỗi từ AI: ' + (error.message || 'Không rõ lỗi'))
+      throw new Error('Lỗi từ AI: ' + (err.message || 'Không rõ lỗi'))
     }
   }
   
@@ -101,12 +102,13 @@ ${lesson.original_text}`;
   }
 
   try {
-    let resultText = response.text || "[]"
+    const resultText = response.text || "[]"
     await supabase.from('lessons').update({ pinyin: resultText }).eq('id', lessonId)
     revalidatePath('/lessons/' + lessonId)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Database Error:', error)
-    throw new Error('Lỗi lưu Database: ' + error.message)
+    const err = error instanceof Error ? error : new Error(String(error));
+    throw new Error('Lỗi lưu Database: ' + err.message)
   }
 }
 
@@ -155,7 +157,7 @@ export async function saveVocabularyAction(word: { hanzi: string, pinyin: string
   return { success: true }
 }
 
-export async function updateLessonAiDataAction(lessonId: string, aiData: any) {
+export async function updateLessonAiDataAction(lessonId: string, aiData: Record<string, unknown>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
