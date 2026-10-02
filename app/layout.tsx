@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   description: "AI-powered Chinese Learning Notebook",
 };
 
+import NextTopLoader from 'nextjs-toploader';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +33,10 @@ export default function RootLayout({
       lang="vi"
       className={`${lora.variable} ${notoSerifSC.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-serif">{children}</body>
+      <body className="min-h-full flex flex-col font-serif">
+        <NextTopLoader color="#b91c1c" height={3} showSpinner={false} />
+        {children}
+      </body>
     </html>
   );
 }
