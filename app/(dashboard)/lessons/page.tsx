@@ -1,8 +1,9 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PlusCircle, BookOpen } from 'lucide-react'
+import DeleteLessonButton from './delete-lesson-button'
 
 export default async function LessonsPage() {
   const supabase = await createClient()
@@ -42,19 +43,24 @@ export default async function LessonsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => (
-            <Link key={lesson.id} href={/lessons/ + lesson.id}>
-              <Card className="rounded-sm border-2 border-slate-200 hover:border-red-700/50 hover:shadow-md transition-all bg-[#FDFBF7] cursor-pointer h-full flex flex-col group relative overflow-hidden">
-                {/* Trang trí góc giấy */}
-                <div className="absolute top-0 right-0 w-8 h-8 bg-slate-200 rotate-45 translate-x-4 -translate-y-4 group-hover:bg-red-700/20 transition-colors"></div>
+            <div key={lesson.id} className="relative block h-full group">
+              <Card className="rounded-sm border-2 border-slate-200 group-hover:border-red-700/50 group-hover:shadow-md transition-all bg-[#FDFBF7] h-full flex flex-col relative overflow-hidden cursor-pointer">
+                <Link href={"/lessons/" + lesson.id} className="absolute inset-0 z-10" aria-label={`View lesson ${lesson.title}`} />
                 
-                <CardHeader className="pb-3 border-b-2 border-slate-100 bg-white/50">
+                {/* Trang trí góc giấy */}
+                <div className="absolute top-0 right-0 w-8 h-8 bg-slate-200 rotate-45 translate-x-4 -translate-y-4 group-hover:bg-red-700/20 transition-colors z-0"></div>
+                
+                <CardHeader className="pb-3 border-b-2 border-slate-100 bg-white/50 relative z-20">
                   <div className="flex justify-between items-start">
                     <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-sm border border-red-100">
                       {lesson.hsk_level || 'Chưa phân loại'}
                     </span>
-                    <span className="text-xs text-slate-400 font-sans">
-                      {new Intl.DateTimeFormat('vi-VN').format(new Date(lesson.created_at))}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 font-sans">
+                        {new Intl.DateTimeFormat('vi-VN').format(new Date(lesson.created_at))}
+                      </span>
+                      <DeleteLessonButton id={lesson.id} />
+                    </div>
                   </div>
                   <CardTitle className="font-serif text-xl mt-3 group-hover:text-red-700 transition-colors line-clamp-2">
                     {lesson.title}
@@ -63,13 +69,13 @@ export default async function LessonsPage() {
                     <p className="text-sm text-slate-500 font-serif">{lesson.subtitle}</p>
                   )}
                 </CardHeader>
-                <CardContent className="pt-4 flex-1">
+                <CardContent className="pt-4 flex-1 relative z-0">
                   <p className="text-slate-600 font-serif line-clamp-3 opacity-70">
                     {lesson.original_text}
                   </p>
                 </CardContent>
               </Card>
-            </Link>
+            </div>
           ))}
         </div>
       )}

@@ -4,9 +4,28 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { saveVocabularyAction, updateLessonAiDataAction } from '../actions'
-import { PlusCircle, ArrowLeft, Edit, Sparkles, BookOpen, Trash2 } from 'lucide-react'
+import { PlusCircle, ArrowLeft, Edit, Sparkles, BookOpen, Trash2, Loader2 } from 'lucide-react'
 import HanziWriterComponent from '@/components/hanzi-writer-comp'
 import Link from 'next/link'
+import { useFormStatus } from 'react-dom'
+
+function AiSubmitButton({ hasAiData }: { hasAiData: boolean }) {
+  const { pending } = useFormStatus()
+  
+  return (
+    <Button disabled={pending} type="submit" className="font-serif rounded-sm bg-slate-800 hover:bg-slate-700 text-white group cursor-pointer min-w-[170px]">
+      {pending ? (
+        <>
+          <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Đang phân tích...
+        </>
+      ) : (
+        <>
+          <Sparkles className="h-4 w-4 mr-2 group-hover:text-amber-300 transition-colors" /> {hasAiData ? "Phân tích lại AI" : "Phân tích AI"}
+        </>
+      )}
+    </Button>
+  )
+}
 
 type Word = { hanzi: string, pinyin: string, vi: string }
 type Grammar = { structure: string, explanation: string }
@@ -23,6 +42,9 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
   const [isSaving, setIsSaving] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isUpdatingVocab, setIsUpdatingVocab] = useState(false)
+  
+  const [wordToDeleteIndex, setWordToDeleteIndex] = useState<number | null>(null)
+  const [showWordDeleteSuccess, setShowWordDeleteSuccess] = useState(false)
 
   const handleSave = async (word: Word) => {
     setIsSaving(true)
@@ -63,13 +85,22 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
     }
   }
 
-  const handleRemoveWord = async (index: number) => {
-    if (!aiData) return;
+  const confirmRemoveWord = (index: number) => {
+    setWordToDeleteIndex(index);
+  }
+
+  const handleRemoveWord = async () => {
+    if (!aiData || wordToDeleteIndex === null) return;
+    
     setIsUpdatingVocab(true);
     try {
-      const newKeyVocab = (aiData.key_vocab || []).filter((_, i) => i !== index);
+      const newKeyVocab = (aiData.key_vocab || []).filter((_, i) => i !== wordToDeleteIndex);
       const newAiData = { ...aiData, key_vocab: newKeyVocab };
       await updateLessonAiDataAction(lesson.id, newAiData);
+      
+      setWordToDeleteIndex(null);
+      setShowWordDeleteSuccess(true);
+      setTimeout(() => setShowWordDeleteSuccess(false), 1500);
     } catch (e) {
       console.error(e);
       alert("Lỗi khi xóa từ vựng");
@@ -96,9 +127,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             <Edit className="h-4 w-4 mr-2" /> {isEditMode ? "Xong" : "Sửa"}
           </Button>
           <form action={runAiAction}>
-             <Button type="submit" className="font-serif rounded-sm bg-slate-800 hover:bg-slate-700 text-white group cursor-pointer">
-               <Sparkles className="h-4 w-4 mr-2 group-hover:text-amber-300 transition-colors" /> {hasAiData ? "Phân tích lại AI" : "Phân tích AI"}
-             </Button>
+             <AiSubmitButton hasAiData={hasAiData} />
           </form>
         </div>
       </div>
@@ -156,7 +185,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             {/* Phiên âm */}
             {aiData.pinyin_text && (
               <div className="space-y-4">
-                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-slate-800 uppercase">PHIÊN ÂM</h3>
+                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-red-700 font-bold uppercase">PHIÊN ÂM</h3>
                 <p className="font-sans text-lg text-slate-700 leading-relaxed text-justify md:px-8">
                   {aiData.pinyin_text}
                 </p>
@@ -166,7 +195,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             {/* Dịch nghĩa */}
             {aiData.translation && (
               <div className="space-y-4">
-                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-slate-800 uppercase">DỊCH NGHĨA</h3>
+                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-red-700 font-bold uppercase">DỊCH NGHĨA</h3>
                 <p className="font-serif text-lg text-slate-800 leading-relaxed text-justify md:px-8">
                   {aiData.translation}
                 </p>
@@ -176,7 +205,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             {/* Cấu trúc */}
             {grammarList.length > 0 && (
               <div className="space-y-6 pt-4">
-                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-slate-800 uppercase">CẤU TRÚC</h3>
+                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-red-700 font-bold uppercase">CẤU TRÚC</h3>
                 <div className="space-y-6 md:px-8">
                   {grammarList.map((g: Grammar, idx: number) => (
                     <div key={idx} className="space-y-2">
@@ -194,7 +223,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             {/* Luyện Viết */}
             {keyVocab.length > 0 && (
               <div className="space-y-6 pt-10 mt-8 border-t-2 border-slate-200 border-dashed">
-                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-slate-800 uppercase">LUYỆN VIẾT</h3>
+                <h3 className="text-center font-sans tracking-[0.3em] text-sm text-red-700 font-bold uppercase">LUYỆN VIẾT</h3>
                 <p className="text-center font-serif text-slate-500 text-sm italic mb-4">Nhìn cách AI đi nét để học thứ tự viết chữ Hán chuẩn.</p>
                 <div className="flex flex-wrap gap-8 justify-center p-4">
                   {keyVocab.map((vocab: Word, idx: number) => (
@@ -239,8 +268,8 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
                     
                     {isEditMode ? (
                       <button 
-                        onClick={() => handleRemoveWord(idx)}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white hover:bg-red-50 border border-slate-200 p-2 rounded-full shadow-sm text-red-500 transition-colors"
+                        onClick={() => confirmRemoveWord(idx)}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 bg-white hover:bg-red-50 border border-slate-200 p-2 rounded-full shadow-sm text-red-500 transition-colors cursor-pointer"
                         title="Xóa khỏi danh sách"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -286,6 +315,39 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
               {isSaving ? "Đang lưu..." : "Lưu vào Sổ tay"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Xác nhận xóa từ vựng */}
+      <Dialog open={wordToDeleteIndex !== null} onOpenChange={(open) => !isUpdatingVocab && !open && setWordToDeleteIndex(null)}>
+        <DialogContent className="sm:max-w-md border-red-700/20">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl text-slate-800">Xóa từ vựng</DialogTitle>
+            <DialogDescription className="font-serif text-base text-slate-600">
+              Bạn có chắc chắn muốn xóa từ vựng này khỏi danh sách ôn tập không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setWordToDeleteIndex(null)} disabled={isUpdatingVocab} className="font-serif rounded-sm cursor-pointer">
+              Hủy bỏ
+            </Button>
+            <Button onClick={handleRemoveWord} disabled={isUpdatingVocab} className="font-serif rounded-sm bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md">
+              {isUpdatingVocab ? "Đang xử lý..." : "Có, xóa ngay"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Thông báo thành công (từ vựng) */}
+      <Dialog open={showWordDeleteSuccess} onOpenChange={setShowWordDeleteSuccess}>
+        <DialogContent className="sm:max-w-sm text-center p-8 border-green-500/20 shadow-xl" showCloseButton={false}>
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-2">
+            <span className="text-green-600 text-2xl font-bold">✓</span>
+          </div>
+          <DialogTitle className="font-serif text-xl text-slate-800">Đã xóa thành công</DialogTitle>
+          <DialogDescription className="font-serif text-slate-500">
+            Từ vựng đã được loại khỏi danh sách.
+          </DialogDescription>
         </DialogContent>
       </Dialog>
     </>

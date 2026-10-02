@@ -166,3 +166,19 @@ export async function updateLessonAiDataAction(lessonId: string, aiData: Record<
   revalidatePath('/lessons/' + lessonId)
   return { success: true }
 }
+
+export async function deleteLessonAction(lessonId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase.from('lessons').delete().eq('id', lessonId).eq('user_id', user.id)
+  
+  if (error) {
+    console.error('Delete error:', error)
+    throw new Error('Failed to delete lesson')
+  }
+
+  revalidatePath('/lessons')
+  revalidatePath('/dashboard')
+}
