@@ -1,9 +1,10 @@
 import { signup } from '@/app/auth/actions'
-import { Button } from '@/components/ui/button'
+
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { AuthSubmitButton } from '../submit-button'
 
 export default async function RegisterPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
@@ -69,9 +70,7 @@ export default async function RegisterPage(props: { searchParams: Promise<{ erro
               </div>
             )}
             
-            <Button type="submit" className="w-full rounded-xl font-serif bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 text-white text-base h-12 mt-6 shadow-lg shadow-red-700/20 transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
-              Đăng ký ngay
-            </Button>
+            <AuthSubmitButton text="Đăng ký ngay" loadingText="Đang tạo tài khoản..." />
           </form>
         </CardContent>
         <CardFooter className="pt-6 pb-8 border-t border-slate-200/50 bg-slate-50/30">
