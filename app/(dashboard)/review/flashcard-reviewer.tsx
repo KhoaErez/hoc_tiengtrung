@@ -74,7 +74,7 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
       <div className="mt-8 flex gap-4 h-14">
         {!showAnswer ? (
           <Button 
-            className="w-full h-full text-lg font-serif rounded-sm bg-slate-800 text-white hover:bg-slate-700 transition-colors"
+            className="w-full h-full text-lg font-serif transition-colors"
             onClick={() => setShowAnswer(true)}
           >
             Xem đáp án
@@ -84,14 +84,14 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
             <Button 
               variant="outline"
               disabled={isUpdating}
-              className="flex-1 h-full text-lg font-serif rounded-sm border-2 border-slate-300 text-slate-600 hover:bg-slate-100 transition-colors"
+              className="flex-1 h-full text-lg font-serif border-2 text-slate-600 hover:bg-slate-100 transition-colors"
               onClick={() => handleAnswer(false)}
             >
               <XCircle className="mr-2 h-5 w-5 text-red-500" /> Quên rồi
             </Button>
             <Button 
               disabled={isUpdating}
-              className="flex-1 h-full text-lg font-serif rounded-sm bg-red-700 text-white hover:bg-red-800 transition-colors"
+              className="flex-1 h-full text-lg font-serif transition-colors"
               onClick={() => handleAnswer(true)}
             >
               <CheckCircle className="mr-2 h-5 w-5" /> Đã nhớ

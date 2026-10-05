@@ -35,7 +35,7 @@ export default function WritingClient() {
       <div className="bg-[#FDFBF7] p-6 border-2 border-slate-200 shadow-sm relative">
         <Textarea 
           placeholder="Nhập đoạn văn tiếng Trung của bạn vào đây... (Ví dụ: 我今天去超市买东西...)"
-          className="min-h-[200px] text-lg font-serif resize-y bg-transparent border-none focus-visible:ring-0 px-4 py-4 leading-loose tracking-wide"
+          className="min-h-[200px] text-lg font-serif resize-y bg-transparent border-none focus-visible:ring-0 pl-10 pr-4 py-4 leading-loose tracking-wide"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -47,7 +47,7 @@ export default function WritingClient() {
         <Button 
           onClick={handleSubmit} 
           disabled={!text.trim() || isSubmitting}
-          className="bg-red-700 hover:bg-red-800 text-white font-serif px-8 py-6 rounded-sm text-lg shadow-sm"
+          size="lg" className="font-serif text-lg w-full md:w-auto mt-4"
         >
           {isSubmitting ? (
             <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang chấm điểm...</>

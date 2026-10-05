@@ -23,7 +23,7 @@ export default async function LessonsPage() {
           <p className="text-slate-500 font-serif mt-1">Các bài học bạn đã tạo hoặc lưu lại</p>
         </div>
         <Link href="/lessons/create">
-          <Button className="bg-red-700 hover:bg-red-800 text-white font-serif rounded-sm">
+          <Button className="font-serif">
             <PlusCircle className="mr-2 h-4 w-4" /> Thêm Bài Mới
           </Button>
         </Link>
@@ -35,7 +35,7 @@ export default async function LessonsPage() {
           <h3 className="text-lg font-serif text-slate-700">Chưa có bài học nào</h3>
           <p className="text-slate-500 mb-6">Hãy tạo bài học đầu tiên của bạn bằng cách nhập văn bản tiếng Trung.</p>
           <Link href="/lessons/create">
-            <Button variant="outline" className="border-red-700 text-red-700 hover:bg-red-50 rounded-sm font-serif">
+            <Button variant="outline" className="font-serif">
               Tạo bài học đầu tiên
             </Button>
           </Link>

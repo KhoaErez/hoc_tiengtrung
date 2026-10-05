@@ -47,7 +47,7 @@ export default async function ReviewPage() {
           <h3 className="text-xl font-serif text-slate-700 mb-2">Chưa có từ nào cần ôn tập</h3>
           <p className="text-slate-500 mb-6 font-serif">Tuyệt vời! Bạn đã hoàn thành nhiệm vụ của ngày hôm nay.</p>
           <Link href="/lessons">
-            <Button className="bg-red-700 hover:bg-red-800 text-white rounded-sm font-serif px-8">
+            <Button className="font-serif px-8">
               Đọc thêm bài học mới
             </Button>
           </Link>

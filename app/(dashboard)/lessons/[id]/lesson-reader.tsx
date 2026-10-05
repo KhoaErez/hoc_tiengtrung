@@ -13,7 +13,7 @@ function AiSubmitButton({ hasAiData }: { hasAiData: boolean }) {
   const { pending } = useFormStatus()
   
   return (
-    <Button disabled={pending} type="submit" className="font-serif rounded-sm bg-slate-800 hover:bg-slate-700 text-white group cursor-pointer min-w-[170px]">
+    <Button disabled={pending} type="submit" className="font-serif group cursor-pointer min-w-[170px]">
       {pending ? (
         <>
           <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Đang phân tích...
@@ -311,7 +311,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             <Button variant="outline" onClick={() => setSelectedWord(null)} className="font-serif rounded-sm border-slate-300">
               Đóng
             </Button>
-            <Button onClick={handleSaveSelected} disabled={isSaving || !selectedWord?.vi} className="font-serif rounded-sm bg-red-700 hover:bg-red-800 text-white">
+            <Button onClick={handleSaveSelected} disabled={isSaving || !selectedWord?.vi} className="font-serif">
               {isSaving ? "Đang lưu..." : "Lưu vào Sổ tay"}
             </Button>
           </DialogFooter>
@@ -331,7 +331,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
             <Button variant="outline" onClick={() => setWordToDeleteIndex(null)} disabled={isUpdatingVocab} className="font-serif rounded-sm cursor-pointer">
               Hủy bỏ
             </Button>
-            <Button onClick={handleRemoveWord} disabled={isUpdatingVocab} className="font-serif rounded-sm bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md">
+            <Button onClick={handleRemoveWord} disabled={isUpdatingVocab} className="font-serif cursor-pointer">
               {isUpdatingVocab ? "Đang xử lý..." : "Có, xóa ngay"}
             </Button>
           </DialogFooter>

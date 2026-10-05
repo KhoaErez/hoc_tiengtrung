@@ -58,7 +58,7 @@ export default function CreateLessonPage() {
             </div>
 
             <div className="flex justify-end pt-4 border-t-2 border-slate-100">
-              <Button type="submit" className="bg-red-700 hover:bg-red-800 text-white font-serif rounded-sm px-8">
+              <Button type="submit" className="font-serif px-8">
                 Lưu Bài Học
               </Button>
             </div>

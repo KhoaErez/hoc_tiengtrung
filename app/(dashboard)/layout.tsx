@@ -1,6 +1,8 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import { BookOpen, PenTool, BrainCircuit, Search, PlusCircle, LogOut, Home } from 'lucide-react'
+import { MobileHeader, MobileNav } from '@/components/dashboard/mobile-nav'
+import { logout } from '@/app/auth/actions'
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -8,12 +10,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Notebook Background Pattern */}
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply" />
       
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside className="w-64 border-r-2 border-slate-200 bg-[#fdfdfc]/90 backdrop-blur z-10 flex flex-col hidden md:flex h-screen sticky top-0">
         <div className="p-6 border-b-2 border-slate-200">
           <Link href="/dashboard" className="flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-red-700" />
-            <span className="font-bold text-xl text-red-700 tracking-wide">中文</span>
+            <span className="font-bold text-xl text-red-700 tracking-wide">漢字</span>
           </Link>
           <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest">Chinese Notebook</p>
         </div>
@@ -22,7 +24,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <nav className="space-y-1 px-4">
             <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-sm">
               <Home className="h-4 w-4" />
-              <span>Trang chủ</span>
+              <span>Trang chủ </span>
             </Link>
             <Link href="/lessons" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-sm">
               <BookOpen className="h-4 w-4" />
@@ -52,22 +54,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
         
         <div className="p-4 border-t-2 border-slate-200">
-          <Link href="/login" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-red-700 transition-colors">
-            <LogOut className="h-4 w-4" />
-            <span className="text-sm">Đăng xuất</span>
-          </Link>
+          <form action={logout}>
+            <button className="w-full flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-red-700 transition-colors">
+              <LogOut className="h-4 w-4" />
+              <span className="text-sm">Đăng xuất</span>
+            </button>
+          </form>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen h-full z-10">
-        {/* Header */}
-        <header className="h-16 border-b-2 border-slate-200 bg-[#fdfdfc]/80 backdrop-blur flex items-center justify-between px-6 sticky top-0 z-20">
+      <main className="flex-1 flex flex-col min-h-screen h-full z-10 md:pb-0 pb-16">
+        
+        {/* Mobile Header */}
+        <MobileHeader />
+
+        {/* Desktop Header */}
+        <header className="hidden md:flex h-16 border-b-2 border-slate-200 bg-[cfdfdfc]/80 backdrop-blur items-center justify-between px-6 sticky top-0 z-20">
           <div className="flex items-center w-full max-w-md bg-transparent border-b-2 border-slate-300 focus-within:border-red-700 transition-colors pb-1">
             <Search className="h-4 w-4 text-slate-400 mr-2" />
             <input 
               type="text" 
-              placeholder="Tìm kiếm từ vựng, bài học..." 
+              placeholder="Tím kiếm từ vựng, bài học..." 
               className="bg-transparent border-none outline-none w-full text-slate-700 placeholder:text-slate-400 text-sm font-serif h-8"
             />
           </div>
@@ -78,10 +86,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-6 md:p-10 overflow-auto">
+        <div className="flex-1 p-4 md:p-10 overflow-auto">
           {children}
         </div>
       </main>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   )
 }

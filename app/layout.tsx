@@ -19,6 +19,9 @@ const notoSerifSC = Noto_Serif_SC({
 export const metadata: Metadata = {
   title: "Chinese Notebook AI",
   description: "AI-powered Chinese Learning Notebook",
+  icons: {
+    icon: "/icon.svg?v=1",
+  },
 };
 
 import NextTopLoader from 'nextjs-toploader';
