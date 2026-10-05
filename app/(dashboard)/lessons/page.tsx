@@ -43,7 +43,7 @@ export default async function LessonsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {lessons.map((lesson) => (
-            <div key={lesson.id} className="relative block h-full group">
+            <Link key={lesson.id} href={"/lessons/" + lesson.id} className="relative block h-full group">
               <Card className="rounded-sm border-2 border-slate-200 group-hover:border-red-700/50 group-hover:shadow-md transition-all bg-[#FDFBF7] h-full flex flex-col relative overflow-hidden cursor-pointer">
                 <Link href={"/lessons/" + lesson.id} className="absolute inset-0 z-10" aria-label={`View lesson ${lesson.title}`} />
                 
@@ -55,7 +55,7 @@ export default async function LessonsPage() {
                     <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-sm border border-red-100">
                       {lesson.hsk_level || 'Chưa phân loại'}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 relative z-30">
                       <span className="text-xs text-slate-400 font-sans">
                         {new Intl.DateTimeFormat('vi-VN').format(new Date(lesson.created_at))}
                       </span>
@@ -75,7 +75,7 @@ export default async function LessonsPage() {
                   </p>
                 </CardContent>
               </Card>
-            </div>
+            </Link>
           ))}
         </div>
       )}
