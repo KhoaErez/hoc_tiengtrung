@@ -37,10 +37,8 @@ export function ProtectedLink({
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <button className={className} type="button">
-          {children}
-        </button>
+      <DialogTrigger className={className} type="button">
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md font-serif border-border rounded-xl">
         <DialogHeader>
