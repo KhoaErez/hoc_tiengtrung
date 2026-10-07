@@ -74,7 +74,7 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             </>
           )
 
-          const containerClasses = `flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 ${
+          const containerClasses = `flex flex-col items-center justify-center w-[20%] h-full gap-1 transition-all duration-200 ${
             isActive ? 'text-app-accent' : 'text-muted hover:text-title'
           }`
 
