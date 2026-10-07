@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { BookOpen, CheckSquare, Trash2 } from 'lucide-react'
+import { BookOpen, CheckSquare, Trash2, Edit3 } from 'lucide-react'
 import DeleteLessonButton from './delete-lesson-button'
 import { bulkDeleteLessonsAction } from './actions'
 import { useRouter } from 'next/navigation'
@@ -164,7 +164,15 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
                       {new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(lesson.created_at))}
                     </time>
                     {!isSelectMode && isOwner && (
-                      <div className="ml-auto relative z-20">
+                      <div className="ml-auto relative z-20 flex items-center gap-1">
+                        <Link 
+                          href={`/lessons/${lesson.id}/edit`} 
+                          className="text-slate-400 hover:text-blue-600 transition-colors p-1.5 rounded-full hover:bg-blue-50 relative z-20 cursor-pointer" 
+                          onClick={(e) => e.stopPropagation()} 
+                          title="Sửa bài học"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Link>
                         <DeleteLessonButton id={lesson.id} />
                       </div>
                     )}

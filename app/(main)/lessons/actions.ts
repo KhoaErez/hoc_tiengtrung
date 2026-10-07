@@ -39,6 +39,46 @@ export async function createLesson(formData: FormData) {
   redirect('/lessons/' + data.id)
 }
 
+export async function updateLesson(id: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('Unauthorized')
+  }
+
+  const title = formData.get('title') as string
+  const subtitle = formData.get('subtitle') as string
+  const original_text = formData.get('original_text') as string
+  const hsk_level = formData.get('hsk_level') as string
+
+  // Reset analysis fields when content changes so they can be re-analyzed
+  const { error } = await supabase
+    .from('lessons')
+    .update({
+      title,
+      subtitle,
+      original_text,
+      hsk_level,
+      words: null,
+      key_vocab: null,
+      pinyin_text: null,
+      translation: null,
+      grammar: null
+    })
+    .eq('id', id)
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error('Error updating lesson:', error)
+    throw new Error('Failed to update lesson')
+  }
+
+  revalidatePath('/lessons')
+  revalidatePath('/lessons/' + id)
+  redirect('/lessons/' + id)
+}
+
 export async function analyzeLessonAction(lessonId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
