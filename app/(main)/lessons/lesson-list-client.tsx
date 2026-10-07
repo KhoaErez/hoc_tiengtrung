@@ -135,7 +135,7 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
           return (
             <article 
               key={lesson.id} 
-              className={`relative block group rounded-2xl transition-all duration-300 ${isFeatured ? 'md:col-span-12 lg:col-span-8 p-6 md:p-8 bg-gradient-to-br from-red-50/40 to-orange-50/40 hover:shadow-md hover:bg-white border border-transparent hover:border-red-100' : 'md:col-span-6 lg:col-span-4 p-5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100'} ${
+              className={`relative block group rounded-2xl transition-all duration-300 border border-border shadow-sm hover:shadow-md ${isFeatured ? 'md:col-span-12 lg:col-span-8 p-6 md:p-8 bg-card-featured' : 'md:col-span-6 lg:col-span-4 p-5 bg-card hover:border-border-strong'} ${
                 isSelectMode && isOwner ? 'cursor-pointer' : 'cursor-default'
               }`}
               onClick={(e) => {
@@ -157,10 +157,10 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
               <div className="flex flex-col h-full">
                 <header className="mb-3">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xs font-bold text-white bg-red-700 px-2 py-0.5 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-white bg-app-accent px-2 py-0.5 uppercase tracking-wider">
                       {lesson.hsk_level || 'Chưa phân loại'}
                     </span>
-                    <time className="text-xs text-slate-500 font-sans uppercase tracking-widest">
+                    <time className="text-xs text-muted font-sans uppercase tracking-widest">
                       {new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(lesson.created_at))}
                     </time>
                     {!isSelectMode && isOwner && (
@@ -170,21 +170,21 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
                     )}
                   </div>
                   
-                  <h2 className={`font-serif text-slate-900 group-hover:text-red-700 transition-colors leading-tight ${isFeatured ? 'text-3xl md:text-5xl mb-4' : 'text-xl md:text-2xl mb-2'} line-clamp-3`}>
+                  <h2 className={`font-serif text-title group-hover:text-app-accent transition-colors leading-tight ${isFeatured ? 'text-3xl md:text-5xl mb-4' : 'text-xl md:text-2xl mb-2'} line-clamp-3`}>
                     {lesson.title}
                   </h2>
                   
                   {lesson.subtitle && (
-                    <p className={`font-serif text-slate-600 italic ${isFeatured ? 'text-xl mb-4' : 'text-sm mb-2'}`}>{lesson.subtitle}</p>
+                    <p className={`font-serif text-body italic ${isFeatured ? 'text-xl mb-4' : 'text-sm mb-2'}`}>{lesson.subtitle}</p>
                   )}
                 </header>
                 
-                <div className={`font-serif text-slate-600 leading-relaxed opacity-80 ${isFeatured ? 'text-lg line-clamp-4 md:line-clamp-6' : 'text-base line-clamp-3'} flex-1`}>
+                <div className={`font-serif text-body leading-relaxed opacity-80 ${isFeatured ? 'text-lg line-clamp-4 md:line-clamp-6' : 'text-base line-clamp-3'} flex-1`}>
                   {lesson.original_text}
                 </div>
                 
                 {isFeatured && (
-                  <div className="mt-6 text-red-700 font-serif font-bold text-sm tracking-widest uppercase flex items-center group-hover:underline relative z-10">
+                  <div className="mt-6 text-app-accent font-serif font-bold text-sm tracking-widest uppercase flex items-center group-hover:underline relative z-10">
                     Đọc tiếp <span className="ml-2">→</span>
                   </div>
                 )}

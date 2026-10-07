@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Lora, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'sonner';
+import { GlobalLoader } from '@/components/global-loader';
 
 const lora = Lora({
   variable: "--font-lora",
@@ -38,7 +39,7 @@ export default function RootLayout({
       className={`${lora.variable} ${notoSerifSC.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-serif">
-
+        <GlobalLoader />
         {children}
         <Toaster richColors position="top-center" />
       </body>
