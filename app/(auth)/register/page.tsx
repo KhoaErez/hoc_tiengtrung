@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { AuthSubmitButton } from '../submit-button'
+import { X } from 'lucide-react'
 
 export default async function RegisterPage(props: { searchParams: Promise<{ error?: string }> }) {
   const searchParams = await props.searchParams;
@@ -17,6 +18,9 @@ export default async function RegisterPage(props: { searchParams: Promise<{ erro
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')] opacity-40 pointer-events-none mix-blend-multiply" />
       
       <Card className="w-full max-w-md z-10 shadow-2xl border border-white/60 rounded-2xl bg-white/60 backdrop-blur-xl overflow-hidden relative">
+        <Link href="/" className="absolute top-4 right-4 z-20 text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-100/50">
+          <X className="w-5 h-5" />
+        </Link>
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 to-amber-500" />
         
         <CardHeader className="space-y-2 pb-8 pt-10 text-center">
