@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Home, BookOpen, PenTool, BrainCircuit, ChevronLeft, LogOut, GraduationCap } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
+import { ProtectedLink } from '@/components/protected-link'
 
 export function MobileHeader() {
   const router = useRouter()
@@ -42,7 +43,7 @@ export function MobileHeader() {
   )
 }
 
-export function MobileNav() {
+export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   const pathname = usePathname()
   
   const navItems = [
@@ -58,6 +59,29 @@ export function MobileNav() {
       <div className="flex items-center justify-around h-full px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          if (item.href === '/write' || item.href === '/review') {
+            return (
+              <ProtectedLink
+                key={item.href}
+                href={item.href}
+                isLoggedIn={isLoggedIn}
+                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
+                  isActive ? 'text-red-700' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <div className={`relative p-1 rounded-xl transition-all duration-300 ${isActive ? 'bg-red-50' : 'bg-transparent'}`}>
+                  <item.icon className={`h-6 w-6 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
+                  {isActive && (
+                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-red-700 rounded-full" />
+                  )}
+                </div>
+                <span className={`text-[10px] font-serif transition-all duration-300 ${isActive ? 'font-medium' : 'font-normal'}`}>
+                  {item.label}
+                </span>
+              </ProtectedLink>
+            )
+          }
+
           return (
             <Link 
               key={item.href} 

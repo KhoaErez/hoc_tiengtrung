@@ -4,6 +4,7 @@ import { BookOpen, PenTool, BrainCircuit, Search, PlusCircle, LogOut, Home, LogI
 import { MobileHeader, MobileNav } from '@/components/dashboard/mobile-nav'
 import { logout } from '@/app/auth/actions'
 import { createClient } from '@/lib/supabase/server'
+import { ProtectedLink } from '@/components/protected-link'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient()
@@ -34,14 +35,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <BookOpen className="h-4 w-4" />
               <span>Chủ đề sưu tầm</span>
             </Link>
-            <Link href="/write" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-sm">
+            <ProtectedLink href="/write" isLoggedIn={!!user} className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-sm">
               <PenTool className="h-4 w-4" />
               <span>Viết</span>
-            </Link>
-            <Link href="/review" className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-sm">
+            </ProtectedLink>
+            <ProtectedLink href="/review" isLoggedIn={!!user} className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-sm">
               <BrainCircuit className="h-4 w-4" />
               <span>Ôn tập</span>
-            </Link>
+            </ProtectedLink>
           </nav>
           
           <div className="mt-8 px-4">
@@ -103,7 +104,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       </main>
       
       {/* Mobile Bottom Navigation */}
-      <MobileNav />
+      <MobileNav isLoggedIn={!!user} />
     </div>
   )
 }
