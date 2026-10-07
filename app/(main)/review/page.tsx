@@ -15,20 +15,23 @@ export default async function ReviewPage() {
   
   const { data: reviews } = await supabase
     .from('user_vocabularies')
-    .select('id, vocabularies(hanzi, pinyin, meaning_vi)')
+    .select('id, vocabularies(hanzi, pinyin, meaning_vi, example_hanzi, example_pinyin, example_vi)')
     .eq('user_id', user.id)
     .lte('next_review_at', now)
     .order('next_review_at', { ascending: true })
 
   // Transform data format
   const formattedVocabs = reviews?.map((r: unknown) => {
-    const item = r as { id: string, vocabularies: { hanzi: string; pinyin: string; meaning_vi: string } | { hanzi: string; pinyin: string; meaning_vi: string }[] };
+    const item = r as { id: string, vocabularies: { hanzi: string; pinyin: string; meaning_vi: string; example_hanzi?: string; example_pinyin?: string; example_vi?: string } | { hanzi: string; pinyin: string; meaning_vi: string; example_hanzi?: string; example_pinyin?: string; example_vi?: string }[] };
     const vocab = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies;
     return {
       id: item.id,
       hanzi: vocab?.hanzi || '',
       pinyin: vocab?.pinyin || '',
-      meaning_vi: vocab?.meaning_vi || ''
+      meaning_vi: vocab?.meaning_vi || '',
+      example_hanzi: vocab?.example_hanzi || '',
+      example_pinyin: vocab?.example_pinyin || '',
+      example_vi: vocab?.example_vi || ''
     };
   }) || [];
 

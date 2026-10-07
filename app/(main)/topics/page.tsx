@@ -21,7 +21,7 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
   let userVocabCount = 0
   let reviewVocabCount = 0
   let recentVocabs: { hanzi: string; pinyin: string; vi: string }[] = []
-  let globalVocabs: { id: string; hanzi: string; pinyin: string; meaning_vi: string }[] = []
+  let globalVocabs: { id: string; hanzi: string; pinyin: string; meaning_vi: string; example_hanzi?: string; example_pinyin?: string; example_vi?: string }[] = []
 
   // Fetch Curriculum Lessons (System Lessons)
   const { data: lessonsData } = await supabase
@@ -45,7 +45,7 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
     // Fetch global vocabularies for this HSK level (optional, if still keeping the tab)
     const { data: globalVocabsData } = await supabase
       .from('vocabularies')
-      .select('id, hanzi, pinyin, meaning_vi')
+      .select('id, hanzi, pinyin, meaning_vi, example_hanzi, example_pinyin, example_vi')
       .eq('hsk_level', currentHsk)
       .order('id', { ascending: true })
       

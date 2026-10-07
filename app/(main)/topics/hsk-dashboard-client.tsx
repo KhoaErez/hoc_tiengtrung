@@ -36,7 +36,7 @@ export default function HskDashboardClient({
   userVocabCount: number
   reviewVocabCount: number
   recentVocabs?: { hanzi: string; pinyin: string; vi: string }[]
-  globalVocabs?: { id: string; hanzi: string; pinyin: string; meaning_vi: string }[]
+  globalVocabs?: { id: string; hanzi: string; pinyin: string; meaning_vi: string; example_hanzi?: string; example_pinyin?: string; example_vi?: string }[]
   isLoggedIn: boolean
 }) {
   const [activeTab, setActiveTab] = useState<'lessons' | 'vocab'>('lessons')
@@ -252,8 +252,17 @@ export default function HskDashboardClient({
                             <span className="text-3xl md:text-4xl font-serif text-slate-800 group-hover:text-red-700 transition-colors">{v.hanzi}</span>
                             <span className="text-sm text-slate-500 font-sans">{v.pinyin}</span>
                           </div>
-                          <div className="text-base md:text-lg font-serif text-slate-600 border-l-2 border-slate-100 pl-4 md:pl-8 py-2 flex-1">
-                            {v.meaning_vi}
+                          <div className="flex flex-col border-l-2 border-slate-100 pl-4 md:pl-8 py-2 flex-1 gap-2">
+                            <span className="text-base md:text-lg font-serif text-slate-800">
+                              {v.meaning_vi}
+                            </span>
+                            {v.example_hanzi && (
+                              <div className="bg-white/50 rounded-sm p-3 border border-slate-200/50 mt-1">
+                                <div className="text-base font-serif text-slate-800">{v.example_hanzi}</div>
+                                <div className="text-xs font-sans text-slate-500 tracking-wider mb-1">{v.example_pinyin}</div>
+                                <div className="text-sm font-serif text-slate-600">{v.example_vi}</div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

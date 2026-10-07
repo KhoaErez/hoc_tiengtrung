@@ -12,6 +12,9 @@ type Vocab = {
   hanzi: string;
   pinyin: string;
   meaning_vi: string;
+  example_hanzi?: string;
+  example_pinyin?: string;
+  example_vi?: string;
 }
 
 export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
@@ -93,9 +96,16 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
                 <Volume2 className="h-8 w-8" />
               </button>
             </div>
-            <div className="bg-white px-6 py-3 border-2 border-slate-200 rounded-sm shadow-sm">
+            <div className="bg-white px-6 py-3 border-2 border-slate-200 rounded-sm shadow-sm w-full max-w-sm mx-auto">
               <span className="text-2xl font-serif text-slate-800">{currentVocab.meaning_vi}</span>
             </div>
+            {currentVocab.example_hanzi && (
+              <div className="mt-6 border-t-2 border-slate-200/50 pt-4 w-full text-center px-4 max-w-sm mx-auto">
+                <div className="text-xl font-serif text-slate-800 mb-1">{currentVocab.example_hanzi}</div>
+                <div className="text-sm font-sans tracking-widest text-slate-500 mb-2">{currentVocab.example_pinyin}</div>
+                <div className="text-base font-serif text-slate-700">{currentVocab.example_vi}</div>
+              </div>
+            )}
           </div>
         )}
       </Card>
