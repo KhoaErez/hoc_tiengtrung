@@ -135,7 +135,7 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
           return (
             <article 
               key={lesson.id} 
-              className={`relative block group ${isFeatured ? 'md:col-span-12 lg:col-span-8 border-b-4 border-slate-900 pb-8' : 'md:col-span-6 lg:col-span-4 border-t border-slate-200 pt-6'} ${
+              className={`relative block group rounded-2xl transition-all duration-300 ${isFeatured ? 'md:col-span-12 lg:col-span-8 p-6 md:p-8 bg-gradient-to-br from-red-50/40 to-orange-50/40 hover:shadow-md hover:bg-white border border-transparent hover:border-red-100' : 'md:col-span-6 lg:col-span-4 p-5 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-100'} ${
                 isSelectMode && isOwner ? 'cursor-pointer' : 'cursor-default'
               }`}
               onClick={(e) => {
