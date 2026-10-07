@@ -55,8 +55,8 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-page/95 backdrop-blur-xl border-t border-border z-30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
-      <div className="flex items-center justify-around h-full px-2">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-page/95 backdrop-blur-xl border-t border-border z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] box-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="grid grid-cols-5 h-[60px] items-center px-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
           
@@ -74,7 +74,7 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             </>
           )
 
-          const containerClasses = `flex flex-col items-center justify-center w-[20%] h-full gap-1 transition-all duration-200 ${
+          const containerClasses = `flex flex-col items-center justify-center w-full h-full gap-1 transition-all duration-200 outline-none select-none ${
             isActive ? 'text-app-accent' : 'text-muted hover:text-title'
           }`
 
