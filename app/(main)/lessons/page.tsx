@@ -16,10 +16,13 @@ export default async function LessonsPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-end border-b-2 border-red-700/30 pb-4">
-        <div>
-          <h1 className="text-3xl font-serif text-slate-800">Chủ đề sưu tầm</h1>
-          <p className="text-slate-500 font-serif mt-1">Những bài học và chủ đề được sưu tầm từ cộng đồng</p>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-border pb-6 gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-8 bg-primary rounded-full"></div>
+            <h1 className="text-4xl md:text-5xl font-serif text-foreground font-bold tracking-tight">Chủ đề sưu tầm</h1>
+          </div>
+          <p className="text-muted-foreground font-serif text-lg pl-4">Những bài học và chủ đề được sưu tầm từ cộng đồng</p>
         </div>
         {user && (
           <Link href="/lessons/create">
