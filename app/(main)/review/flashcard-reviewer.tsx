@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { updateReviewStatusAction } from './actions'
-import { BrainCircuit, CheckCircle, XCircle } from 'lucide-react'
+import { BrainCircuit, CheckCircle, XCircle, Volume2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 type Vocab = {
@@ -18,6 +18,16 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+
+  const playAudio = (text: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'zh-CN'
+      utterance.rate = 0.8
+      window.speechSynthesis.speak(utterance)
+    }
+  }
 
   if (currentIndex >= vocabs.length) {
     return (
@@ -60,13 +70,29 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
       >
         {!showAnswer ? (
           <div className="text-center space-y-4">
-            <span className="text-[120px] font-serif text-slate-800 leading-none">{currentVocab.hanzi}</span>
+            <div className="flex items-center gap-4">
+              <span className="text-[120px] font-serif text-slate-800 leading-none">{currentVocab.hanzi}</span>
+              <button 
+                onClick={(e) => { e.stopPropagation(); playAudio(currentVocab.hanzi); }}
+                className="text-slate-400 hover:text-red-700 p-4 rounded-full hover:bg-red-50 transition-colors"
+              >
+                <Volume2 className="h-8 w-8" />
+              </button>
+            </div>
             <p className="text-slate-400 font-serif text-sm">Chạm để lật thẻ</p>
           </div>
         ) : (
           <div className="text-center flex flex-col items-center justify-center w-full h-full p-8 bg-red-700/5 rounded-sm">
             <span className="text-xl text-slate-500 font-sans tracking-widest mb-4">{currentVocab.pinyin}</span>
-            <span className="text-[80px] font-serif text-red-700 leading-none mb-8">{currentVocab.hanzi}</span>
+            <div className="flex items-center gap-4 mb-8">
+              <span className="text-[80px] font-serif text-red-700 leading-none">{currentVocab.hanzi}</span>
+              <button 
+                onClick={(e) => { e.stopPropagation(); playAudio(currentVocab.hanzi); }}
+                className="text-slate-400 hover:text-red-700 p-3 rounded-full hover:bg-red-50 transition-colors"
+              >
+                <Volume2 className="h-8 w-8" />
+              </button>
+            </div>
             <div className="bg-white px-6 py-3 border-2 border-slate-200 rounded-sm shadow-sm">
               <span className="text-2xl font-serif text-slate-800">{currentVocab.meaning_vi}</span>
             </div>

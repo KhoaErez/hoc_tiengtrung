@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { saveVocabularyAction, updateLessonAiDataAction } from '../actions'
-import { PlusCircle, ArrowLeft, Edit, Sparkles, BookOpen, Trash2, Loader2 } from 'lucide-react'
+import { PlusCircle, ArrowLeft, Edit, Sparkles, BookOpen, Trash2, Loader2, Volume2 } from 'lucide-react'
 import HanziWriterComponent from '@/components/hanzi-writer-comp'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -27,6 +27,17 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
   const [isAnalyzing, startTransition] = useTransition()
   
   const [wordToDeleteIndex, setWordToDeleteIndex] = useState<number | null>(null)
+
+  const playAudio = (text: string) => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      // Cancel any ongoing speech to avoid queueing delays
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'zh-CN'
+      utterance.rate = 0.8
+      window.speechSynthesis.speak(utterance)
+    }
+  }
 
   const handleAiAnalysis = () => {
     startTransition(async () => {
@@ -270,7 +281,12 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
                     <div className="flex gap-2 md:gap-3 items-start min-w-0 pr-8">
                       <span className="font-serif text-slate-500 mt-1 shrink-0">{idx + 1}.</span>
                       <div className="min-w-0">
-                        <div className="text-2xl md:text-3xl font-serif text-slate-800 mb-1 break-words">{vocab.hanzi}</div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-2xl md:text-3xl font-serif text-slate-800 break-words">{vocab.hanzi}</span>
+                          <button onClick={() => playAudio(vocab.hanzi)} className="text-slate-400 hover:text-red-700 p-1.5 rounded-full hover:bg-red-50 transition-colors cursor-pointer shrink-0" title="Nghe phát âm">
+                            <Volume2 className="h-4 w-4" />
+                          </button>
+                        </div>
                         <div className="text-xs md:text-sm font-sans tracking-widest text-slate-500 break-words">{vocab.pinyin}</div>
                         <div className="text-sm md:text-base font-serif text-slate-700 mt-1 break-words">{vocab.vi}</div>
                       </div>
@@ -311,7 +327,16 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
           {selectedWord && (
             <div className="flex flex-col items-center justify-center py-8 min-w-0">
               <span className="text-sm text-slate-500 font-sans tracking-widest mb-2 text-center break-words max-w-full px-4">{selectedWord.pinyin}</span>
-              <span className="text-5xl md:text-6xl font-serif text-red-700 mb-6 text-center break-words max-w-full px-4">{selectedWord.hanzi}</span>
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <span className="text-5xl md:text-6xl font-serif text-red-700 text-center break-words">{selectedWord.hanzi}</span>
+                <button 
+                  onClick={() => playAudio(selectedWord.hanzi)}
+                  className="text-slate-400 hover:text-red-700 p-2.5 rounded-full hover:bg-red-50 transition-colors cursor-pointer"
+                  title="Nghe phát âm"
+                >
+                  <Volume2 className="h-6 w-6" />
+                </button>
+              </div>
               <div className="bg-slate-100 px-4 py-2 border border-slate-200 rounded-sm max-w-full">
                 <span className="text-base md:text-lg font-serif text-slate-800 text-center break-words block">{selectedWord.vi || "(Dấu câu)"}</span>
               </div>
