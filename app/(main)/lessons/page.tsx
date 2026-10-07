@@ -11,7 +11,7 @@ export default async function LessonsPage() {
   const { data: lessons } = await supabase
     .from('lessons')
     .select('*')
-    .eq('user_id', user?.id)
+    .or('is_system.eq.false,is_system.is.null')
     .order('created_at', { ascending: false })
 
   return (
@@ -19,7 +19,7 @@ export default async function LessonsPage() {
       <div className="flex justify-between items-end border-b-2 border-red-700/30 pb-4">
         <div>
           <h1 className="text-3xl font-serif text-slate-800">Chủ đề sưu tầm</h1>
-          <p className="text-slate-500 font-serif mt-1">Những bài học và chủ đề bạn đã lưu lại</p>
+          <p className="text-slate-500 font-serif mt-1">Những bài học và chủ đề được sưu tầm từ cộng đồng</p>
         </div>
         <Link href="/lessons/create">
           <Button className="font-serif">
@@ -28,7 +28,7 @@ export default async function LessonsPage() {
         </Link>
       </div>
 
-      <LessonListClient lessons={lessons || []} />
+      <LessonListClient lessons={lessons || []} currentUserId={user?.id} />
     </div>
   )
 }

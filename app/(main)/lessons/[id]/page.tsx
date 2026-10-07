@@ -22,10 +22,7 @@ export default async function LessonDetailPage(props: { params: Promise<{ id: st
     notFound()
   }
 
-  // Check access permissions
-  if (!lesson.is_system && (!user || lesson.user_id !== user?.id)) {
-    notFound()
-  }
+  // All lessons are now public, no owner check needed
 
   // Render System Curriculum Lesson
   if (lesson.is_system) {

@@ -18,9 +18,10 @@ type Lesson = {
   hsk_level?: string | null;
   created_at: string;
   original_text?: string | null;
+  user_id?: string | null;
 }
 
-export default function LessonListClient({ lessons }: { lessons: Lesson[] }) {
+export default function LessonListClient({ lessons, currentUserId }: { lessons: Lesson[], currentUserId?: string }) {
   const [isSelectMode, setIsSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDeleting, setIsDeleting] = useState(false)
@@ -127,20 +128,23 @@ export default function LessonListClient({ lessons }: { lessons: Lesson[] }) {
         {lessons.map((lesson, index) => {
           const isSelected = selectedIds.has(lesson.id)
           const isFeatured = index === 0;
+          const isOwner = lesson.user_id === currentUserId;
           
           return (
             <article 
               key={lesson.id} 
               className={`relative block group ${isFeatured ? 'md:col-span-12 lg:col-span-8 border-b-4 border-slate-900 pb-8' : 'md:col-span-6 lg:col-span-4 border-t border-slate-200 pt-6'} ${
-                isSelectMode ? 'cursor-pointer' : 'cursor-default'
+                isSelectMode && isOwner ? 'cursor-pointer' : 'cursor-default'
               }`}
-              onClick={(e) => handleCardClick(e, lesson.id)}
+              onClick={(e) => {
+                if (isOwner) handleCardClick(e, lesson.id);
+              }}
             >
               {!isSelectMode && (
                 <Link href={"/lessons/" + lesson.id} className="absolute inset-0 z-10 focus:outline-none" aria-label={`Đọc bài ${lesson.title}`} />
               )}
               
-              {isSelectMode && (
+              {isSelectMode && isOwner && (
                 <div className="absolute top-0 right-0 z-30 bg-white/80 p-1">
                   <div className={`w-5 h-5 rounded flex items-center justify-center border-2 ${isSelected ? 'bg-red-700 border-red-700' : 'border-slate-400 bg-white'}`}>
                     {isSelected && <CheckSquare className="w-4 h-4 text-white" />}
@@ -157,7 +161,7 @@ export default function LessonListClient({ lessons }: { lessons: Lesson[] }) {
                     <time className="text-xs text-slate-500 font-sans uppercase tracking-widest">
                       {new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(lesson.created_at))}
                     </time>
-                    {!isSelectMode && (
+                    {!isSelectMode && isOwner && (
                       <div className="ml-auto relative z-20">
                         <DeleteLessonButton id={lesson.id} />
                       </div>
