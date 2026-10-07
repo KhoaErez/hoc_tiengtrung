@@ -6,8 +6,10 @@ import Link from 'next/link'
 import { AuthSubmitButton } from '../submit-button'
 import { X } from 'lucide-react'
 
-export default async function LoginPage(props: { searchParams: Promise<{ error?: string }> }) {
+export default async function LoginPage(props: { searchParams: Promise<{ error?: string, redirect?: string }> }) {
   const searchParams = await props.searchParams;
+  const isRedirected = !!searchParams?.redirect;
+  
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 p-4 relative overflow-hidden">
       {/* Decorative background elements */}
@@ -27,8 +29,8 @@ export default async function LoginPage(props: { searchParams: Promise<{ error?:
             <span className="text-white text-3xl font-serif">汉</span>
           </div>
           <CardTitle className="text-3xl font-serif text-slate-800 font-bold tracking-tight">Đăng nhập</CardTitle>
-          <CardDescription className="text-slate-500 font-serif text-base">
-            Chào mừng trở lại với Hán Ngữ AI
+          <CardDescription className={`font-serif text-base ${isRedirected ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
+            {isRedirected ? 'Vui lòng đăng nhập để sử dụng chức năng này.' : 'Chào mừng trở lại với Hán Ngữ AI'}
           </CardDescription>
         </CardHeader>
         <CardContent className="px-8 pb-8">
