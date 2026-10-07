@@ -108,7 +108,7 @@ export async function analyzeLessonAction(lessonId: string) {
 Trả về MỘT OBJECT JSON duy nhất theo đúng cấu trúc sau (không dùng markdown):
 {
   "words": [{"hanzi": "chữ", "pinyin": "pinyin", "vi": "nghĩa"}], // Tách toàn bộ văn bản thành từng từ một (kể cả dấu câu).
-  "key_vocab": [{"hanzi": "chữ", "pinyin": "pinyin", "vi": "nghĩa"}], // Trích xuất 5-10 từ vựng quan trọng nhất trong bài.
+  "key_vocab": [{"hanzi": "chữ", "pinyin": "pinyin", "vi": "nghĩa", "example_hanzi": "câu ví dụ tiếng trung chứa từ này", "example_pinyin": "pinyin của câu ví dụ", "example_vi": "nghĩa của câu ví dụ"}], // Trích xuất 5-10 từ vựng quan trọng nhất trong bài kèm câu ví dụ thực tế lấy từ trong bài hoặc tự tạo phù hợp ngữ cảnh.
   "pinyin_text": "Phiên âm toàn bộ đoạn văn bản thành pinyin (có dấu thanh điệu, viết liền thành câu).",
   "translation": "Dịch toàn bộ đoạn văn bản sang tiếng Việt sao cho tự nhiên nhất.",
   "grammar": [{"structure": "cấu trúc (vd: 离...很远)", "explanation": "giải thích cách dùng bằng tiếng Việt"}] // Trích xuất 1-3 cấu trúc ngữ pháp quan trọng trong bài (nếu có).
@@ -164,7 +164,7 @@ ${lesson.original_text}`;
 }
 
 
-export async function saveVocabularyAction(word: { hanzi: string, pinyin: string, vi: string }) {
+export async function saveVocabularyAction(word: { hanzi: string, pinyin: string, vi: string, example_hanzi?: string, example_pinyin?: string, example_vi?: string }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
@@ -183,7 +183,10 @@ export async function saveVocabularyAction(word: { hanzi: string, pinyin: string
         hanzi: word.hanzi,
         pinyin: word.pinyin,
         meaning_vi: word.vi,
-        hsk_level: 'Chưa phân loại'
+        hsk_level: 'Chưa phân loại',
+        example_hanzi: word.example_hanzi || null,
+        example_pinyin: word.example_pinyin || null,
+        example_vi: word.example_vi || null
       })
       .select('id')
       .single()

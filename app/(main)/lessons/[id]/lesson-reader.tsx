@@ -9,7 +9,7 @@ import HanziWriterComponent from '@/components/hanzi-writer-comp'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
-type Word = { hanzi: string, pinyin: string, vi: string }
+type Word = { hanzi: string, pinyin: string, vi: string, example_hanzi?: string, example_pinyin?: string, example_vi?: string }
 type Grammar = { structure: string, explanation: string }
 type AiData = {
   words?: Word[],
