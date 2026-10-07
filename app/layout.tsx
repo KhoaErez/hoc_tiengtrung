@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
 };
 
-import NextTopLoader from 'nextjs-toploader';
+
 
 export default function RootLayout({
   children,
@@ -38,7 +38,7 @@ export default function RootLayout({
       className={`${lora.variable} ${notoSerifSC.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-serif">
-        <NextTopLoader color="#b91c1c" height={3} showSpinner={false} />
+
         {children}
         <Toaster richColors position="top-center" />
       </body>
