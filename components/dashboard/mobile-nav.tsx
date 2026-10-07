@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, BookOpen, PenTool, BrainCircuit, ChevronLeft, LogOut } from 'lucide-react'
+import { Home, BookOpen, PenTool, BrainCircuit, ChevronLeft, LogOut, GraduationCap } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 
 export function MobileHeader() {
@@ -10,11 +10,11 @@ export function MobileHeader() {
   const pathname = usePathname()
   
   // Don't show back button on main dashboard
-  const isHome = pathname === '/dashboard'
+  const isHome = pathname === '/'
 
   return (
-    <header className="md:hidden h-16 border-b border-slate-200/50 bg-[cfdfdfc]/90 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
-      <div className="flex/items-center">
+    <header className="md:hidden h-16 border-b border-slate-200/50 bg-[#fdfdfc]/90 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
+      <div className="flex items-center">
         {!isHome && (
           <button 
             onClick={() => router.back()} 
@@ -46,14 +46,15 @@ export function MobileNav() {
   const pathname = usePathname()
   
   const navItems = [
-    { href: '/dashboard', icon: Home, label: 'Trang chủ' },
-    { href: '/lessons', icon: BookOpen, label: 'Bài học' },
-    { href: '/write', icon: PenTool, label: 'Viẽt' },
-    { href: '/review', icon: BrainCircuit, label: 'Ón tập' },
+    { href: '/', icon: Home, label: 'Trang chủ' },
+    { href: '/topics', icon: GraduationCap, label: 'HSK' },
+    { href: '/lessons', icon: BookOpen, label: 'Sưu tầm' },
+    { href: '/write', icon: PenTool, label: 'Viết' },
+    { href: '/review', icon: BrainCircuit, label: 'Ôn tập' },
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[cfdfdfc]/95 backdrop-blur-xl border-t border-slate-200/50 z-30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#fdfdfc]/95 backdrop-blur-xl border-t border-slate-200/50 z-30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
       <div className="flex items-center justify-around h-full px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')

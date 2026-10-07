@@ -27,7 +27,22 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const PROTECTED_ROUTES = ['/lessons', '/write', '/review', '/vocabulary', '/grammar']
+  const path = request.nextUrl.pathname
+  const isProtectedRoute = PROTECTED_ROUTES.some(route => path.startsWith(route))
+
+  if (isProtectedRoute && !user) {
+    const redirectUrl = new URL('/login', request.url)
+    redirectUrl.searchParams.set('redirect', path)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // Allow authenticated users to not see the login page if they accidentally visit it
+  if (user && (path.startsWith('/login') || path.startsWith('/register'))) {
+    return NextResponse.redirect(new URL('/', request.url))
+  }
 
   return supabaseResponse
 }

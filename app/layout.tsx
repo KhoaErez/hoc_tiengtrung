@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lora, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
+import { Toaster } from 'sonner';
 
 const lora = Lora({
   variable: "--font-lora",
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-serif">
         <NextTopLoader color="#b91c1c" height={3} showSpinner={false} />
         {children}
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );

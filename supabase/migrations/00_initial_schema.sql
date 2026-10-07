@@ -2,7 +2,7 @@
 create extension if not exists "uuid-ossp";
 
 -- 1. PROFILES
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
   email text not null,
   display_name text,
@@ -11,7 +11,7 @@ create table public.profiles (
 );
 
 -- 2. TOPICS
-create table public.topics (
+create table if not exists public.topics (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   name_vi text not null,
@@ -22,7 +22,7 @@ create table public.topics (
 );
 
 -- 3. LESSONS
-create table public.lessons (
+create table if not exists public.lessons (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   topic_id uuid references public.topics(id) on delete set null,
@@ -38,7 +38,7 @@ create table public.lessons (
 );
 
 -- 4. VOCABULARIES (Global dictionary)
-create table public.vocabularies (
+create table if not exists public.vocabularies (
   id uuid default uuid_generate_v4() primary key,
   hanzi text not null,
   pinyin text not null,
@@ -49,7 +49,7 @@ create table public.vocabularies (
 );
 
 -- 5. LESSON_VOCABULARIES (User selected vocabs for a lesson)
-create table public.lesson_vocabularies (
+create table if not exists public.lesson_vocabularies (
   id uuid default uuid_generate_v4() primary key,
   lesson_id uuid references public.lessons(id) on delete cascade not null,
   vocabulary_id uuid references public.vocabularies(id) on delete cascade not null,
@@ -59,7 +59,7 @@ create table public.lesson_vocabularies (
 );
 
 -- 6. GRAMMAR_POINTS (Global grammar)
-create table public.grammar_points (
+create table if not exists public.grammar_points (
   id uuid default uuid_generate_v4() primary key,
   name text not null,
   pattern text not null,
@@ -68,7 +68,7 @@ create table public.grammar_points (
 );
 
 -- 7. LESSON_GRAMMAR_POINTS (User selected grammar for a lesson)
-create table public.lesson_grammar_points (
+create table if not exists public.lesson_grammar_points (
   id uuid default uuid_generate_v4() primary key,
   lesson_id uuid references public.lessons(id) on delete cascade not null,
   grammar_point_id uuid references public.grammar_points(id) on delete cascade not null,
@@ -77,7 +77,7 @@ create table public.lesson_grammar_points (
 );
 
 -- 8. GRAMMAR_EXAMPLES
-create table public.grammar_examples (
+create table if not exists public.grammar_examples (
   id uuid default uuid_generate_v4() primary key,
   grammar_point_id uuid references public.grammar_points(id) on delete cascade not null,
   chinese text not null,
@@ -88,7 +88,7 @@ create table public.grammar_examples (
 );
 
 -- 9. USER_VOCABULARIES (Progress tracking)
-create table public.user_vocabularies (
+create table if not exists public.user_vocabularies (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   vocabulary_id uuid references public.vocabularies(id) on delete cascade not null,
@@ -100,7 +100,7 @@ create table public.user_vocabularies (
 );
 
 -- 10. AI_GENERATIONS
-create table public.ai_generations (
+create table if not exists public.ai_generations (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   lesson_id uuid references public.lessons(id) on delete cascade,
@@ -112,7 +112,7 @@ create table public.ai_generations (
 );
 
 -- 11. FILES (For uploaded docs/pdfs)
-create table public.files (
+create table if not exists public.files (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   lesson_id uuid references public.lessons(id) on delete cascade,
