@@ -55,33 +55,33 @@
 }
 
 :root {
-  /* Notebook Aesthetic */
-  --background: #FDFBF7; /* Ivory/vàng nhạt giấy cũ */
-  --foreground: #2C2C2A; /* Đen nhám mực tàu */
+  /* Premium Editorial Aesthetic */
+  --background: #FAFAF8; /* Trắng ngà ấm nhẹ tinh tế */
+  --foreground: #1F1F1E; /* Đen tuyền sắc nét */
   
-  --card: #FDFBF7;
-  --card-foreground: #2C2C2A;
+  --card: #FFFFFF;
+  --card-foreground: #1F1F1E;
   
-  --popover: #FDFBF7;
-  --popover-foreground: #2C2C2A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1F1F1E;
   
-  --primary: #C83D32; /* Đỏ chu sa (mực dấu triện) */
+  --primary: #8B1A10; /* Đỏ đô (Deep Crimson) cực kỳ sang trọng */
   --primary-foreground: #FFFFFF;
   
-  --secondary: #F0EDE5; /* Màu giấy tối hơn chút */
-  --secondary-foreground: #2C2C2A;
+  --secondary: #F0EFEA; /* Xám ấm */
+  --secondary-foreground: #1F1F1E;
   
-  --muted: #F0EDE5;
-  --muted-foreground: #7E7C73; /* Xám nhạt cho text phụ */
+  --muted: #F0EFEA;
+  --muted-foreground: #71706C; /* Xám thanh lịch cho text phụ */
   
-  --accent: #F4EBE8; /* Đỏ nhạt để highlight */
-  --accent-foreground: #C83D32;
+  --accent: #F7EAE8; /* Nền đỏ cực nhạt cho hover */
+  --accent-foreground: #8B1A10;
   
   --destructive: oklch(0.577 0.245 27.325);
   
-  --border: #E8E4D9; /* Đường kẻ vở */
-  --input: #E8E4D9;
-  --ring: #C83D32;
+  --border: #E6E4DF; /* Viền siêu nhạt */
+  --input: #E6E4DF;
+  --ring: #8B1A10;
   
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -89,46 +89,46 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   
-  --radius: 0.2rem; /* Giữ bo góc cực nhỏ để giống sách giấy */
+  --radius: 0.5rem; /* Bo góc mềm mại, sang trọng (8px) */
   
-  --sidebar: #FDFBF7;
-  --sidebar-foreground: #2C2C2A;
-  --sidebar-primary: #C83D32;
+  --sidebar: #FAFAF8;
+  --sidebar-foreground: #1F1F1E;
+  --sidebar-primary: #8B1A10;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F4EBE8;
-  --sidebar-accent-foreground: #C83D32;
-  --sidebar-border: #E8E4D9;
-  --sidebar-ring: #C83D32;
+  --sidebar-accent: #F7EAE8;
+  --sidebar-accent-foreground: #8B1A10;
+  --sidebar-border: #E6E4DF;
+  --sidebar-ring: #8B1A10;
 }
 
 .dark {
-  /* Dark Mode: Vở giấy đen mực trắng */
-  --background: #1A1A18;
-  --foreground: #F4EFE6;
+  /* Premium Luxury Dark Mode */
+  --background: #09090B; /* Đen tuyền sắc nét mượt mà */
+  --foreground: #FAFAF8; 
   
-  --card: #1A1A18;
-  --card-foreground: #F4EFE6;
+  --card: #121214;
+  --card-foreground: #FAFAF8;
   
-  --popover: #1A1A18;
-  --popover-foreground: #F4EFE6;
+  --popover: #121214;
+  --popover-foreground: #FAFAF8;
   
-  --primary: #D45045; /* Đỏ sáng hơn trên nền tối */
+  --primary: #E11D48; /* Đỏ Rose/Crimson sáng, cực kỳ bắt mắt trên nền đen */
   --primary-foreground: #FFFFFF;
   
-  --secondary: #2C2C2A;
-  --secondary-foreground: #F4EFE6;
+  --secondary: #18181B; /* Xám than tinh tế */
+  --secondary-foreground: #FAFAF8;
   
-  --muted: #2C2C2A;
-  --muted-foreground: #A19F95;
+  --muted: #18181B;
+  --muted-foreground: #A1A1AA;
   
-  --accent: #3A2E2C;
-  --accent-foreground: #D45045;
+  --accent: #27272A; /* Xám than sáng hơn chút để hover */
+  --accent-foreground: #E11D48;
   
   --destructive: oklch(0.704 0.191 22.216);
   
-  --border: #3A3A38;
-  --input: #3A3A38;
-  --ring: #D45045;
+  --border: #27272A;
+  --input: #27272A;
+  --ring: #E11D48;
   
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -136,14 +136,14 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   
-  --sidebar: #1A1A18;
-  --sidebar-foreground: #F4EFE6;
-  --sidebar-primary: #D45045;
+  --sidebar: #09090B;
+  --sidebar-foreground: #FAFAF8;
+  --sidebar-primary: #E11D48;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #3A2E2C;
-  --sidebar-accent-foreground: #D45045;
-  --sidebar-border: #3A3A38;
-  --sidebar-ring: #D45045;
+  --sidebar-accent: #27272A;
+  --sidebar-accent-foreground: #E11D48;
+  --sidebar-border: #27272A;
+  --sidebar-ring: #E11D48;
 }
 
 @layer base {
