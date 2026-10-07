@@ -58,26 +58,35 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-page/95 backdrop-blur-xl border-t border-border z-30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.02)]">
       <div className="flex items-center justify-around h-full px-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+          
+          const content = (
+            <>
+              <div className={`relative p-1.5 rounded-full transition-all duration-300 ${isActive ? 'bg-accent-soft' : 'bg-transparent'}`}>
+                <item.icon className={`h-5 w-5 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
+                {isActive && (
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-app-accent rounded-full" />
+                )}
+              </div>
+              <span className={`text-[10px] tracking-wide transition-all duration-300 ${isActive ? 'font-medium font-serif' : 'font-normal font-serif'}`}>
+                {item.label}
+              </span>
+            </>
+          )
+
+          const containerClasses = `flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-200 ${
+            isActive ? 'text-app-accent' : 'text-muted hover:text-title'
+          }`
+
           if (item.href === '/write' || item.href === '/review') {
             return (
               <ProtectedLink
                 key={item.href}
                 href={item.href}
                 isLoggedIn={isLoggedIn}
-                className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all ${
-                  isActive ? 'text-app-accent' : 'text-muted hover:text-title'
-                }`}
+                className={containerClasses}
               >
-                <div className={`relative p-1 rounded-xl transition-all duration-300 ${isActive ? 'bg-accent-soft' : 'bg-transparent'}`}>
-                  <item.icon className={`h-6 w-6 transition-all duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
-                  {isActive && (
-                    <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-app-accent rounded-full" />
-                  )}
-                </div>
-                <span className={`text-[10px] font-serif transition-all duration-300 ${isActive ? 'font-medium' : 'font-normal'}`}>
-                  {item.label}
-                </span>
+                {content}
               </ProtectedLink>
             )
           }
@@ -86,16 +95,9 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             <Link 
               key={item.href} 
               href={item.href}
-              className={`flex flex-col items-center justify-center w-16 h-full gap-1 transition-all duration-200 ${
-                isActive ? 'text-app-accent' : 'text-muted hover:text-title'
-              }`}
+              className={containerClasses}
             >
-              <div className={`p-1.5 rounded-full transition-all duration-300 ${
-                isActive ? 'bg-accent-soft' : 'bg-transparent'
-              }`}>
-                <item.icon className={`h-5 w-5 ${isActive ? 'scale-110' : 'scale-100'}`} />
-              </div>
-              <span className="text-[10px] font-medium tracking-wide">{item.label}</span>
+              {content}
             </Link>
           )
         })}
