@@ -50,9 +50,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --color-page: var(--bg-page);
+  --color-card: var(--bg-card);
   --color-card-featured: var(--bg-card-featured);
   --color-title: var(--text-title);
   --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
   --color-app-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
