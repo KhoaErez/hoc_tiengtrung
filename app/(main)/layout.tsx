@@ -58,7 +58,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </div>
         </div>
         
-        <div className="p-4 border-t border-border">
+        <div className="px-4 py-2 border-t border-border">
           {user ? (
             <form action={logout}>
               <button className="w-full flex items-center gap-3 px-3 py-2 text-muted hover:text-app-accent transition-colors">
