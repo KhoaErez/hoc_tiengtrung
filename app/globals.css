@@ -49,39 +49,92 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-page: var(--bg-page);
+  --color-card-featured: var(--bg-card-featured);
+  --color-title: var(--text-title);
+  --color-body: var(--text-body);
+  --color-app-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-gold: var(--gold);
+  
+  --color-border-strong: var(--border-strong);
+  --color-jade: var(--jade);
+  --color-jade-soft: var(--jade-soft);
+  --color-gold-soft: var(--gold-soft);
+  --color-navy-soft: var(--navy-soft);
+  --color-track: var(--track);
+  
+  --shadow-sm: 0 1px 2px rgba(60, 40, 20, 0.06), 0 1px 3px rgba(60, 40, 20, 0.04);
+  --shadow-md: 0 4px 12px rgba(60, 40, 20, 0.08);
+  
+  --color-hsk-12: var(--hsk-12);
+  --color-hsk-12-text: var(--hsk-12-text);
+  --color-hsk-34: var(--hsk-34);
+  --color-hsk-34-text: var(--hsk-34-text);
+  --color-hsk-56: var(--hsk-56);
+  --color-hsk-56-text: var(--hsk-56-text);
 }
 
 :root {
-  /* Premium Editorial Aesthetic */
-  --background: #FAFAF8; /* Trắng ngà ấm nhẹ tinh tế */
-  --foreground: #1F1F1E; /* Đen tuyền sắc nét */
+  /* Core Design Tokens */
+  --bg-page: #FAF7F2;
+  --bg-card: #FFFFFF;
+  --bg-card-featured: #FBEFEA;
+  --border: #E8E0D4;
+  --border-strong: #DDD2C1;
+  --text-title: #1C2233;
+  --text-body: #3F4657;
+  --text-muted: #6A7081;
   
-  --card: #FFFFFF;
-  --card-foreground: #1F1F1E;
+  /* Màu nhấn */
+  --accent: #B8312B;
+  --accent-hover: #8F2420;
+  --accent-soft: #F6E3DF;
+  --jade: #3F7A5C;
+  --jade-soft: #E4F0E8;
+  --gold: #B88A3E;
+  --gold-soft: #F7ECD3;
+  --navy-soft: #E6E9F0;
   
-  --popover: #FFFFFF;
-  --popover-foreground: #1F1F1E;
+  /* Khác */
+  --track: #EFE7DA;
+
+  /* HSK Badges Tokens */
+  --hsk-12: #E8F5E9;
+  --hsk-12-text: #2E7D32;
+  --hsk-34: #FFF8E1;
+  --hsk-34-text: #B88A3E;
+  --hsk-56: #F6E3DF;
+  --hsk-56-text: #B8312B;
+
+  /* Shadcn UI Mappings */
+  --background: var(--bg-page);
+  --foreground: var(--text-body);
   
-  --primary: #8B1A10; /* Đỏ đô (Deep Crimson) cực kỳ sang trọng */
+  --card: var(--bg-card);
+  --card-foreground: var(--text-body);
+  
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-body);
+  
+  --primary: var(--text-title); /* Primary buttons use navy */
   --primary-foreground: #FFFFFF;
   
-  --secondary: #F0EFEA; /* Xám ấm */
-  --secondary-foreground: #1F1F1E;
+  --secondary: var(--accent-soft);
+  --secondary-foreground: var(--text-title);
   
-  --muted: #F0EFEA;
-  --muted-foreground: #71706C; /* Xám thanh lịch cho text phụ */
+  --muted: #F3F4F6;
+  --muted-foreground: var(--text-muted);
   
-  --accent: #F7EAE8; /* Nền đỏ cực nhạt cho hover */
-  --accent-foreground: #8B1A10;
+  --accent-ui: var(--accent-soft);
+  --accent-foreground: var(--accent);
   
   --destructive: oklch(0.577 0.245 27.325);
   
-  --border: #E6E4DF; /* Viền siêu nhạt */
-  --input: #E6E4DF;
-  --ring: #8B1A10;
+  --border: var(--border);
+  --input: var(--border);
+  --ring: var(--accent);
   
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -89,61 +142,72 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   
-  --radius: 0.5rem; /* Bo góc mềm mại, sang trọng (8px) */
+  --radius: 0.5rem;
   
-  --sidebar: #FAFAF8;
-  --sidebar-foreground: #1F1F1E;
-  --sidebar-primary: #8B1A10;
+  --sidebar: var(--bg-page);
+  --sidebar-foreground: var(--text-body);
+  --sidebar-primary: var(--text-title);
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F7EAE8;
-  --sidebar-accent-foreground: #8B1A10;
-  --sidebar-border: #E6E4DF;
-  --sidebar-ring: #8B1A10;
+  --sidebar-accent: var(--accent-soft);
+  --sidebar-accent-foreground: var(--text-title);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--accent);
 }
 
 .dark {
-  /* Premium Luxury Dark Mode */
-  --background: #09090B; /* Đen tuyền sắc nét mượt mà */
-  --foreground: #FAFAF8; 
-  
-  --card: #121214;
-  --card-foreground: #FAFAF8;
-  
-  --popover: #121214;
-  --popover-foreground: #FAFAF8;
-  
-  --primary: #E11D48; /* Đỏ Rose/Crimson sáng, cực kỳ bắt mắt trên nền đen */
-  --primary-foreground: #FFFFFF;
-  
-  --secondary: #18181B; /* Xám than tinh tế */
-  --secondary-foreground: #FAFAF8;
-  
-  --muted: #18181B;
-  --muted-foreground: #A1A1AA;
-  
-  --accent: #27272A; /* Xám than sáng hơn chút để hover */
-  --accent-foreground: #E11D48;
-  
+  /* Dark Mode Fallback (Keep it working if toggled) */
+  --bg-page: #121212;
+  --bg-card: #1E1E1E;
+  --bg-card-featured: #2C211F;
+  --border: #333333;
+  --text-title: #E0E0E0;
+  --text-body: #B0B0B0;
+  --text-muted: #808080;
+  --accent: #D32F2F;
+  --accent-hover: #B71C1C;
+  --accent-soft: #3B1C1A;
+  --gold: #FFC107;
+
+  --hsk-12: #1B5E20;
+  --hsk-12-text: #A5D6A7;
+  --hsk-34: #3E2723;
+  --hsk-34-text: #FFE082;
+  --hsk-56: #3B1C1A;
+  --hsk-56-text: #EF9A9A;
+
+  --background: var(--bg-page);
+  --foreground: var(--text-body);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-body);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-body);
+  --primary: var(--text-title);
+  --primary-foreground: #121212;
+  --secondary: var(--accent-soft);
+  --secondary-foreground: var(--text-title);
+  --muted: #27272A;
+  --muted-foreground: var(--text-muted);
+  --accent-ui: var(--accent-soft);
+  --accent-foreground: var(--accent);
   --destructive: oklch(0.704 0.191 22.216);
-  
-  --border: #27272A;
-  --input: #27272A;
-  --ring: #E11D48;
-  
+  --border: var(--border);
+  --input: var(--border);
+  --ring: var(--accent);
+
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  
-  --sidebar: #09090B;
-  --sidebar-foreground: #FAFAF8;
-  --sidebar-primary: #E11D48;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #27272A;
-  --sidebar-accent-foreground: #E11D48;
-  --sidebar-border: #27272A;
-  --sidebar-ring: #E11D48;
+
+  --sidebar: var(--bg-page);
+  --sidebar-foreground: var(--text-body);
+  --sidebar-primary: var(--text-title);
+  --sidebar-primary-foreground: #121212;
+  --sidebar-accent: var(--accent-soft);
+  --sidebar-accent-foreground: var(--text-title);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--accent);
 }
 
 @layer base {
