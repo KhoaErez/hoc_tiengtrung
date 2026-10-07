@@ -21,11 +21,13 @@ export default async function LessonsPage() {
           <h1 className="text-3xl font-serif text-slate-800">Chủ đề sưu tầm</h1>
           <p className="text-slate-500 font-serif mt-1">Những bài học và chủ đề được sưu tầm từ cộng đồng</p>
         </div>
-        <Link href="/lessons/create">
-          <Button className="font-serif">
-            <PlusCircle className="mr-2 h-4 w-4" /> Thêm Bài Mới
-          </Button>
-        </Link>
+        {user && (
+          <Link href="/lessons/create">
+            <Button className="font-serif">
+              <PlusCircle className="mr-2 h-4 w-4" /> Thêm Bài Mới
+            </Button>
+          </Link>
+        )}
       </div>
 
       <LessonListClient lessons={lessons || []} currentUserId={user?.id} />

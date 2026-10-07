@@ -88,41 +88,43 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        {isSelectMode ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500 font-serif mr-2">Đã chọn: {selectedIds.size}</span>
+      {currentUserId && (
+        <div className="flex justify-end mb-4">
+          {isSelectMode ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500 font-serif mr-2">Đã chọn: {selectedIds.size}</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={toggleSelectMode}
+                className="font-serif"
+              >
+                Hủy chọn
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={() => setShowConfirmDialog(true)}
+                disabled={selectedIds.size === 0 || isDeleting}
+                className="font-serif bg-red-600 hover:bg-red-700 text-white disabled:bg-slate-200 disabled:text-slate-400"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Xóa đã chọn
+              </Button>
+            </div>
+          ) : (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={toggleSelectMode}
-              className="font-serif"
+              className="font-serif text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
             >
-              Hủy chọn
+              <CheckSquare className="h-4 w-4 mr-2" />
+              Chọn để xóa
             </Button>
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={() => setShowConfirmDialog(true)}
-              disabled={selectedIds.size === 0 || isDeleting}
-              className="font-serif bg-red-600 hover:bg-red-700 text-white disabled:bg-slate-200 disabled:text-slate-400"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Xóa đã chọn
-            </Button>
-          </div>
-        ) : (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={toggleSelectMode}
-            className="font-serif text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-          >
-            <CheckSquare className="h-4 w-4 mr-2" />
-            Chọn để xóa
-          </Button>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mt-8">
         {lessons.map((lesson, index) => {

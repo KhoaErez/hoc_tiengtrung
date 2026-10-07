@@ -1,7 +1,7 @@
 import { type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-const PROTECTED_ROUTES = ['/lessons', '/write', '/review', '/vocabulary', '/grammar']
+const PROTECTED_ROUTES = ['/lessons/create', '/write', '/review', '/vocabulary', '/grammar']
 
 export async function middleware(request: NextRequest) {
   // `updateSession` currently returns `NextResponse` and already calls `supabase.auth.getUser()` inside.
