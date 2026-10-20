@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { AuthSubmitButton } from '../submit-button'
+import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
 import { X } from 'lucide-react'
 
 export default async function RegisterPage(props: { searchParams: Promise<{ error?: string }> }) {
@@ -23,17 +24,28 @@ export default async function RegisterPage(props: { searchParams: Promise<{ erro
         </Link>
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 to-amber-500" />
         
-        <CardHeader className="space-y-2 pb-8 pt-10 text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl flex items-center justify-center shadow-lg shadow-red-700/20 mb-4 transform -rotate-3">
+        <CardHeader className="space-y-2 pb-6 pt-10 text-center">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl flex items-center justify-center shadow-lg shadow-red-700/20 mb-3 transform -rotate-3">
             <span className="text-white text-3xl font-serif">學</span>
           </div>
           <CardTitle className="text-3xl font-serif text-slate-800 font-bold tracking-tight">Tạo tài khoản</CardTitle>
           <CardDescription className="text-slate-500 font-serif text-base">
-            Bắt đầu trang vở mới của bạn
+            Bắt đầu trang vở mới của bạn cùng Chinese Notebook
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-8 pb-8">
-          <form action={signup} className="space-y-5">
+        <CardContent className="px-8 pb-8 space-y-5">
+          {/* Google OAuth Quick Sign up */}
+          <GoogleSignInButton text="Đăng ký nhanh với Google" redirectUrl="/" />
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center my-1">
+            <div className="border-t border-slate-200/80 w-full" />
+            <span className="bg-white/90 px-3 text-xs font-serif text-slate-400 absolute">
+              hoặc tạo tài khoản bằng email
+            </span>
+          </div>
+
+          <form action={signup} className="space-y-4 pt-1">
             <div className="space-y-2 relative group">
               <Label htmlFor="full_name" className="font-serif text-slate-700 font-medium">Tên hiển thị</Label>
               <Input 
