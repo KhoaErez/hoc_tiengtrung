@@ -8,6 +8,10 @@ import { Card } from '@/components/ui/card'
 import { markVocabLearnedAction } from '../../review/actions'
 import { toast } from 'sonner'
 
+import { AudioButton } from '@/components/ui/audio-button'
+
+import { useChineseTTS } from '@/hooks/use-chinese-tts'
+
 type Vocabulary = {
   id: string
   hanzi: string
@@ -27,7 +31,7 @@ export default function SystemLessonReader({
   vocabularies: Vocabulary[]
   userVocabs: string[] // Array of learned vocabulary IDs
 }) {
-  const [playingId, setPlayingId] = useState<string | null>(null)
+  const { speak } = useChineseTTS()
   
   // Learning Mode State
   const [isLearning, setIsLearning] = useState(false)
@@ -36,17 +40,6 @@ export default function SystemLessonReader({
   const [isUpdating, setIsUpdating] = useState(false)
   // Local state to instantly update UI after learning
   const [localUserVocabs, setLocalUserVocabs] = useState<string[]>(userVocabs)
-
-  const playAudio = (text: string, id: string) => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      setPlayingId(id)
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'zh-CN'
-      utterance.rate = 0.8
-      utterance.onend = () => setPlayingId(null)
-      window.speechSynthesis.speak(utterance)
-    }
-  }
 
   const handleLearnAnswer = async (isRemembered: boolean) => {
     setIsUpdating(true)
@@ -98,7 +91,7 @@ export default function SystemLessonReader({
           onClick={() => {
             if (!showAnswer) {
               setShowAnswer(true)
-              playAudio(currentVocab.hanzi, currentVocab.id)
+              speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
             }
           }}
         >
@@ -109,18 +102,24 @@ export default function SystemLessonReader({
             </div>
           ) : (
             <div className="text-center flex flex-col items-center justify-center w-full h-full p-4 md:p-8 bg-red-700/5 rounded-sm">
-              <span className="text-xl text-slate-500 font-sans tracking-widest mb-4">{currentVocab.pinyin}</span>
-              <span className="text-[60px] md:text-[80px] font-serif text-red-700 leading-none mb-6">{currentVocab.hanzi}</span>
-              <div className="bg-white px-6 py-3 border-2 border-slate-200 rounded-sm shadow-sm mb-6">
+              <span className="text-xl text-slate-500 font-sans tracking-widest mb-2">{currentVocab.pinyin}</span>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <span className="text-[60px] md:text-[80px] font-serif text-red-700 leading-none">{currentVocab.hanzi}</span>
+                <AudioButton text={currentVocab.hanzi} id={`fc-${currentVocab.id}`} size="md" variant="subtle" tooltip="Nghe phát âm từ này" />
+              </div>
+              <div className="bg-white px-6 py-2.5 border-2 border-slate-200 rounded-sm shadow-sm mb-4">
                 <span className="text-xl md:text-2xl font-serif text-slate-800">{currentVocab.meaning_vi}</span>
               </div>
               
               {/* Example block */}
               {currentVocab.example_hanzi && (
-                <div className="bg-white/50 p-4 border border-slate-200 rounded w-full max-w-sm text-center">
-                  <div className="text-sm font-sans text-slate-500 mb-1">{currentVocab.example_pinyin}</div>
-                  <div className="text-lg font-serif text-slate-800 mb-1">{currentVocab.example_hanzi}</div>
-                  <div className="text-sm text-slate-600 font-serif italic">{currentVocab.example_vi}</div>
+                <div className="bg-white/70 p-3.5 border border-slate-200 rounded-sm w-full max-w-sm text-center space-y-1">
+                  <div className="text-xs font-sans text-slate-500">{currentVocab.example_pinyin}</div>
+                  <div className="text-base md:text-lg font-serif text-slate-800 flex items-center justify-center gap-2">
+                    <span>{currentVocab.example_hanzi}</span>
+                    <AudioButton text={currentVocab.example_hanzi} id={`fc-ex-${currentVocab.id}`} size="xs" variant="ghost" tooltip="Nghe câu ví dụ" />
+                  </div>
+                  <div className="text-xs md:text-sm text-slate-600 font-serif italic">{currentVocab.example_vi}</div>
                 </div>
               )}
             </div>
@@ -130,10 +129,10 @@ export default function SystemLessonReader({
         <div className="mt-8 flex gap-4 h-14">
           {!showAnswer ? (
             <Button 
-              className="w-full h-full text-lg font-serif transition-colors bg-red-700 hover:bg-red-800 text-white"
+              className="w-full h-full text-lg font-serif transition-colors bg-red-700 hover:bg-red-800 text-white cursor-pointer"
               onClick={() => {
                 setShowAnswer(true)
-                playAudio(currentVocab.hanzi, currentVocab.id)
+                speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
               }}
             >
               Lật thẻ
@@ -221,21 +220,29 @@ export default function SystemLessonReader({
                   {vocab.example_hanzi && (
                     <div className="bg-slate-50 p-3 md:p-4 rounded border-l-4 border-slate-300 group-hover:border-red-300 transition-colors space-y-1">
                       <div className="text-slate-500 font-sans text-sm">{vocab.example_pinyin}</div>
-                      <div className="text-slate-700 font-serif text-lg">{vocab.example_hanzi}</div>
+                      <div className="text-slate-700 font-serif text-lg flex items-center justify-between gap-2">
+                        <span>{vocab.example_hanzi}</span>
+                        <AudioButton 
+                          text={vocab.example_hanzi} 
+                          id={`ex-${vocab.id}`} 
+                          size="xs" 
+                          variant="subtle" 
+                          tooltip="Nghe câu ví dụ tiếng Trung" 
+                        />
+                      </div>
                       <div className="text-slate-600 font-serif italic text-sm">{vocab.example_vi}</div>
                     </div>
                   )}
                 </div>
                 
                 <div className="flex items-center gap-3 shrink-0 md:justify-end">
-                  <Button 
+                  <AudioButton 
+                    text={vocab.hanzi} 
+                    id={vocab.id} 
+                    size="md" 
                     variant="ghost" 
-                    size="icon" 
-                    onClick={() => playAudio(vocab.hanzi, vocab.id)}
-                    className={`rounded-full ${playingId === vocab.id ? 'text-red-700 bg-red-50' : 'text-slate-400 hover:text-red-700 hover:bg-red-50'}`}
-                  >
-                    <Volume2 className="h-5 w-5" />
-                  </Button>
+                    tooltip="Nghe phát âm từ vựng" 
+                  />
                   
                   {isLearned ? (
                     <div className="flex items-center gap-1.5 text-xs font-sans tracking-wide uppercase px-3 py-1.5 rounded-sm border bg-green-50 border-green-200 text-green-700">

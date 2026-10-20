@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, BookOpen, PenTool, BrainCircuit, ChevronLeft, LogOut, GraduationCap } from 'lucide-react'
+import { Home, BookOpen, BrainCircuit, ChevronLeft, LogOut, GraduationCap, Component, Keyboard } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 import { ProtectedLink } from '@/components/protected-link'
 
@@ -44,21 +44,27 @@ export function MobileHeader() {
 }
 
 export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
-  const pathname = usePathname()
+  const pathname = usePathname() || '/'
   
   const navItems = [
     { href: '/', icon: Home, label: 'Trang chủ' },
     { href: '/topics', icon: GraduationCap, label: 'HSK' },
     { href: '/lessons', icon: BookOpen, label: 'Sưu tầm' },
-    { href: '/write', icon: PenTool, label: 'Viết' },
+    { href: '/radicals', icon: Component, label: 'Bộ thủ' },
+    { href: '/typing', icon: Keyboard, label: 'Luyện gõ' },
     { href: '/review', icon: BrainCircuit, label: 'Ôn tập' },
   ]
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-page/95 backdrop-blur-xl border-t border-border z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] box-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className="grid grid-cols-5 h-[60px] items-center px-1">
+      <div className="grid grid-cols-6 h-[60px] items-center px-0.5">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href + '/'))
+          const isActive =
+            item.href === '/'
+              ? pathname === '/'
+              : item.href === '/topics'
+              ? pathname === '/topics' || pathname.startsWith('/topics/') || pathname.startsWith('/hsk')
+              : pathname === item.href || pathname.startsWith(item.href + '/')
           
           const content = (
             <>
@@ -78,7 +84,7 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             isActive ? 'text-app-accent' : 'text-muted hover:text-title'
           }`
 
-          if (item.href === '/write' || item.href === '/review') {
+          if (item.href === '/review') {
             return (
               <ProtectedLink
                 key={item.href}

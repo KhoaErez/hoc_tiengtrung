@@ -9,8 +9,12 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  /* Override default serif font with Lora and Noto Serif SC */
-  --font-serif: var(--font-lora), var(--font-noto-serif-sc), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  /* Chinese Font Stack (Hắc thể hiện đại): Noto Sans SC / PingFang SC / Microsoft YaHei */
+  --font-chinese: var(--font-noto-sans-sc), "Noto Sans SC", -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+  --font-noto-serif-sc: var(--font-chinese);
+  --font-hanzi: var(--font-chinese);
+  /* Serif cho tiếng Việt (Lora) và Hắc thể hiện đại cho chữ Hán */
+  --font-serif: var(--font-lora), var(--font-chinese), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-heading: var(--font-serif);
   
   --color-sidebar-ring: var(--sidebar-ring);
@@ -222,4 +226,32 @@
   html {
     @apply font-serif; /* Mặc định dùng serif cho toàn bộ web */
   }
+}
+
+/* Ẩn thanh cuộn xấu nhưng vẫn cuộn mượt mà */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Typography chuẩn cho chữ Hán (Hắc thể hiện đại cân đối, rõ nét) */
+.font-hanzi,
+.font-chinese,
+[lang="zh"] {
+  font-family: var(--font-chinese) !important;
+  font-feature-settings: "palt" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

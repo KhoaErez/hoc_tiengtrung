@@ -1,0 +1,74 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import ProfileClient from './profile-client'
+
+export const dynamic = 'force-dynamic'
+
+export default async function ProfilePage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login?next=/profile')
+  }
+
+  // 1. Fetch user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url, created_at')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  // 2. Fetch user learning counts from Supabase
+  const now = new Date().toISOString()
+  const [
+    { count: savedCount },
+    { count: memorizedCount },
+    { count: customLessonsCount },
+    { count: dueReviewCount },
+    { data: userVocabsData }
+  ] = await Promise.all([
+    supabase.from('user_vocabularies').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('user_vocabularies').select('*', { count: 'exact', head: true }).eq('user_id', user.id).gte('review_interval_days', 21),
+    supabase.from('lessons').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('user_vocabularies').select('*', { count: 'exact', head: true }).eq('user_id', user.id).lte('next_review_at', now),
+    supabase.from('user_vocabularies').select('id, vocabularies!inner(hsk_level)').eq('user_id', user.id)
+  ])
+
+  // 3. Count learned vocabs per HSK level
+  const hskCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+  userVocabsData?.forEach((uv: unknown) => {
+    const item = uv as { vocabularies: { hsk_level?: string } | { hsk_level?: string }[] }
+    const v = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies
+    const match = v?.hsk_level?.match(/HSK (\d)/)
+    if (match) {
+      const lvl = parseInt(match[1])
+      if (lvl >= 1 && lvl <= 6) {
+        hskCounts[lvl] = (hskCounts[lvl] || 0) + 1
+      }
+    }
+  })
+
+  const displayName = profile?.display_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Học viên'
+
+  return (
+    <div className="max-w-5xl mx-auto space-y-8 pb-16">
+      <ProfileClient
+        user={{
+          id: user.id,
+          email: user.email || '',
+          displayName,
+          avatarUrl: profile?.avatar_url || null,
+          createdAt: profile?.created_at || user.created_at,
+        }}
+        stats={{
+          savedVocabCount: savedCount || 0,
+          memorizedVocabCount: memorizedCount || 0,
+          customLessonsCount: customLessonsCount || 0,
+          dueReviewCount: dueReviewCount || 0,
+          hskCounts,
+        }}
+      />
+    </div>
+  )
+}

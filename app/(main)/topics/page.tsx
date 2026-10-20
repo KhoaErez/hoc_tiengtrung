@@ -17,7 +17,6 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  let lessons: { id: string; title: string; subtitle: string | null; lesson_number: number | null; vocab_count: number }[] = []
   let userVocabCount = 0
   let reviewVocabCount = 0
   let recentVocabs: { hanzi: string; pinyin: string; vi: string }[] = []
@@ -31,18 +30,13 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
     .eq('hsk_level', currentHsk)
     .order('lesson_number', { ascending: true })
 
-  lessons = lessonsData?.map(l => ({
-    id: l.id,
-    title: l.title,
-    subtitle: l.subtitle,
-    lesson_number: l.lesson_number,
-    vocab_count: (l.lesson_vocabularies as unknown as [{ count: number }])?.[0]?.count || 0
-  })) || []
+  // Map to store learned vocab count per lesson
+  const lessonLearnedCountMap: Record<string, number> = {}
 
   if (user) {
     // User is logged in, fetch user stats
     
-    // Fetch global vocabularies for this HSK level (optional, if still keeping the tab)
+    // Fetch global vocabularies for this HSK level
     const { data: globalVocabsData } = await supabase
       .from('vocabularies')
       .select('id, hanzi, pinyin, meaning_vi, example_hanzi, example_pinyin, example_vi')
@@ -51,14 +45,22 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
       
     globalVocabs = globalVocabsData || []
 
-    // Count user vocabularies for this HSK level
-    const { count: vocabCount } = await supabase
+    // Count user vocabularies for this HSK level and map per lesson
+    const { data: userVocabs } = await supabase
       .from('user_vocabularies')
-      .select('id, vocabularies!inner(hsk_level)', { count: 'exact', head: true })
+      .select('vocabulary_id, vocabularies!inner(hsk_level, lesson_id)')
       .eq('user_id', user.id)
       .eq('vocabularies.hsk_level', currentHsk)
-      
-    userVocabCount = vocabCount || 0
+
+    userVocabCount = userVocabs?.length || 0
+
+    userVocabs?.forEach((uv: unknown) => {
+      const item = uv as { vocabulary_id: string; vocabularies: { lesson_id?: string } | { lesson_id?: string }[] }
+      const v = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies
+      if (v?.lesson_id) {
+        lessonLearnedCountMap[v.lesson_id] = (lessonLearnedCountMap[v.lesson_id] || 0) + 1
+      }
+    })
 
     // Count vocabularies needing review
     const now = new Date().toISOString()
@@ -90,6 +92,23 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
       }
     }) || []
   }
+
+  // Format lessons with real user progress
+  const lessons = lessonsData?.map(l => {
+    const vocabCount = (l.lesson_vocabularies as unknown as [{ count: number }])?.[0]?.count || 0
+    const learnedCount = lessonLearnedCountMap[l.id] || 0
+    const isCompleted = vocabCount > 0 && learnedCount >= vocabCount
+
+    return {
+      id: l.id,
+      title: l.title,
+      subtitle: l.subtitle,
+      lesson_number: l.lesson_number ?? null,
+      vocab_count: vocabCount,
+      learned_vocab_count: learnedCount,
+      is_completed: isCompleted,
+    }
+  }) || []
 
   return (
     <div className="max-w-5xl mx-auto pb-24 md:pb-12">

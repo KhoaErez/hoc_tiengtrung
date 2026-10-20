@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { correctWritingAction } from './actions'
 import { PenTool, CheckCircle2, Sparkles, Loader2, AlertCircle, XCircle, CheckCircle, BookOpen, Lightbulb } from 'lucide-react'
 import { toast } from 'sonner'
+import { AudioButton } from '@/components/ui/audio-button'
+import { PassageAudioPlayer } from '@/components/ui/passage-audio-player'
 
 interface AIResult {
   score: number;
@@ -198,9 +200,17 @@ export default function WritingClient() {
               </div>
             </div>
             <div className="space-y-3">
-              <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" /> Bài viết đã sửa
-              </h3>
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Bài viết đã sửa
+                </h3>
+                <PassageAudioPlayer 
+                  text={result.correctedText} 
+                  title="Nghe bài viết đã sửa" 
+                  id="ai-corrected-text" 
+                  compact 
+                />
+              </div>
               <div className="bg-green-50 p-4 rounded-md border border-green-200 min-h-[150px] text-lg font-serif leading-loose whitespace-pre-wrap">
                 {result.correctedText}
               </div>
@@ -231,9 +241,18 @@ export default function WritingClient() {
                         <span className="text-lg line-through text-slate-500">{err.original}</span>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="text-green-500 shrink-0 mt-1" size={20} />
-                      <div className="text-lg text-slate-800">{err.correction}</div>
+                    <div className="flex items-center justify-between gap-3 bg-green-50/60 p-2.5 rounded border border-green-200/60">
+                      <div className="flex items-start gap-2.5">
+                        <CheckCircle className="text-green-500 shrink-0 mt-1" size={18} />
+                        <div className="text-lg text-slate-800 font-medium">{err.correction}</div>
+                      </div>
+                      <AudioButton 
+                        text={err.correction} 
+                        id={`write-corr-${idx}`} 
+                        size="xs" 
+                        variant="ghost" 
+                        tooltip="Nghe câu sửa đúng" 
+                      />
                     </div>
                     <div className="pl-8 pt-2 border-t mt-2">
                       <p className="text-slate-700"><strong>Giải thích:</strong> {err.explanation}</p>
@@ -253,13 +272,33 @@ export default function WritingClient() {
               {result.vocabularySuggestions?.length > 0 ? (
                 <ul className="space-y-4">
                   {result.vocabularySuggestions.map((v, idx) => (
-                    <li key={idx} className="bg-slate-50 p-3 rounded border">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-xl font-bold text-red-700">{v.word}</span>
-                        <span className="text-sm text-slate-500">{v.pinyin}</span>
+                    <li key={idx} className="bg-slate-50 p-3.5 rounded border space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-bold text-red-700">{v.word}</span>
+                          <span className="text-sm text-slate-500 font-sans">{v.pinyin}</span>
+                        </div>
+                        <AudioButton 
+                          text={v.word} 
+                          id={`sugg-word-${idx}`} 
+                          size="xs" 
+                          variant="ghost" 
+                          tooltip="Nghe từ vựng" 
+                        />
                       </div>
-                      <p className="text-slate-700 mb-1">{v.meaning}</p>
-                      <p className="text-sm text-slate-500 italic">Ví dụ: {v.example}</p>
+                      <p className="text-slate-700">{v.meaning}</p>
+                      {v.example && (
+                        <div className="flex items-center justify-between gap-2 text-sm text-slate-600 bg-white/70 p-2 rounded border border-slate-200/60 mt-1">
+                          <span className="italic">Ví dụ: {v.example}</span>
+                          <AudioButton 
+                            text={v.example} 
+                            id={`sugg-ex-${idx}`} 
+                            size="xs" 
+                            variant="subtle" 
+                            tooltip="Nghe câu ví dụ" 
+                          />
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>

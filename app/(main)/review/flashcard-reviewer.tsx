@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { updateReviewStatusAction } from './actions'
-import { BrainCircuit, CheckCircle, XCircle, Volume2 } from 'lucide-react'
+import { BrainCircuit, CheckCircle, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import { AudioButton } from '@/components/ui/audio-button'
+import { stopAllAudio } from '@/lib/tts/tts-engine'
 
 type Vocab = {
   id: string; // user_vocab_id
@@ -22,16 +24,6 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
   const [showAnswer, setShowAnswer] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const playAudio = (text: string) => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'zh-CN'
-      utterance.rate = 0.8
-      window.speechSynthesis.speak(utterance)
-    }
-  }
-
   if (currentIndex >= vocabs.length) {
     return (
       <div className="text-center py-20">
@@ -47,6 +39,7 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
   const currentVocab = vocabs[currentIndex]
 
   const handleAnswer = async (isRemembered: boolean) => {
+    stopAllAudio()
     setIsUpdating(true)
     try {
       await updateReviewStatusAction(currentVocab.id, isRemembered)
@@ -73,36 +66,47 @@ export default function FlashcardReviewer({ vocabs }: { vocabs: Vocab[] }) {
       >
         {!showAnswer ? (
           <div className="text-center space-y-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center gap-4">
               <span className="text-[120px] font-serif text-slate-800 leading-none">{currentVocab.hanzi}</span>
-              <button 
-                onClick={(e) => { e.stopPropagation(); playAudio(currentVocab.hanzi); }}
-                className="text-slate-400 hover:text-red-700 p-4 rounded-full hover:bg-red-50 transition-colors"
-              >
-                <Volume2 className="h-8 w-8" />
-              </button>
+              <AudioButton 
+                text={currentVocab.hanzi} 
+                id={`fc-front-${currentVocab.id}`} 
+                size="lg" 
+                variant="ghost" 
+                tooltip="Nghe phát âm từ này" 
+              />
             </div>
             <p className="text-slate-400 font-serif text-sm">Chạm để lật thẻ</p>
           </div>
         ) : (
           <div className="text-center flex flex-col items-center justify-center w-full h-full p-8 bg-red-700/5 rounded-sm">
             <span className="text-xl text-slate-500 font-sans tracking-widest mb-4">{currentVocab.pinyin}</span>
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-[80px] font-serif text-red-700 leading-none">{currentVocab.hanzi}</span>
-              <button 
-                onClick={(e) => { e.stopPropagation(); playAudio(currentVocab.hanzi); }}
-                className="text-slate-400 hover:text-red-700 p-3 rounded-full hover:bg-red-50 transition-colors"
-              >
-                <Volume2 className="h-8 w-8" />
-              </button>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <span className="text-[72px] md:text-[80px] font-serif text-red-700 leading-none">{currentVocab.hanzi}</span>
+              <AudioButton 
+                text={currentVocab.hanzi} 
+                id={`fc-back-${currentVocab.id}`} 
+                size="lg" 
+                variant="subtle" 
+                tooltip="Nghe phát âm" 
+              />
             </div>
             <div className="bg-white px-6 py-3 border-2 border-slate-200 rounded-sm shadow-sm w-full max-w-sm mx-auto">
               <span className="text-2xl font-serif text-slate-800">{currentVocab.meaning_vi}</span>
             </div>
             {currentVocab.example_hanzi && (
-              <div className="mt-6 border-t-2 border-slate-200/50 pt-4 w-full text-center px-4 max-w-sm mx-auto">
-                <div className="text-xl font-serif text-slate-800 mb-1">{currentVocab.example_hanzi}</div>
-                <div className="text-sm font-sans tracking-widest text-slate-500 mb-2">{currentVocab.example_pinyin}</div>
+              <div className="mt-6 border-t-2 border-slate-200/50 pt-4 w-full text-center px-4 max-w-sm mx-auto space-y-1">
+                <div className="text-xl font-serif text-slate-800 flex items-center justify-center gap-2">
+                  <span>{currentVocab.example_hanzi}</span>
+                  <AudioButton 
+                    text={currentVocab.example_hanzi} 
+                    id={`fc-ex-${currentVocab.id}`} 
+                    size="xs" 
+                    variant="ghost" 
+                    tooltip="Nghe câu ví dụ" 
+                  />
+                </div>
+                <div className="text-sm font-sans tracking-widest text-slate-500 mb-1">{currentVocab.example_pinyin}</div>
                 <div className="text-base font-serif text-slate-700">{currentVocab.example_vi}</div>
               </div>
             )}
