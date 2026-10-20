@@ -35,18 +35,39 @@ export async function checkIsAdmin() {
     return { isAdmin: false, user: null, profile: null }
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, email, display_name, is_admin')
-    .eq('id', user.id)
-    .maybeSingle()
+  let profile: any = null
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, display_name, is_admin')
+      .eq('id', user.id)
+      .maybeSingle()
 
-  const adminEmails = process.env.ADMIN_EMAIL
+    if (!error && data) {
+      profile = data
+    } else {
+      // Fallback if is_admin column doesn't exist yet
+      const { data: fallbackData } = await supabase
+        .from('profiles')
+        .select('id, email, display_name')
+        .eq('id', user.id)
+        .maybeSingle()
+      profile = fallbackData
+    }
+  } catch {
+    profile = null
+  }
+
+  const configuredAdmins = process.env.ADMIN_EMAIL
     ? process.env.ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase())
     : []
 
+  // Ensure khoadev27@gmail.com is always authorized even if env hasn't refreshed
+  const adminEmails = Array.from(new Set(['khoadev27@gmail.com', ...configuredAdmins]))
+
+  const userEmail = (user.email || profile?.email || '').toLowerCase()
   const isAdmin = Boolean(
-    profile?.is_admin || (user.email && adminEmails.includes(user.email.toLowerCase()))
+    profile?.is_admin === true || (userEmail && adminEmails.includes(userEmail))
   )
 
   return { isAdmin, user, profile }
@@ -130,9 +151,31 @@ export async function getAdminFeedbacksAction(options?: {
   const supabase = await createClient()
 
   // 1. Fetch statistics
-  const { data: allFeedbacks } = await supabase
+  const { data: allFeedbacks, error: countErr } = await supabase
     .from('feedback')
     .select('id, status, category')
+
+  if (countErr && countErr.code === 'PGRST205') {
+    return {
+      success: false,
+      error: 'Bảng feedback chưa tồn tại trong cơ sở dữ liệu Supabase. Vui lòng chạy đoạn mã SQL kích hoạt.',
+      needsMigration: true,
+      data: [],
+      stats: {
+        total: 0,
+        new: 0,
+        under_review: 0,
+        in_progress: 0,
+        resolved: 0,
+        wont_fix: 0,
+        bug: 0,
+        feature: 0,
+        ui_ux: 0,
+        content: 0,
+        other: 0,
+      },
+    }
+  }
 
   const stats = {
     total: allFeedbacks?.length || 0,

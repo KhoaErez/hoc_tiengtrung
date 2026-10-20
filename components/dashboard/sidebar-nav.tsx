@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { Home, BookOpen, Component, Keyboard, BrainCircuit } from 'lucide-react'
+import { Home, BookOpen, Component, Keyboard, BrainCircuit, ShieldCheck, MessageSquare } from 'lucide-react'
 import { ProtectedLink } from '@/components/protected-link'
 
 interface SidebarNavProps {
   isLoggedIn: boolean
+  isAdmin?: boolean
 }
 
-export function SidebarNav({ isLoggedIn }: SidebarNavProps) {
+export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
   const pathname = usePathname() || '/'
   const searchParams = useSearchParams()
   const qParam = searchParams?.get('q')
@@ -160,6 +161,41 @@ export function SidebarNav({ isLoggedIn }: SidebarNavProps) {
           })}
         </nav>
       </div>
+
+      {/* 3. Admin & Phân quyền Navigation (Only for Admin users) */}
+      {isAdmin && (
+        <div className="px-2 pt-3 border-t border-border">
+          <h3 className="px-3 text-xs font-semibold text-app-accent uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-app-accent" />
+            <span>Quản trị viên</span>
+          </h3>
+          <nav className="space-y-0.5" aria-label="Menu quản trị">
+            <Link
+              href="/admin"
+              className={`flex items-center gap-3 px-3 py-1.5 text-sm rounded-md border-l-4 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
+                pathname === '/admin'
+                  ? 'border-app-accent bg-app-accent-soft text-app-accent font-medium shadow-2xs'
+                  : 'border-transparent text-body hover:text-app-accent hover:bg-black/5'
+              }`}
+            >
+              <ShieldCheck className={`h-4 w-4 transition-colors ${pathname === '/admin' ? 'text-app-accent' : 'text-muted'}`} />
+              <span>Phân quyền tài khoản</span>
+            </Link>
+
+            <Link
+              href="/admin/feedback"
+              className={`flex items-center gap-3 px-3 py-1.5 text-sm rounded-md border-l-4 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
+                pathname.startsWith('/admin/feedback')
+                  ? 'border-app-accent bg-app-accent-soft text-app-accent font-medium shadow-2xs'
+                  : 'border-transparent text-body hover:text-app-accent hover:bg-black/5'
+              }`}
+            >
+              <MessageSquare className={`h-4 w-4 transition-colors ${pathname.startsWith('/admin/feedback') ? 'text-app-accent' : 'text-muted'}`} />
+              <span>Góp ý & Báo lỗi</span>
+            </Link>
+          </nav>
+        </div>
+      )}
     </div>
   )
 }

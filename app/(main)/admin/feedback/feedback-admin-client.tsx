@@ -166,16 +166,28 @@ export function FeedbackAdminClient({
           </h1>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleFilter()}
-          disabled={isPending}
-          className="font-serif border-border text-xs gap-1.5 self-start sm:self-auto"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
-          <span>Làm mới dữ liệu</span>
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Link href="/admin">
+            <Button
+              variant="outline"
+              size="sm"
+              className="font-serif border-border text-xs gap-1.5"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-app-accent" />
+              <span>Phân quyền tài khoản</span>
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleFilter()}
+            disabled={isPending}
+            className="font-serif border-border text-xs gap-1.5"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin' : ''}`} />
+            <span>Làm mới dữ liệu</span>
+          </Button>
+        </div>
       </div>
 
       {/* Overview Stat Cards */}

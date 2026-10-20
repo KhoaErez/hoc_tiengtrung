@@ -1,21 +1,14 @@
 import { ReactNode, Suspense } from 'react'
 import Link from 'next/link'
-import { BookOpen, Search, PlusCircle, LogOut, LogIn } from 'lucide-react'
+import { BookOpen, Search, PlusCircle, LogOut, LogIn, ShieldCheck } from 'lucide-react'
 import { MobileHeader, MobileNav } from '@/components/dashboard/mobile-nav'
 import { UserNav } from '@/components/dashboard/user-nav'
 import { logout } from '@/app/auth/actions'
-import { createClient } from '@/lib/supabase/server'
 import { SidebarNav } from '@/components/dashboard/sidebar-nav'
+import { checkIsAdmin } from '@/app/actions/feedback'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  let profile = null
-  if (user) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-    profile = data
-  }
+  const { isAdmin, user, profile } = await checkIsAdmin()
 
   return (
     <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-hidden">
@@ -47,7 +40,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </div>
           }
         >
-          <SidebarNav isLoggedIn={!!user} />
+          <SidebarNav isLoggedIn={!!user} isAdmin={isAdmin} />
         </Suspense>
 
         {/* Footer Đăng nhập / Đăng xuất - Cố định ở đáy Sidebar */}
@@ -63,10 +56,19 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                   {(profile?.display_name || user.email)?.[0]?.toUpperCase() || 'U'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-title truncate group-hover:text-app-accent">
-                    {profile?.display_name || user.email?.split('@')[0]}
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium text-title truncate group-hover:text-app-accent">
+                      {profile?.display_name || user.email?.split('@')[0]}
+                    </p>
+                    {isAdmin && (
+                      <span className="bg-app-accent text-white text-[9px] font-sans font-bold uppercase px-1 py-0.2 rounded flex-shrink-0">
+                        Admin
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted truncate">
+                    {isAdmin ? 'Quản trị viên' : 'Hồ sơ & Tiến độ'}
                   </p>
-                  <p className="text-[11px] text-muted truncate">Hồ sơ & Tiến độ</p>
                 </div>
               </Link>
               <form action={logout}>
@@ -101,11 +103,26 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             />
           </div>
           <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Link 
+                href="/admin" 
+                className="flex items-center gap-1.5 border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white px-3 py-2 rounded-md text-sm transition-colors shadow-2xs font-serif"
+                title="Trung tâm Quản trị & Phân quyền"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>Quản trị</span>
+              </Link>
+            )}
             <Link href="/lessons/create" className="flex items-center gap-2 bg-title hover:bg-[#2A3250] text-white px-4 py-2 rounded-md text-sm transition-colors shadow-sm">
               <PlusCircle className="h-4 w-4" />
               <span>Tạo bài học</span>
             </Link>
-            <UserNav user={user} displayName={profile?.display_name} avatarUrl={profile?.avatar_url} />
+            <UserNav 
+              user={user} 
+              displayName={profile?.display_name} 
+              avatarUrl={profile?.avatar_url} 
+              isAdmin={isAdmin}
+            />
           </div>
         </header>
 

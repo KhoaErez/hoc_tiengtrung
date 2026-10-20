@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { User, LogOut, ChevronDown, GraduationCap, Keyboard, Sparkles, LogIn, UserPlus } from 'lucide-react'
+import { User, LogOut, ChevronDown, GraduationCap, Keyboard, Sparkles, LogIn, UserPlus, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 
 interface UserNavProps {
@@ -13,9 +13,10 @@ interface UserNavProps {
   } | null
   displayName?: string
   avatarUrl?: string | null
+  isAdmin?: boolean
 }
 
-export function UserNav({ user, displayName, avatarUrl }: UserNavProps) {
+export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
@@ -74,7 +75,14 @@ export function UserNav({ user, displayName, avatarUrl }: UserNavProps) {
           </div>
         )}
         <div className="hidden sm:block text-left max-w-[120px]">
-          <p className="text-xs font-serif font-bold text-title truncate leading-tight">{name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs font-serif font-bold text-title truncate leading-tight">{name}</p>
+            {isAdmin && (
+              <span className="bg-app-accent text-white text-[9px] font-sans font-bold uppercase px-1 py-0.2 rounded">
+                Admin
+              </span>
+            )}
+          </div>
           <p className="text-[10px] text-muted font-sans truncate leading-none mt-0.5">{user.email}</p>
         </div>
         <ChevronDown className={`w-3.5 h-3.5 text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -85,9 +93,34 @@ export function UserNav({ user, displayName, avatarUrl }: UserNavProps) {
         <div className="absolute right-0 mt-2 w-64 bg-card border border-border rounded-xl shadow-lg p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
           {/* Header trong menu */}
           <div className="p-3 border-b border-border/80 bg-page/40 rounded-lg">
-            <p className="font-serif font-bold text-sm text-title truncate">{name}</p>
-            <p className="text-xs text-muted font-sans truncate">{user.email}</p>
+            <div className="flex items-center justify-between">
+              <p className="font-serif font-bold text-sm text-title truncate">{name}</p>
+              {isAdmin && (
+                <span className="inline-flex items-center gap-0.5 bg-app-accent-soft text-app-accent border border-app-accent/30 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <ShieldCheck className="w-3 h-3" />
+                  Admin
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted font-sans truncate mt-0.5">{user.email}</p>
           </div>
+
+          {/* Admin link nếu là quản trị viên */}
+          {isAdmin && (
+            <div className="py-1 border-b border-border/80">
+              <Link
+                href="/admin"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-app-accent bg-app-accent-soft/30 hover:bg-app-accent-soft transition-colors"
+              >
+                <ShieldAlert className="w-4 h-4 text-app-accent flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs font-bold leading-tight">Quản trị & Phân quyền</p>
+                  <p className="text-[10px] text-muted font-sans leading-none mt-0.5 truncate">Xem thành viên & báo lỗi</p>
+                </div>
+              </Link>
+            </div>
+          )}
 
           {/* Các liên kết điều hướng tài khoản */}
           <div className="py-1 space-y-0.5 font-serif text-xs md:text-sm">
