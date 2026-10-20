@@ -23,10 +23,6 @@ export default async function HomePage() {
   const { data: { user } } = await supabase.auth.getUser()
   
   let displayName = 'Học viên'
-  let savedVocabCount = 0
-  let memorizedVocabCount = 0
-  let lessonCount = 0
-  let reviewWords: { hanzi: string; pinyin: string; vi: string }[] = []
   const userVocabsPerLevel: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
 
   // 1. Fetch system lessons count per HSK level from database
@@ -48,43 +44,22 @@ export default async function HomePage() {
 
   // 2. If logged in, fetch user data & vocabulary counts
   if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('display_name')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Học viên'
-
-    const [
-      { count: savedCount },
-      { count: memorizedCount },
-      { count: lessonsCreated },
-      { data: reviewWordsData },
-      { data: userVocabsData }
-    ] = await Promise.all([
-      supabase.from('user_vocabularies').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-      supabase.from('user_vocabularies').select('*', { count: 'exact', head: true }).eq('user_id', user.id).gte('review_interval_days', 21),
-      supabase.from('lessons').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-      supabase.from('user_vocabularies').select('id, vocabularies(hanzi, pinyin, meaning_vi)').eq('user_id', user.id).lte('next_review_at', new Date().toISOString()).limit(4),
-      supabase.from('user_vocabularies').select('id, vocabularies!inner(hsk_level)').eq('user_id', user.id)
+    const [profileRes, userVocabsRes] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('user_vocabularies')
+        .select('id, vocabularies!inner(hsk_level)')
+        .eq('user_id', user.id),
     ])
 
-    savedVocabCount = savedCount || 0
-    memorizedVocabCount = memorizedCount || 0
-    lessonCount = lessonsCreated || 0
+    const profile = profileRes.data
+    displayName = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Học viên'
 
-    reviewWords = reviewWordsData?.map((r: unknown) => {
-      const item = r as { vocabularies: { hanzi: string; pinyin: string; meaning_vi: string } | { hanzi: string; pinyin: string; meaning_vi: string }[] }
-      const vocab = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies
-      return {
-        hanzi: vocab?.hanzi || '',
-        pinyin: vocab?.pinyin || '',
-        vi: vocab?.meaning_vi || ''
-      }
-    }) || []
-
-    userVocabsData?.forEach((uv: unknown) => {
+    userVocabsRes.data?.forEach((uv: unknown) => {
       const item = uv as { vocabularies: { hsk_level?: string } | { hsk_level?: string }[] }
       const v = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies
       const match = v?.hsk_level?.match(/HSK (\d)/)

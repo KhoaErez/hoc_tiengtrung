@@ -14,16 +14,20 @@ export async function login(formData: FormData) {
 
   const { error } = await supabase.auth.signInWithPassword(data)
 
+  const redirectUrl = (formData.get('redirect') as string) || ''
+  const errorRedirectSuffix = redirectUrl ? `&redirect=${encodeURIComponent(redirectUrl)}` : ''
+
   if (error) {
     let errorMsg = error.message
     if (errorMsg.includes('Invalid login credentials')) errorMsg = 'Email hoặc mật khẩu không chính xác.'
     else if (errorMsg.includes('Email not confirmed')) errorMsg = 'Email chưa được xác nhận.'
     
-    redirect('/login?error=' + encodeURIComponent(errorMsg))
+    redirect(`/login?error=${encodeURIComponent(errorMsg)}${errorRedirectSuffix}`)
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  const target = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/'
+  redirect(target)
 }
 
 export async function signup(formData: FormData) {

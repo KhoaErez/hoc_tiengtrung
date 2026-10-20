@@ -768,9 +768,12 @@ export const allTypingExercises: TypingExercise[] = [
   ...hskExercises,
 ];
 
-import { HSK_TYPING_WORDS, getHskWordsByLevel, getHskLessonNumbers, HskTypingWord } from './hsk-typing-vocabularies';
-export { getHskWordsByLevel, getHskLessonNumbers };
-export type { HskTypingWord };
+export type { HskTypingWord } from './hsk-typing-vocabularies';
+
+// Danh sách các bài học hiện có của cấp HSK (mỗi cấp 10 bài chuẩn)
+export function getHskLessonNumbers(_level: number): number[] {
+  return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+}
 
 // Bộ lọc bài tập
 export interface ExerciseFilter {
@@ -788,31 +791,6 @@ export function getExercisesByMode(mode: TypingMode, filter?: ExerciseFilter): T
   else if (mode === 'vocabulary') list = vocabularyExercises;
   else if (mode === 'paragraph') list = paragraphExercises;
   else if (mode === 'hsk') {
-    const targetLevel = filter?.hskLevel || 1;
-    const hskWords = getHskWordsByLevel(targetLevel, {
-      lesson: filter?.hskLesson,
-    });
-
-    if (hskWords.length > 0) {
-      const isExampleMode = filter?.hskTarget === 'example';
-      return hskWords.map((w) => ({
-        id: isExampleMode ? `hsk-${w.id}-ex` : `hsk-${w.id}`,
-        titleZh: isExampleMode ? `${w.hanzi} [${w.pinyin}]` : `Từ vựng HSK ${w.hskLevel}`,
-        titleVi: isExampleMode ? w.meaning : w.meaning,
-        hanzi: isExampleMode ? (w.exampleHanzi || w.hanzi) : w.hanzi,
-        pinyin: isExampleMode ? (w.examplePinyin || w.pinyin) : w.pinyin,
-        meaning: isExampleMode ? (w.exampleVi || w.meaning) : w.meaning,
-        mode: 'hsk' as TypingMode,
-        hskLevel: w.hskLevel,
-        level: `HSK ${w.hskLevel} - Bài ${w.lessonNumber}`,
-        category: w.category,
-        difficulty: w.hskLevel <= 2 ? 'easy' : w.hskLevel <= 4 ? 'medium' : 'hard',
-        exampleHanzi: w.exampleHanzi,
-        examplePinyin: w.examplePinyin,
-        exampleVi: w.exampleVi,
-      }));
-    }
-
     list = hskExercises;
   }
 

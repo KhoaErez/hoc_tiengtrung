@@ -1,93 +1,78 @@
-import { login } from '@/app/auth/actions'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { AuthSubmitButton } from '../submit-button'
-import { GoogleSignInButton } from '@/components/auth/google-sign-in-button'
-import { X } from 'lucide-react'
+import { X, ArrowLeft } from 'lucide-react'
+import { LoginForm } from './login-form'
 
-export default async function LoginPage(props: { searchParams: Promise<{ error?: string, redirect?: string }> }) {
-  const searchParams = await props.searchParams;
-  const isRedirected = !!searchParams?.redirect;
-  
+export const metadata = {
+  title: 'Đăng nhập - Chinese Notebook',
+  description: 'Đăng nhập tài khoản Chinese Notebook để lưu trữ từ vựng, bài học và tiến độ ôn tập HSK.',
+}
+
+export default async function LoginPage(props: {
+  searchParams: Promise<{ error?: string; redirect?: string }>
+}) {
+  const searchParams = await props.searchParams
+  const isRedirected = Boolean(searchParams?.redirect)
+  const redirectTarget = searchParams?.redirect || '/'
+  const registerHref = searchParams?.redirect
+    ? `/register?redirect=${encodeURIComponent(searchParams.redirect)}`
+    : '/register'
+
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-amber-50 p-4 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-red-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-80 h-80 bg-amber-200/40 rounded-full blur-3xl pointer-events-none" />
-      
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/rice-paper.png')] opacity-40 pointer-events-none mix-blend-multiply" />
-      
-      <Card className="w-full max-w-md z-10 shadow-2xl border border-white/60 rounded-2xl bg-white/60 backdrop-blur-xl overflow-hidden relative">
-        <Link href="/" className="absolute top-4 right-4 z-20 text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-100/50">
-          <X className="w-5 h-5" />
+    <div className="min-h-screen w-full flex items-center justify-center bg-page relative px-4 py-8 overflow-hidden select-none">
+      {/* Background traditional rice-paper pattern texture (local, zero external DNS dependency) */}
+      <div
+        className="absolute inset-0 bg-repeat opacity-35 pointer-events-none mix-blend-multiply"
+        style={{ backgroundImage: `url('/patterns/rice-paper.png')` }}
+      />
+
+      {/* Main Authentication Card */}
+      <div className="relative w-full max-w-[420px] bg-card border border-border/80 rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-8 z-10">
+        {/* Top return button */}
+        <Link
+          href={redirectTarget}
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted hover:text-title hover:bg-page transition-colors"
+          title="Quay lại"
+          aria-label="Quay lại"
+        >
+          <X className="w-4 h-4" />
         </Link>
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 to-amber-500" />
-        
-        <CardHeader className="space-y-2 pb-6 pt-10 text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-600 to-red-800 rounded-2xl flex items-center justify-center shadow-lg shadow-red-700/20 mb-3 transform rotate-3">
-            <span className="text-white text-3xl font-serif">汉</span>
-          </div>
-          <CardTitle className="text-3xl font-serif text-slate-800 font-bold tracking-tight">Đăng nhập</CardTitle>
-          <CardDescription className={`font-serif text-base ${isRedirected ? 'text-red-600 font-medium' : 'text-slate-500'}`}>
-            {isRedirected ? 'Vui lòng đăng nhập để sử dụng chức năng này.' : 'Chào mừng trở lại với Chinese Notebook'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-8 pb-8 space-y-5">
-          {/* Google OAuth 1-Click Login */}
-          <GoogleSignInButton redirectUrl={searchParams?.redirect} />
 
-          {/* Divider */}
-          <div className="relative flex items-center justify-center my-1">
-            <div className="border-t border-slate-200/80 w-full" />
-            <span className="bg-white/90 px-3 text-xs font-serif text-slate-400 absolute">
-              hoặc đăng nhập bằng email
-            </span>
+        {/* Brand Stamp & Header */}
+        <div className="text-center space-y-2 mb-6">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-app-accent text-white font-serif text-2xl font-bold shadow-xs border border-app-accent/30 ring-4 ring-app-accent/10">
+            汉
           </div>
+          <div className="space-y-1 pt-1">
+            <h1 className="text-2xl font-serif font-bold text-title tracking-tight">
+              Đăng nhập
+            </h1>
+            <p className="text-xs sm:text-sm font-sans text-muted">
+              {isRedirected
+                ? 'Vui lòng đăng nhập để tiếp tục thao tác này'
+                : 'Chào mừng bạn trở lại với Chinese Notebook'}
+            </p>
+          </div>
+        </div>
 
-          <form action={login} className="space-y-5 pt-1">
-            <div className="space-y-2 relative group">
-              <Label htmlFor="email" className="font-serif text-slate-700 font-medium">Email</Label>
-              <Input 
-                id="email" 
-                name="email" 
-                type="email" 
-                placeholder="m@example.com" 
-                required 
-                className="rounded-xl border-slate-200/80 bg-white/50 focus-visible:ring-2 focus-visible:ring-red-500/20 focus-visible:border-red-500 transition-all duration-300 font-serif text-base h-12 shadow-sm" 
-              />
-            </div>
-            <div className="space-y-2 relative group">
-              <Label htmlFor="password" className="font-serif text-slate-700 font-medium">Mật khẩu</Label>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
-                required 
-                className="rounded-xl border-slate-200/80 bg-white/50 focus-visible:ring-2 focus-visible:ring-red-500/20 focus-visible:border-red-500 transition-all duration-300 font-serif text-base h-12 shadow-sm" 
-              />
-            </div>
-            
-            {searchParams?.error && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-start gap-2">
-                <span className="text-red-500 mt-0.5">⚠️</span>
-                <p className="text-sm text-red-600 font-serif leading-relaxed">{searchParams.error}</p>
-              </div>
-            )}
-            
-            <AuthSubmitButton text="Đăng nhập ngay" loadingText="Đang đăng nhập..." />
-          </form>
-        </CardContent>
-        <CardFooter className="pt-6 pb-8 border-t border-slate-200/50 bg-slate-50/30">
-          <p className="text-sm text-slate-500 font-serif w-full text-center">
+        {/* Interactive Client Form */}
+        <LoginForm
+          error={searchParams?.error}
+          redirectUrl={searchParams?.redirect}
+        />
+
+        {/* Footer Navigation */}
+        <div className="mt-6 pt-4 border-t border-border/60 text-center">
+          <p className="text-xs font-sans text-muted">
             Chưa có tài khoản?{' '}
-            <Link href="/register" className="text-red-600 font-medium hover:text-red-700 hover:underline transition-colors">
+            <Link
+              href={registerHref}
+              className="text-app-accent hover:text-accent-hover font-medium underline underline-offset-2 transition-colors"
+            >
               Tạo tài khoản mới
             </Link>
           </p>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

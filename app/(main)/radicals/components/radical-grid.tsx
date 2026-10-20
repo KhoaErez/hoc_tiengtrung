@@ -98,7 +98,9 @@ export default function RadicalGrid() {
     return result
   }, [query, strokeFilter, sortMode])
 
-  // Phân tách các bộ thủ theo từng nhóm số nét (chuẩn theo bố cục trong ảnh mẫu)
+  // Phân tách các bộ thủ theo từng nhóm số nét
+  const [showAllGroups, setShowAllGroups] = useState(false)
+
   const strokeSections = useMemo(() => {
     const sections: {
       strokes: number
@@ -107,15 +109,16 @@ export default function RadicalGrid() {
       radicals: Radical[]
     }[] = []
 
+    // When showing all without search query, limit initial render to top 6 groups unless user requests all
+    const maxStrokes = strokeFilter === 'all' && !query && !showAllGroups ? 6 : 17
+
     const targetStrokes =
       strokeFilter === 'all'
-        ? Array.from({ length: 17 }, (_, i) => i + 1)
+        ? Array.from({ length: maxStrokes }, (_, i) => i + 1)
         : [strokeFilter]
 
     targetStrokes.forEach((st) => {
       const inGroup = filteredRadicals.filter((r) => r.strokes === st)
-      // Khi đang xem tất cả và không tìm kiếm, luôn hiển thị đủ 17 nhóm
-      // Khi tìm kiếm, chỉ hiển thị nhóm có kết quả
       if (inGroup.length > 0 || (query === '' && strokeFilter === st)) {
         sections.push({
           strokes: st,
@@ -127,7 +130,7 @@ export default function RadicalGrid() {
     })
 
     return sections
-  }, [filteredRadicals, strokeFilter, query])
+  }, [filteredRadicals, strokeFilter, query, showAllGroups])
 
   // Lấy thông tin nhóm nét đang chọn (nếu có)
   const activeGroup = useMemo(() => {
@@ -421,6 +424,19 @@ export default function RadicalGrid() {
               )}
             </div>
           ))}
+
+          {/* Nút mở rộng xem tiếp toàn bộ 17 nhóm nét khi đang ở chế độ xem mặc định */}
+          {strokeFilter === 'all' && !query && (
+            <div className="flex justify-center pt-4 pb-2">
+              <button
+                onClick={() => setShowAllGroups(!showAllGroups)}
+                className="flex items-center gap-2 px-6 py-3 bg-card border border-border hover:border-app-accent text-body hover:text-title rounded-xl font-serif text-sm transition-all shadow-xs hover:shadow-sm"
+              >
+                <span>{showAllGroups ? 'Thu gọn về 6 nhóm nét đầu' : 'Xem tiếp 11 nhóm nét còn lại (7 - 17 nét)'}</span>
+                {showAllGroups ? <ChevronUp className="w-4 h-4 text-app-accent" /> : <ChevronDown className="w-4 h-4 text-app-accent" />}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         /* Trạng thái không có kết quả phù hợp */

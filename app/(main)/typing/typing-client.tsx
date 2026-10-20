@@ -113,16 +113,56 @@ export default function TypingClient() {
     return getHskLessonNumbers(hskLevel)
   }, [hskLevel])
 
+  // Dữ liệu bài tập HSK tải động theo nhu cầu để không làm phình to client bundle
+  const [hskDynamicExercises, setHskDynamicExercises] = useState<TypingExercise[]>([])
+
+  useEffect(() => {
+    if (mode !== 'hsk') return
+    let isCancelled = false
+
+    import('@/data/hsk-typing-vocabularies').then((mod) => {
+      if (isCancelled) return
+      const words = mod.getHskWordsByLevel(hskLevel, {
+        lesson: hskLesson > 0 ? hskLesson : undefined,
+      })
+      const isExampleMode = hskTarget === 'example'
+      const mapped: TypingExercise[] = words.map((w) => ({
+        id: isExampleMode ? `hsk-${w.id}-ex` : `hsk-${w.id}`,
+        titleZh: isExampleMode ? `${w.hanzi} [${w.pinyin}]` : `Từ vựng HSK ${w.hskLevel}`,
+        titleVi: w.meaning,
+        hanzi: isExampleMode ? (w.exampleHanzi || w.hanzi) : w.hanzi,
+        pinyin: isExampleMode ? (w.examplePinyin || w.pinyin) : w.pinyin,
+        meaning: isExampleMode ? (w.exampleVi || w.meaning) : w.meaning,
+        mode: 'hsk' as TypingMode,
+        hskLevel: w.hskLevel,
+        level: `HSK ${w.hskLevel} - Bài ${w.lessonNumber}`,
+        category: w.category,
+        difficulty: w.hskLevel <= 2 ? 'easy' : w.hskLevel <= 4 ? 'medium' : 'hard',
+        exampleHanzi: w.exampleHanzi,
+        examplePinyin: w.examplePinyin,
+        exampleVi: w.exampleVi,
+      }))
+      setHskDynamicExercises(mapped)
+    }).catch((err) => {
+      console.error('Failed to load HSK vocabulary chunk:', err)
+    })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [mode, hskLevel, hskLesson, hskTarget])
+
   // Danh sách bài tập hiện tại & Chỉ số bài đang làm
   const exercises = useMemo(() => {
+    if (mode === 'hsk') {
+      if (hskDynamicExercises.length > 0) return hskDynamicExercises
+      return getExercisesByMode('hsk', { hskLevel })
+    }
     return getExercisesByMode(mode, {
       level: levelFilter,
       category: categoryFilter,
-      hskLevel: mode === 'hsk' ? hskLevel : undefined,
-      hskLesson: mode === 'hsk' && hskLesson > 0 ? hskLesson : undefined,
-      hskTarget: mode === 'hsk' ? hskTarget : undefined,
     })
-  }, [mode, levelFilter, categoryFilter, hskLevel, hskLesson, hskTarget])
+  }, [mode, levelFilter, categoryFilter, hskDynamicExercises, hskLevel])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [exerciseEpoch, setExerciseEpoch] = useState(0)

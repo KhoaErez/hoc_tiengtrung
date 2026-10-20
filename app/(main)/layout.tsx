@@ -12,8 +12,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-hidden">
-      {/* Notebook Background Pattern */}
-      <div className="fixed inset-0 bg-[url('https://www.transparenttextures.com/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply z-0" />
+      {/* Notebook Background Pattern - Self-hosted for 0ms network latency */}
+      <div className="fixed inset-0 bg-[url('/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply z-0" />
       
       {/* Desktop Sidebar - Cố định hoàn toàn (Fixed Sidebar) */}
       <aside className="w-64 border-r border-border bg-page/95 backdrop-blur z-30 flex-col hidden md:flex fixed top-0 left-0 bottom-0 h-screen select-none">
