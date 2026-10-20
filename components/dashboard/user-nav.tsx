@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { User, LogOut, ChevronDown, GraduationCap, Keyboard, Sparkles, LogIn, UserPlus, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 
+import { useAuthModal } from '@/components/auth/auth-modal-context'
+
 interface UserNavProps {
   user: {
     id: string
@@ -19,6 +21,7 @@ interface UserNavProps {
 export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps) {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const { openLoginForm, openRegisterForm } = useAuthModal()
 
   // Đóng menu khi click ra ngoài
   useEffect(() => {
@@ -34,20 +37,22 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Link
-          href="/login"
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-serif text-title hover:text-app-accent hover:bg-page transition-colors"
+        <button
+          type="button"
+          onClick={() => openLoginForm()}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-serif text-title hover:text-app-accent hover:bg-page transition-colors cursor-pointer"
         >
           <LogIn className="w-4 h-4 text-muted" />
           <span>Đăng nhập</span>
-        </Link>
-        <Link
-          href="/register"
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-serif bg-title hover:bg-[#2A3250] text-white transition-colors shadow-2xs"
+        </button>
+        <button
+          type="button"
+          onClick={() => openRegisterForm()}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-serif bg-title hover:bg-[#2A3250] text-white transition-colors shadow-2xs cursor-pointer"
         >
           <UserPlus className="w-4 h-4" />
           <span>Đăng ký</span>
-        </Link>
+        </button>
       </div>
     )
   }

@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { AudioButton } from '@/components/ui/audio-button'
 import { HSK_LEVELS } from '@/data/hsk-curriculum'
+import { useAuthModal } from '@/components/auth/auth-modal-context'
 
 const HSK_TOTAL_VOCAB: Record<string, number> = {
   'HSK 1': 150,
@@ -79,6 +80,7 @@ export default function HskDashboardClient({
   globalVocabs = [],
   isLoggedIn,
 }: HskDashboardClientProps) {
+  const { openLoginForm } = useAuthModal()
   const [activeTab, setActiveTab] = useState<'lessons' | 'vocab'>('lessons')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
@@ -268,12 +270,14 @@ export default function HskDashboardClient({
                   </div>
                 )
               ) : (
-                <Link href="/login" className="block">
-                  <Button className="w-full sm:w-auto font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl py-5 px-6 shadow-xs text-sm flex items-center justify-center gap-2">
-                    <LogIn className="w-4 h-4" />
-                    <span>Đăng nhập để theo dõi</span>
-                  </Button>
-                </Link>
+                <Button 
+                  type="button"
+                  onClick={() => openLoginForm()}
+                  className="w-full sm:w-auto font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl py-5 px-6 shadow-xs text-sm flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Đăng nhập để theo dõi</span>
+                </Button>
               )}
             </div>
           </div>

@@ -21,26 +21,37 @@ type AiData = {
   grammar?: Grammar[]
 }
 
+import { useAuthModal } from '@/components/auth/auth-modal-context'
+
 export default function LessonReader({ lesson, aiData, originalText, runAiAction, hasAiData }: { lesson: { id: string, title: string, subtitle?: string | null }, aiData: AiData, originalText: string, runAiAction: (payload: FormData) => Promise<void>, hasAiData: boolean }) {
   const [selectedWord, setSelectedWord] = useState<Word | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [isUpdatingVocab, setIsUpdatingVocab] = useState(false)
   const [isAnalyzing, startTransition] = useTransition()
+  const { requireAuth } = useAuthModal()
   
   const [wordToDeleteIndex, setWordToDeleteIndex] = useState<number | null>(null)
 
   const handleAiAnalysis = () => {
-    startTransition(async () => {
-      const toastId = toast.loading('AI đang phân tích bài viết...')
-      try {
-        await runAiAction(new FormData())
-        toast.success('Phân tích AI hoàn tất', { id: toastId })
-      } catch (e: unknown) {
-        const err = e as { message?: string }
-        toast.error(err?.message || 'Không thể phân tích bài viết', { id: toastId })
+    requireAuth(
+      () => {
+        startTransition(async () => {
+          const toastId = toast.loading('AI đang phân tích bài viết...')
+          try {
+            await runAiAction(new FormData())
+            toast.success('Phân tích AI hoàn tất', { id: toastId })
+          } catch (e: unknown) {
+            const err = e as { message?: string }
+            toast.error(err?.message || 'Không thể phân tích bài viết', { id: toastId })
+          }
+        })
+      },
+      {
+        title: 'Bạn cần đăng nhập',
+        description: 'Đăng nhập để sử dụng tính năng phân tích bài học tiếng Trung bằng AI.',
       }
-    })
+    )
   }
 
   const handleSave = async (word: Word) => {
@@ -58,7 +69,15 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
   }
 
   const handleSaveSelected = () => {
-    if (selectedWord) handleSave(selectedWord)
+    if (!selectedWord) return
+    const wordToSave = selectedWord
+    requireAuth(
+      () => handleSave(wordToSave),
+      {
+        title: 'Bạn cần đăng nhập',
+        description: `Đăng nhập để lưu từ "${wordToSave.hanzi}" vào sổ tay từ vựng của bạn.`,
+      }
+    )
   }
 
   const handleWordClick = async (word: Word) => {

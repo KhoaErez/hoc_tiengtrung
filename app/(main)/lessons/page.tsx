@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { PlusCircle } from 'lucide-react'
+import { ProtectedLink } from '@/components/protected-link'
 import LessonListClient from './lesson-list-client'
 
 export default async function LessonsPage() {
@@ -24,13 +25,11 @@ export default async function LessonsPage() {
           </div>
           <p className="text-muted-foreground font-serif text-lg pl-4">Những bài học và chủ đề được sưu tầm từ cộng đồng</p>
         </div>
-        {user && (
-          <Link href="/lessons/create">
-            <Button className="font-serif">
-              <PlusCircle className="mr-2 h-4 w-4" /> Thêm Bài Mới
-            </Button>
-          </Link>
-        )}
+        <ProtectedLink href="/lessons/create" isLoggedIn={Boolean(user)} actionName="thêm bài học mới">
+          <Button className="font-serif">
+            <PlusCircle className="mr-2 h-4 w-4" /> Thêm Bài Mới
+          </Button>
+        </ProtectedLink>
       </div>
 
       <LessonListClient lessons={lessons || []} currentUserId={user?.id} />

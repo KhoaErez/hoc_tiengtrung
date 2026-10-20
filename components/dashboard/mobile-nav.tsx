@@ -6,9 +6,14 @@ import { Home, BookOpen, BrainCircuit, ChevronLeft, LogOut, GraduationCap, Compo
 import { logout } from '@/app/auth/actions'
 import { ProtectedLink } from '@/components/protected-link'
 
-export function MobileHeader() {
+import { useAuthModal } from '@/components/auth/auth-modal-context'
+import { LogIn } from 'lucide-react'
+
+export function MobileHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const router = useRouter()
   const pathname = usePathname()
+  const { isLoggedIn: contextLoggedIn, openLoginForm } = useAuthModal()
+  const authenticated = typeof isLoggedIn === 'boolean' ? isLoggedIn : contextLoggedIn
   
   // Don't show back button on main dashboard
   const isHome = pathname === '/'
@@ -19,7 +24,7 @@ export function MobileHeader() {
         {!isHome && (
           <button 
             onClick={() => router.back()} 
-            className="mr-3 p-2 -ml-2 rounded-full hover:bg-border active:bg-border-strong transition-colors text-muted"
+            className="mr-3 p-2 -ml-2 rounded-full hover:bg-border active:bg-border-strong transition-colors text-muted cursor-pointer"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -30,15 +35,26 @@ export function MobileHeader() {
         </div>
       </div>
       
-      <form action={logout}>
-        <button 
-          type="submit"
-          className="p-2 -mr-2 rounded-full hover:bg-accent-soft transition-colors text-muted hover:text-app-accent"
-          title="Đăng xuất"
+      {authenticated ? (
+        <form action={logout}>
+          <button 
+            type="submit"
+            className="p-2 -mr-2 rounded-full hover:bg-accent-soft transition-colors text-muted hover:text-app-accent cursor-pointer"
+            title="Đăng xuất"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => openLoginForm()}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-serif text-title hover:text-app-accent hover:bg-page transition-colors cursor-pointer"
         >
-          <LogOut className="h-5 w-5" />
+          <LogIn className="h-4 w-4 text-muted" />
+          <span>Đăng nhập</span>
         </button>
-      </form>
+      )}
     </header>
   )
 }

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { HskLevelInfo, HSK_LEVELS } from '@/data/hsk-curriculum'
 import { Button } from '@/components/ui/button'
+import { useAuthModal } from '@/components/auth/auth-modal-context'
 
 interface LessonItem {
   id: string
@@ -47,6 +48,7 @@ export default function HskLevelClient({
   stats,
   isLoggedIn,
 }: HskLevelClientProps) {
+  const { openLoginForm } = useAuthModal()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'not_started'>('all')
   const [sortBy, setSortBy] = useState<'asc' | 'desc' | 'vocab'>('asc')
@@ -206,7 +208,17 @@ export default function HskLevelClient({
         <div className="mt-4 space-y-1.5">
           <div className="flex items-center justify-between text-xs font-serif text-muted">
             <span>Tiến độ hoàn thành từ vựng cấp độ</span>
-            <span className="font-bold text-title">{isLoggedIn ? `${vocabPercent}%` : 'Chưa đăng nhập'}</span>
+            {isLoggedIn ? (
+              <span className="font-bold text-title">{vocabPercent}%</span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openLoginForm()}
+                className="font-bold text-app-accent hover:text-accent-hover underline underline-offset-2 cursor-pointer"
+              >
+                Đăng nhập để theo dõi
+              </button>
+            )}
           </div>
           <div className="w-full bg-track h-2 rounded-full overflow-hidden">
             <div 

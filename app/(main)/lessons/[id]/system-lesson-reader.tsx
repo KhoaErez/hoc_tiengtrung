@@ -25,6 +25,7 @@ import { useChineseTTS } from '@/hooks/use-chinese-tts'
 import { markVocabLearnedAction } from '../../review/actions'
 import { ttsEngine } from '@/lib/tts/tts-engine'
 import { toast } from 'sonner'
+import { useAuthModal } from '@/components/auth/auth-modal-context'
 
 export type Vocabulary = {
   id: string
@@ -66,6 +67,7 @@ export default function SystemLessonReader({
   isLoggedIn = false,
 }: SystemLessonReaderProps) {
   const { speak } = useChineseTTS()
+  const { openLoginRequired } = useAuthModal()
 
   // State management
   const [localUserVocabs, setLocalUserVocabs] = useState<string[]>(userVocabs)
@@ -90,6 +92,20 @@ export default function SystemLessonReader({
 
   // Toggle vocabulary learned status directly from the list (1-Click Optimistic UI)
   const handleToggleLearned = async (vocabId: string) => {
+    if (!isLoggedIn) {
+      const vocabItem = vocabularies.find((v) => v.id === vocabId)
+      openLoginRequired({
+        title: 'Bạn cần đăng nhập',
+        description: vocabItem
+          ? `Đăng nhập để đánh dấu từ "${vocabItem.hanzi}" đã thuộc và lưu tiến độ vào tài khoản.`
+          : 'Đăng nhập để đánh dấu từ vựng đã học và đồng bộ tiến độ học tập của bạn.',
+        onSuccess: () => {
+          handleToggleLearned(vocabId)
+        },
+      })
+      return
+    }
+
     const isCurrentlyLearned = localUserVocabs.includes(vocabId)
     const newIsLearned = !isCurrentlyLearned
 
