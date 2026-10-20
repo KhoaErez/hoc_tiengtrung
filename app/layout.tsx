@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from 'sonner';
 import { GlobalLoader } from '@/components/global-loader';
 import { AudioLifecycleManager } from '@/components/audio/audio-lifecycle-manager';
+import { FeedbackWidget } from '@/components/feedback/feedback-widget';
 import { Suspense } from 'react';
 
 const lora = Lora({
@@ -51,6 +52,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <GlobalLoader />
           <AudioLifecycleManager />
+          <FeedbackWidget />
         </Suspense>
         {children}
         <Toaster richColors position="top-center" />
