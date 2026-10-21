@@ -1,8 +1,16 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 
 export async function correctWritingAction(text: string, level: string = "Chưa xác định") {
+  // 1. Kiểm tra Feature Flag ở phía Server (Chặn gọi API AI khi tính năng đang tắt)
+  if (!isFeatureEnabled('AI_WRITING')) {
+    return { 
+      error: "Tính năng Luyện Viết AI hiện đang trong giai đoạn phát triển hoàn thiện và tạm dừng nhận bài viết mới." 
+    };
+  }
+
   if (!text || text.trim().length === 0) {
     return { error: "Vui lòng nhập bài viết trước khi phân tích." };
   }

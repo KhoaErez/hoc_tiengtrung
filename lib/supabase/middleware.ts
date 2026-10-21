@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+import { isFeatureEnabled } from '@/lib/feature-flags'
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -29,7 +31,11 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const PROTECTED_ROUTES = ['/write', '/review', '/profile']
+  const PROTECTED_ROUTES = [
+    '/review',
+    '/profile',
+    ...(isFeatureEnabled('AI_WRITING') ? ['/write'] : []),
+  ]
   const path = request.nextUrl.pathname
   const isProtectedRoute = PROTECTED_ROUTES.some(route => path.startsWith(route))
 

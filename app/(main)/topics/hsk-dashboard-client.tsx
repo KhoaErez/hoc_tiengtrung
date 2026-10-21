@@ -31,18 +31,6 @@ import { useAuthModal } from '@/components/auth/auth-modal-context'
 import { getTopicVocabulariesAction, TopicVocabItem } from './actions'
 import { formatNumber } from '@/lib/utils'
 
-const HSK_TOTAL_VOCAB: Record<string, number> = {
-  'HSK 1': 300,
-  'HSK 2': 500,
-  'HSK 3': 1000,
-  'HSK 4': 2000,
-  'HSK 5': 3600,
-  'HSK 6': 5400,
-  'HSK 7-9': 11000,
-  'Giao tiếp': 179,
-  'Công xưởng': 391,
-}
-
 export type LessonItem = {
   id: string
   title: string
@@ -914,7 +902,12 @@ export default function HskDashboardClient({
                                     </p>
                                   )}
                                 </div>
-                              ) : null}
+                              ) : (
+                                <div className="p-2.5 rounded-xl bg-page/40 border border-dashed border-border/60 text-xs text-muted font-serif italic mt-2 flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-muted/60 shrink-0" />
+                                  <span>Câu ví dụ thực tế đang được đồng bộ hóa...</span>
+                                </div>
+                              )}
                             </div>
 
                           </div>

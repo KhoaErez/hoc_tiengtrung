@@ -37,7 +37,7 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
     user
       ? supabase
           .from('user_vocabularies')
-          .select('vocabulary_id, vocabularies!inner(lesson_id)')
+          .select('vocabulary_id, vocabularies!inner(hsk_level)')
           .eq('user_id', user.id)
           .eq('vocabularies.hsk_level', currentHsk)
       : Promise.resolve({ data: null }),
@@ -60,18 +60,16 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
       : Promise.resolve({ data: null }),
   ])
 
-  // Map to store learned vocab count per lesson
-  const lessonLearnedCountMap: Record<string, number> = {}
+  // Set of learned vocabulary IDs for fast lookup
+  const learnedVocabIdSet = new Set<string>()
 
   if (user) {
     const userVocabs = userVocabsRes.data || []
     userVocabCount = userVocabs.length
 
-    userVocabs.forEach((uv: unknown) => {
-      const item = uv as { vocabulary_id: string; vocabularies: { lesson_id?: string } | { lesson_id?: string }[] }
-      const v = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies
-      if (v?.lesson_id) {
-        lessonLearnedCountMap[v.lesson_id] = (lessonLearnedCountMap[v.lesson_id] || 0) + 1
+    userVocabs.forEach((uv: any) => {
+      if (uv?.vocabulary_id) {
+        learnedVocabIdSet.add(uv.vocabulary_id)
       }
     })
 
@@ -92,7 +90,10 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
   // Format lessons with real user progress
   const lessons = lessonsData?.map(l => {
     const vocabCount = l.vocab_count ?? 0
-    const learnedCount = lessonLearnedCountMap[l.id] || 0
+    const vIds = l.vocab_ids || []
+    const learnedCount = vIds.length > 0 
+      ? vIds.filter(id => learnedVocabIdSet.has(id)).length 
+      : 0
     const isCompleted = vocabCount > 0 && learnedCount >= vocabCount
 
     return {

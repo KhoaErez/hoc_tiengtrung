@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import TypingClient from './typing-client';
 
 export const metadata: Metadata = {
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
 export default function TypingPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <TypingClient />
+      <Suspense fallback={<div className="p-12 text-center text-muted font-serif text-sm">Đang tải phòng luyện đánh máy IME...</div>}>
+        <TypingClient />
+      </Suspense>
     </div>
   );
 }

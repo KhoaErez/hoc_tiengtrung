@@ -20,16 +20,59 @@ import {
 } from 'lucide-react'
 import { ProtectedLink } from '@/components/protected-link'
 import { HSK_AUDIT_DATA } from '@/data/hsk-curriculum'
+import { formatNumber } from '@/lib/utils'
+import { getLiveVocabCountsAction } from '@/app/actions/vocab-counts'
 
 interface SidebarNavProps {
   isLoggedIn: boolean
   isAdmin?: boolean
+  initialVocabCounts?: Record<string, number | null>
 }
 
-export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
+export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarNavProps) {
   const pathname = usePathname() || '/'
   const searchParams = useSearchParams()
   const qParam = searchParams?.get('q')
+
+  // Trạng thái lưu trữ số lượng từ vựng thực tế theo thời gian thực từ Supabase
+  const [vocabCounts, setVocabCounts] = useState<Record<string, number | null> | undefined>(initialVocabCounts)
+  const [isLoadingCounts, setIsLoadingCounts] = useState<boolean>(!initialVocabCounts)
+
+  // Tải dữ liệu số lượng thực tế nếu chưa có initialVocabCounts (hoặc khi component mount)
+  React.useEffect(() => {
+    if (!initialVocabCounts) {
+      let isMounted = true
+      setIsLoadingCounts(true)
+      getLiveVocabCountsAction()
+        .then((res) => {
+          if (isMounted) {
+            setVocabCounts(res.counts)
+          }
+        })
+        .catch(() => {
+          if (isMounted) {
+            setVocabCounts(undefined)
+          }
+        })
+        .finally(() => {
+          if (isMounted) setIsLoadingCounts(false)
+        })
+      return () => { isMounted = false }
+    } else {
+      setVocabCounts(initialVocabCounts)
+    }
+  }, [initialVocabCounts])
+
+  // Lắng nghe sự kiện cập nhật từ vựng (ví dụ khi admin mutation xảy ra)
+  React.useEffect(() => {
+    const handleUpdate = () => {
+      getLiveVocabCountsAction().then((res) => {
+        setVocabCounts(res.counts)
+      }).catch(() => {})
+    }
+    window.addEventListener('vocab-counts-updated', handleUpdate)
+    return () => window.removeEventListener('vocab-counts-updated', handleUpdate)
+  }, [])
 
   // Xác định liệu người dùng có đang ở trong một mục HSK hay không
   const isCurrentlyInHsk = 
@@ -119,11 +162,12 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
       isActive: pathname === '/radicals' || pathname.startsWith('/radicals/'),
     },
     {
-      label: 'Luyện viết câu AI',
+      label: 'Luyện Viết AI',
       href: '/write',
       icon: PenTool,
       isProtected: false,
       isActive: pathname === '/write' || pathname.startsWith('/write/'),
+      badge: 'Sắp ra mắt',
     },
   ]
 
@@ -153,15 +197,30 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
     icon: React.ComponentType<{ className?: string }>
     isProtected: boolean
     isActive: boolean
+    badge?: string
   }) => {
     const Icon = item.icon
     const active = item.isActive
 
-    const linkClassName = `flex items-center gap-2.5 px-3 py-1.5 text-xs sm:text-sm rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
+    const linkClassName = `flex items-center justify-between gap-2.5 px-3 py-1.5 text-xs sm:text-sm rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
       active
         ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
         : 'border-transparent text-muted hover:bg-black/[0.03] hover:text-title'
     }`
+
+    const content = (
+      <>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
+          <span className="truncate">{item.label}</span>
+        </div>
+        {item.badge && (
+          <span className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+            {item.badge}
+          </span>
+        )}
+      </>
+    )
 
     if (item.isProtected) {
       return (
@@ -171,8 +230,7 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
           isLoggedIn={isLoggedIn}
           className={linkClassName}
         >
-          <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
-          <span className="truncate">{item.label}</span>
+          {content}
         </ProtectedLink>
       )
     }
@@ -183,9 +241,60 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
         href={item.href}
         className={linkClassName}
       >
-        <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
-        <span className="truncate">{item.label}</span>
+        {content}
       </Link>
+    )
+  }
+
+  // Hàm hiển thị badge số lượng từ vựng thực tế theo CSDL Supabase
+  const renderBadge = (tag: string, defaultStatus?: string) => {
+    // 1. Khi đang tải và chưa có dữ liệu: hiển thị skeleton (không giật layout)
+    if (isLoadingCounts && !vocabCounts) {
+      return (
+        <span className="inline-block w-10 h-3.5 bg-black/5 dark:bg-white/10 rounded animate-pulse" />
+      )
+    }
+
+    const count = vocabCounts ? vocabCounts[tag] : undefined
+
+    // 2. Truy vấn lỗi (null): hiển thị "Chưa tải được", không hiển thị số giả hay 0 từ
+    if (count === null) {
+      return (
+        <span 
+          className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-red-500/10 text-red-600 dark:text-red-400 font-medium"
+          title="Không thể tải số lượng từ vựng từ cơ sở dữ liệu lúc này"
+        >
+          Chưa tải được
+        </span>
+      )
+    }
+
+    // 3. Chưa có nội dung hoặc HSK 7-9 (0 từ trong DB): hiển thị "Sắp có"
+    if (tag === 'HSK 7-9' || (count === 0 && defaultStatus === 'coming_soon')) {
+      return (
+        <span className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+          Sắp có
+        </span>
+      )
+    }
+
+    // 4. Có số lượng thực tế: hiển thị chính xác số từ thực tế trong Supabase
+    if (typeof count === 'number') {
+      const active = isHskItemActive(tag)
+      return (
+        <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 font-medium ${
+          active
+            ? 'bg-app-accent/15 text-app-accent'
+            : 'bg-black/[0.03] text-muted'
+        }`}>
+          {formatNumber(count)} từ
+        </span>
+      )
+    }
+
+    // Fallback skeleton
+    return (
+      <span className="inline-block w-10 h-3.5 bg-black/5 dark:bg-white/10 rounded animate-pulse" />
     )
   }
 
@@ -232,7 +341,8 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
                 {stageGroup.levels.map((hsk) => {
                   const topicName = hsk.label
                   const active = isHskItemActive(topicName)
-                  const isComingSoon = hsk.data.status === 'coming_soon'
+                  const count = vocabCounts ? vocabCounts[hsk.data.tag] : undefined
+                  const isComingSoon = hsk.data.status === 'coming_soon' || (count === 0 && hsk.data.tag === 'HSK 7-9')
 
                   return (
                     <Link
@@ -261,15 +371,7 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
                         />
                         <span className="font-serif font-semibold">{hsk.label}</span>
                       </div>
-                      <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 ${
-                        isComingSoon
-                          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20'
-                          : active
-                          ? 'bg-app-accent/15 text-app-accent font-medium'
-                          : 'bg-black/[0.03] text-muted'
-                      }`}>
-                        {hsk.data.sidebarBadge}
-                      </span>
+                      {renderBadge(hsk.data.tag, hsk.data.status)}
                     </Link>
                   )
                 })}
@@ -297,11 +399,7 @@ export function SidebarNav({ isLoggedIn, isAdmin }: SidebarNavProps) {
                       <Sparkles className={`w-3 h-3 shrink-0 ${active ? 'text-app-accent' : 'text-muted'}`} />
                       <span className="font-serif truncate">{item.label}</span>
                     </div>
-                    <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 ${
-                      active ? 'bg-app-accent/15 text-app-accent font-medium' : 'bg-black/[0.03] text-muted'
-                    }`}>
-                      {item.data.sidebarBadge}
-                    </span>
+                    {renderBadge(item.topic, item.data.status)}
                   </Link>
                 )
               })}

@@ -62,7 +62,7 @@ export async function getTopicVocabulariesAction(params: {
     }
 
     const { data, count, error } = await query
-      .order('id', { ascending: true })
+      .order('pinyin', { ascending: true })
       .range(from, to)
 
     if (error) {

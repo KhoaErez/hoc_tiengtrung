@@ -10,13 +10,20 @@ import { AuthModalProvider } from '@/components/auth/auth-modal-context'
 import { AuthModal } from '@/components/auth/auth-modal'
 import { SidebarAuthButton } from '@/components/dashboard/sidebar-auth-button'
 import { BrandLogo } from '@/components/ui/brand-logo'
+import { getCachedAllVocabCounts } from '@/lib/curriculum-cache'
+import { AdminNotificationBell } from '@/components/dashboard/admin-notification-bell'
+import { AdminNotificationProvider } from '@/components/dashboard/admin-notification-context'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const { isAdmin, user, profile } = await checkIsAdmin()
+  const [{ isAdmin, user, profile }, vocabCountsRes] = await Promise.all([
+    checkIsAdmin(),
+    getCachedAllVocabCounts(),
+  ])
 
   return (
     <AuthModalProvider initialUser={user}>
-      <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-clip">
+      <AdminNotificationProvider adminId={isAdmin ? user?.id : null}>
+        <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-clip">
         {/* Notebook Background Pattern - Self-hosted for 0ms network latency */}
         <div className="fixed inset-0 bg-[url('/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply z-0" />
         
@@ -40,7 +47,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               </div>
             }
           >
-            <SidebarNav isLoggedIn={!!user} isAdmin={isAdmin} />
+            <SidebarNav 
+              isLoggedIn={!!user} 
+              isAdmin={isAdmin} 
+              initialVocabCounts={vocabCountsRes.counts} 
+            />
           </Suspense>
 
           {/* Footer Đăng nhập / Đăng xuất - Cố định ở đáy Sidebar */}
@@ -87,7 +98,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {/* Main Content Area - Cách lề md:ml-64 để vừa vặn với Fixed Sidebar */}
         <div className="flex-1 md:ml-64 flex flex-col min-h-screen min-w-0 z-10">
           {/* Mobile Header */}
-          <MobileHeader isLoggedIn={!!user} />
+          <MobileHeader isLoggedIn={!!user} isAdmin={isAdmin} adminId={user?.id} />
 
           {/* Desktop Header - Cố định ở đầu trang (Fixed Header), đồng bộ với fixed sidebar */}
           <header className="hidden md:flex h-14 border-b border-border/60 bg-page/85 backdrop-blur-md items-center justify-between px-6 sm:px-8 fixed top-0 right-0 left-0 md:left-64 z-20">
@@ -102,14 +113,17 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             {/* Cụm nút hành động chuẩn hóa chiều cao, font và bo góc */}
             <div className="flex items-center gap-2.5">
               {isAdmin && (
-                <Link 
-                  href="/admin" 
-                  className="h-9 px-3.5 rounded-xl border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white transition-all text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs select-none"
-                  title="Trung tâm Quản trị & Phân quyền"
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>Quản trị</span>
-                </Link>
+                <>
+                  <AdminNotificationBell adminId={user!.id} />
+                  <Link 
+                    href="/admin" 
+                    className="h-9 px-3.5 rounded-xl border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white transition-all text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs select-none"
+                    title="Trung tâm Quản trị & Phân quyền"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    <span>Quản trị</span>
+                  </Link>
+                </>
               )}
               <UserNav 
                 user={user} 
@@ -135,6 +149,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {/* Global Authentication Modal (Luồng 1 & Luồng 2) */}
         <AuthModal />
       </div>
+      </AdminNotificationProvider>
     </AuthModalProvider>
   )
 }

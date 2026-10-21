@@ -9,8 +9,9 @@ import { ProtectedLink } from '@/components/protected-link'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
 import { LogIn } from 'lucide-react'
 import { BrandLogo } from '@/components/ui/brand-logo'
+import { AdminNotificationBell } from '@/components/dashboard/admin-notification-bell'
 
-export function MobileHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
+export function MobileHeader({ isLoggedIn, isAdmin, adminId }: { isLoggedIn?: boolean; isAdmin?: boolean; adminId?: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const { isLoggedIn: contextLoggedIn, openLoginForm } = useAuthModal()
@@ -34,26 +35,31 @@ export function MobileHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
         <BrandLogo variant="horizontal" size="xs" showSubtitle={false} />
       </div>
       
-      {authenticated ? (
-        <form action={logout}>
-          <button 
-            type="submit"
-            className="p-1.5 -mr-1 rounded-full hover:bg-accent-soft transition-colors text-muted hover:text-app-accent cursor-pointer"
-            title="Đăng xuất"
+      <div className="flex items-center gap-1.5">
+        {authenticated && isAdmin && adminId && (
+          <AdminNotificationBell adminId={adminId} />
+        )}
+        {authenticated ? (
+          <form action={logout}>
+            <button 
+              type="submit"
+              className="p-1.5 -mr-1 rounded-full hover:bg-accent-soft transition-colors text-muted hover:text-app-accent cursor-pointer"
+              title="Đăng xuất"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => openLoginForm()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/70 text-xs font-serif text-title hover:text-app-accent hover:border-app-accent/40 hover:bg-page transition-colors cursor-pointer shadow-2xs"
           >
-            <LogOut className="h-5 w-5" />
+            <LogIn className="h-3.5 w-3.5 text-muted" />
+            <span>Đăng nhập</span>
           </button>
-        </form>
-      ) : (
-        <button
-          type="button"
-          onClick={() => openLoginForm()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/70 text-xs font-serif text-title hover:text-app-accent hover:border-app-accent/40 hover:bg-page transition-colors cursor-pointer shadow-2xs"
-        >
-          <LogIn className="h-3.5 w-3.5 text-muted" />
-          <span>Đăng nhập</span>
-        </button>
-      )}
+        )}
+      </div>
     </header>
   )
 }

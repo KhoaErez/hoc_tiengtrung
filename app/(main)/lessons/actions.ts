@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, updateTag } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function createLesson(formData: FormData) {
@@ -208,6 +208,7 @@ export async function saveVocabularyAction(word: { hanzi: string, pinyin: string
 
   revalidatePath('/')
   revalidatePath('/review')
+  updateTag('vocab-counts')
   return { success: true }
 }
 

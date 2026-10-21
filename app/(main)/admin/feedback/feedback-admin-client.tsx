@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { 
   Bug, 
   Lightbulb, 
@@ -87,16 +88,65 @@ export function FeedbackAdminClient({
   initialFeedbacks,
   initialStats,
 }: FeedbackAdminClientProps) {
+  const searchParams = useSearchParams()
+  const highlightId = searchParams?.get('highlight') || null
+
   const [feedbacks, setFeedbacks] = useState<FeedbackItem[]>(initialFeedbacks)
   const [stats, setStats] = useState<StatsData>(initialStats)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [isPending, startTransition] = useTransition()
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
 
   // Track editable notes per feedback ID
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({})
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null)
+
+  // Ref map for scrolling to highlighted feedback
+  const feedbackRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  // Auto-highlight and scroll when ?highlight= param is present
+  useEffect(() => {
+    if (!highlightId) return
+
+    // Nếu feedback đang bị ẩn bởi bộ lọc, reset filter về 'all'
+    const targetExists = feedbacks.some((f) => f.id === highlightId)
+    if (!targetExists && (statusFilter !== 'all' || categoryFilter !== 'all')) {
+      setStatusFilter('all')
+      setCategoryFilter('all')
+      setSearchQuery('')
+      // Fetch lại với filter all
+      startTransition(async () => {
+        const { getAdminFeedbacksAction } = await import('@/app/actions/feedback')
+        const res = await getAdminFeedbacksAction({})
+        if (res.success && res.data) {
+          setFeedbacks(res.data as unknown as FeedbackItem[])
+          if (res.stats) setStats(res.stats)
+        }
+      })
+    }
+
+    setHighlightedId(highlightId)
+
+    // Scroll to the highlighted element after a short delay for rendering
+    const timer = setTimeout(() => {
+      const el = feedbackRefs.current[highlightId]
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 300)
+
+    // Remove highlight animation after 4 seconds
+    const clearTimer = setTimeout(() => {
+      setHighlightedId(null)
+    }, 4000)
+
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(clearTimer)
+    }
+  }, [highlightId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch / refresh data
   const handleFilter = (newStatus?: string, newCategory?: string, newSearch?: string) => {
@@ -292,7 +342,13 @@ export function FeedbackAdminClient({
             return (
               <div
                 key={item.id}
-                className="p-5 sm:p-6 rounded-2xl border border-border bg-card shadow-2xs space-y-4 transition-all hover:border-title/30"
+                ref={(el) => { feedbackRefs.current[item.id] = el }}
+                data-feedback-id={item.id}
+                className={`p-5 sm:p-6 rounded-2xl border bg-card shadow-2xs space-y-4 transition-all hover:border-title/30 ${
+                  highlightedId === item.id
+                    ? 'border-app-accent ring-2 ring-app-accent/30 animate-pulse'
+                    : 'border-border'
+                }`}
               >
                 {/* Item Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-border/70 pb-3">

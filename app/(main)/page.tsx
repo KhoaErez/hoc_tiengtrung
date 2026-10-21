@@ -16,7 +16,7 @@ import {
   Clock
 } from 'lucide-react'
 import { HSK_LEVELS, getHskAuditData } from '@/data/hsk-curriculum'
-import { getCachedSystemLessonCounts } from '@/lib/curriculum-cache'
+import { getCachedSystemLessonCounts, getCachedAllVocabCounts } from '@/lib/curriculum-cache'
 import { MascotAvatar } from '@/components/mascot/mascot-avatar'
 import { formatNumber } from '@/lib/utils'
 
@@ -25,10 +25,11 @@ export const dynamic = 'force-dynamic'
 export default async function HomePage() {
   const supabase = await createClient()
   
-  // 1. Tải song song dữ liệu bộ đếm bài học hệ thống (< 1ms từ cache) và auth session (đã cache)
-  const [levelLessonCounts, user] = await Promise.all([
+  // 1. Tải song song dữ liệu bộ đếm bài học hệ thống (< 1ms từ cache), auth session và số từ thực tế Supabase
+  const [levelLessonCounts, user, liveVocabCountsRes] = await Promise.all([
     getCachedSystemLessonCounts(),
     getCachedAuthUser(),
+    getCachedAllVocabCounts(),
   ])
   
   let displayName = 'Học viên'
@@ -333,8 +334,9 @@ export default async function HomePage() {
             const totalLessons = levelLessonCounts[levelNum] || 0
             const learnedVocabs = userVocabsPerLevel[levelNum] || 0
             const targetVocab = info.vocabTarget
-            const systemVocab = audit?.systemVocabCount || 0
-            const isComingSoon = audit?.status === 'coming_soon'
+            const liveCount = liveVocabCountsRes?.counts?.[info.name]
+            const systemVocab = typeof liveCount === 'number' ? liveCount : (audit?.systemVocabCount || 0)
+            const isComingSoon = audit?.status === 'coming_soon' || (systemVocab === 0 && totalLessons === 0)
 
             const percent = user && systemVocab > 0 
               ? Math.min(100, Math.round((learnedVocabs / systemVocab) * 100)) 
@@ -512,20 +514,25 @@ export default async function HomePage() {
             className="group p-5 rounded-2xl border border-border bg-card hover:border-title/60 hover:shadow-xs transition-all flex flex-col justify-between"
           >
             <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-navy-soft text-title flex items-center justify-center">
-                <PenTool className="w-5 h-5" />
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-xl bg-navy-soft text-title flex items-center justify-center">
+                  <PenTool className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+                  Sắp ra mắt
+                </span>
               </div>
               <div>
                 <h3 className="font-serif font-bold text-base text-title group-hover:text-app-accent transition-colors">
-                  Luyện viết câu AI
+                  Luyện Viết AI
                 </h3>
                 <p className="text-xs text-muted font-serif mt-1 leading-relaxed">
-                  Viết đoạn văn tự do và nhận phản hồi, sửa lỗi ngữ pháp tự động từ AI.
+                  Luyện viết tiếng Trung cùng trợ lý AI: phát hiện lỗi ngữ pháp, tinh chỉnh văn phong và cải thiện diễn đạt.
                 </p>
               </div>
             </div>
-            <div className="pt-4 text-xs font-serif font-medium text-title flex items-center gap-1">
-              <span>Thực hành viết</span>
+            <div className="pt-4 text-xs font-serif font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+              <span>Xem tính năng sắp tới</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>

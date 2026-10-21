@@ -5,8 +5,8 @@ export type LevelLessonCounts = Record<number, number>
 
 // Dữ liệu số lượng bài học chuẩn hóa dự phòng cho HSK 3.0 (Cấp 1 - 7 tương ứng HSK 1 - 6 và HSK 7-9)
 export const DEFAULT_LEVEL_LESSON_COUNTS: LevelLessonCounts = {
-  1: 11,
-  2: 11,
+  1: 18,
+  2: 12,
   3: 24,
   4: 43,
   5: 91,
@@ -73,6 +73,7 @@ export type CachedLessonItem = {
   subtitle: string | null
   lesson_number: number | null
   vocab_count: number
+  vocab_ids?: string[]
 }
 
 /**
@@ -87,20 +88,26 @@ export const getCachedSystemLessonsByLevel = unstable_cache(
 
       const { data, error } = await supabase
         .from('lessons')
-        .select('id, title, subtitle, lesson_number, lesson_vocabularies(count)')
+        .select('id, title, subtitle, lesson_number, lesson_vocabularies(vocabulary_id)')
         .eq('is_system', true)
         .eq('hsk_level', hskLevel)
         .order('lesson_number', { ascending: true })
 
       if (error || !data) return []
 
-      return data.map((l: any) => ({
-        id: l.id,
-        title: l.title,
-        subtitle: l.subtitle,
-        lesson_number: l.lesson_number ?? null,
-        vocab_count: (l.lesson_vocabularies as any)?.[0]?.count || 0,
-      }))
+      return data.map((l: any) => {
+        const vIds = Array.isArray(l.lesson_vocabularies)
+          ? l.lesson_vocabularies.map((lv: any) => lv.vocabulary_id).filter(Boolean)
+          : []
+        return {
+          id: l.id,
+          title: l.title,
+          subtitle: l.subtitle,
+          lesson_number: l.lesson_number ?? null,
+          vocab_count: vIds.length,
+          vocab_ids: vIds,
+        }
+      })
     } catch {
       return []
     }
@@ -130,6 +137,83 @@ export const getCachedTotalVocabCountByLevel = unstable_cache(
     }
   },
   ['total-vocab-count-by-level-hsk3'],
-  { revalidate: 3600, tags: ['curriculum-vocab-counts'] }
+  { revalidate: 3600, tags: ['curriculum-vocab-counts', 'vocab-counts'] }
+)
+
+export const SUPPORTED_VOCAB_LEVELS = [
+  'HSK 1',
+  'HSK 2',
+  'HSK 3',
+  'HSK 4',
+  'HSK 5',
+  'HSK 6',
+  'HSK 7-9',
+  'Giao tiếp',
+  'Công xưởng',
+] as const
+
+export type VocabCountsMap = Record<string, number | null>
+
+export interface AllVocabCountsResult {
+  counts: VocabCountsMap
+  hasError: boolean
+  updatedAt: string
+}
+
+/**
+ * Cache truy vấn số lượng từ vựng thực tế của toàn bộ hệ thống từ Supabase.
+ * Sử dụng truy vấn song song HEAD (0 byte payload) để đếm chính xác từng cấp độ.
+ * Revalidate mỗi 300 giây (5 phút), hoặc khi tag 'vocab-counts' được kích hoạt sau mutation.
+ */
+export const getCachedAllVocabCounts = unstable_cache(
+  async (): Promise<AllVocabCountsResult> => {
+    const defaultErrorCounts: VocabCountsMap = {
+      'HSK 1': null,
+      'HSK 2': null,
+      'HSK 3': null,
+      'HSK 4': null,
+      'HSK 5': null,
+      'HSK 6': null,
+      'HSK 7-9': null,
+      'Giao tiếp': null,
+      'Công xưởng': null,
+    }
+
+    try {
+      const supabase = getStaticSupabaseClient()
+      if (!supabase) {
+        return { counts: defaultErrorCounts, hasError: true, updatedAt: new Date().toISOString() }
+      }
+
+      const results = await Promise.all(
+        SUPPORTED_VOCAB_LEVELS.map(async (lvl) => {
+          const { count, error } = await supabase
+            .from('vocabularies')
+            .select('*', { count: 'exact', head: true })
+            .eq('hsk_level', lvl)
+
+          if (error) {
+            console.error(`Lỗi đếm số lượng từ vựng ${lvl}:`, error.message)
+            return { lvl, count: null }
+          }
+          return { lvl, count: count ?? 0 }
+        })
+      )
+
+      const counts: VocabCountsMap = {}
+      let hasError = false
+      results.forEach((r) => {
+        counts[r.lvl] = r.count
+        if (r.count === null) hasError = true
+      })
+
+      return { counts, hasError, updatedAt: new Date().toISOString() }
+    } catch (err: any) {
+      console.error('Lỗi ngoại lệ trong getCachedAllVocabCounts:', err?.message || err)
+      return { counts: defaultErrorCounts, hasError: true, updatedAt: new Date().toISOString() }
+    }
+  },
+  ['all-vocab-counts-supabase-live-v1'],
+  { revalidate: 300, tags: ['vocab-counts', 'curriculum-vocab-counts'] }
 )
 

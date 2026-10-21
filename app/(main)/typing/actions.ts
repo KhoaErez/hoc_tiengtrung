@@ -467,8 +467,8 @@ export async function syncLocalTypingDataAction(localData: {
 }
 
 /**
- * 8. Lấy danh sách bài tập HSK theo cấp và bài học trên server
- * Tránh việc import trực tiếp file 1.73MB hsk-typing-vocabularies.ts vào client bundle
+ * 8. Lấy danh sách bài tập HSK trực tiếp từ Supabase Database (vocabulary_examples + vocabularies)
+ * Có cơ chế fallback về static file cho HSK 6 hoặc khi offline
  */
 export async function getHskTypingExercisesAction(
   hskLevel: number,
@@ -476,6 +476,46 @@ export async function getHskTypingExercisesAction(
   target: 'word' | 'example' = 'example'
 ) {
   try {
+    // 1. Đối với HSK 1 đến HSK 5: Ưu tiên truy vấn trực tiếp từ Supabase
+    if (hskLevel >= 1 && hskLevel <= 5) {
+      let lessonId: string | undefined = undefined
+
+      if (lessonNumber && lessonNumber > 0) {
+        const supabase = await createClient()
+        const { data: lesson } = await supabase
+          .from('lessons')
+          .select('id')
+          .eq('hsk_level', `HSK ${hskLevel}`)
+          .eq('lesson_number', lessonNumber)
+          .eq('is_system', true)
+          .maybeSingle()
+
+        if (lesson?.id) {
+          lessonId = lesson.id
+        }
+      }
+
+      const dbRes = await getTypingExercisesFromDBAction({
+        hskLevel,
+        lessonId,
+        limit: 50,
+      })
+
+      if (dbRes.success && dbRes.data && dbRes.data.length > 0) {
+        return {
+          success: true,
+          data: dbRes.data.map((item) => ({
+            ...item,
+            id: target === 'word' && item.wordHanzi ? `w-${item.id}` : item.id,
+            hanzi: target === 'word' && item.wordHanzi ? item.wordHanzi : item.hanzi,
+            pinyin: target === 'word' && item.wordPinyin ? item.wordPinyin : item.pinyin,
+            meaning: target === 'word' && item.wordMeaning ? item.wordMeaning : item.meaning,
+          })),
+        }
+      }
+    }
+
+    // 2. Fallback sang dữ liệu tĩnh nếu HSK 6 hoặc truy vấn DB không có dữ liệu
     const { getHskWordsByLevel } = await import('@/data/hsk-typing-vocabularies')
     const words = getHskWordsByLevel(hskLevel, {
       lesson: lessonNumber && lessonNumber > 0 ? lessonNumber : undefined,
@@ -505,4 +545,357 @@ export async function getHskTypingExercisesAction(
     return { success: false, data: [] }
   }
 }
+
+/**
+ * 9. Lấy danh sách bài học hệ thống từ DB phục vụ bộ lọc Luyện đánh máy
+ */
+export async function getSystemLessonsForTypingAction(hskLevel: number) {
+  try {
+    const supabase = await createClient()
+    const { data: lessons, error } = await supabase
+      .from('lessons')
+      .select('id, lesson_number, title, subtitle, hsk_level')
+      .eq('hsk_level', `HSK ${hskLevel}`)
+      .eq('is_system', true)
+      .order('lesson_number', { ascending: true })
+
+    if (error || !lessons) {
+      return { success: false, data: [] }
+    }
+
+    return {
+      success: true,
+      data: lessons.map((l) => ({
+        id: l.id,
+        lessonNumber: l.lesson_number ?? 0,
+        title: l.title,
+        subtitle: l.subtitle || '',
+        hskLevel,
+      })),
+    }
+  } catch (err: any) {
+    console.error('getSystemLessonsForTypingAction error:', err)
+    return { success: false, data: [] }
+  }
+}
+
+/**
+ * 10. Lấy bài tập luyện đánh máy trực tiếp từ Supabase (vocabulary_examples + vocabularies)
+ * Không duplicate dữ liệu, tận dụng 100% câu ví dụ song ngữ đã có sẵn
+ */
+export interface DBTypingExerciseItem {
+  id: string
+  exampleId?: string
+  vocabId?: string
+  titleZh: string
+  titleVi: string
+  hanzi: string
+  pinyin: string
+  meaning: string
+  mode: 'hsk' | 'lesson' | 'unlearned'
+  hskLevel?: number
+  level: string
+  category?: string
+  wordHanzi?: string
+  wordPinyin?: string
+  wordMeaning?: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  exampleHanzi?: string
+  examplePinyin?: string
+  exampleVi?: string
+}
+
+export async function getTypingExercisesFromDBAction(params: {
+  hskLevel?: number
+  lessonId?: string
+  onlyUnlearned?: boolean
+  limit?: number
+}) {
+  try {
+    const supabase = await createClient()
+    const limit = params.limit || 30
+    const hskTag = params.hskLevel ? `HSK ${params.hskLevel}` : undefined
+
+    // 1. Trường hợp theo bài học cụ thể (Lesson ID)
+    if (params.lessonId) {
+      const { data: lessonData } = await supabase
+        .from('lessons')
+        .select('title, lesson_number, hsk_level')
+        .eq('id', params.lessonId)
+        .maybeSingle()
+
+      const lessonTitle = lessonData?.title || 'Bài học'
+
+      const { data, error } = await supabase
+        .from('lesson_vocabularies')
+        .select(`
+          sort_order,
+          vocabularies!inner(
+            id,
+            hanzi,
+            pinyin,
+            meaning_vi,
+            hsk_level,
+            example_hanzi,
+            example_pinyin,
+            example_vi,
+            vocabulary_examples(id, chinese, pinyin, meaning_vi, difficulty_level, order_index)
+          )
+        `)
+        .eq('lesson_id', params.lessonId)
+        .order('sort_order', { ascending: true })
+
+      if (error || !data) {
+        return { success: false, data: [] }
+      }
+
+      const exercises: DBTypingExerciseItem[] = []
+      for (const item of data) {
+        const v = item.vocabularies as any
+        if (!v) continue
+        const examples = (v.vocabulary_examples as any[]) || []
+        // Sắp xếp ví dụ câu cơ bản trước, ứng dụng sau
+        examples.sort((a, b) => (a.order_index || 1) - (b.order_index || 1))
+
+        if (examples.length > 0) {
+          for (const ex of examples) {
+            exercises.push({
+              id: `db-ex-${ex.id}`,
+              exampleId: ex.id,
+              vocabId: v.id,
+              titleZh: `${v.hanzi} [${v.pinyin}]`,
+              titleVi: v.meaning_vi,
+              hanzi: ex.chinese,
+              pinyin: ex.pinyin,
+              meaning: ex.meaning_vi,
+              mode: 'lesson',
+              hskLevel: params.hskLevel,
+              level: `${lessonTitle} (Từ: ${v.hanzi})`,
+              category: lessonTitle,
+              wordHanzi: v.hanzi,
+              wordPinyin: v.pinyin,
+              wordMeaning: v.meaning_vi,
+              difficulty: ex.difficulty_level === 'basic' ? 'easy' : 'medium',
+              exampleHanzi: ex.chinese,
+              examplePinyin: ex.pinyin,
+              exampleVi: ex.meaning_vi,
+            })
+          }
+        } else if (v.example_hanzi) {
+          exercises.push({
+            id: `db-v-${v.id}`,
+            vocabId: v.id,
+            titleZh: `${v.hanzi} [${v.pinyin}]`,
+            titleVi: v.meaning_vi,
+            hanzi: v.example_hanzi,
+            pinyin: v.example_pinyin || v.pinyin,
+            meaning: v.example_vi || v.meaning_vi,
+            mode: 'lesson',
+            hskLevel: params.hskLevel,
+            level: `${lessonTitle} (Từ: ${v.hanzi})`,
+            category: lessonTitle,
+            wordHanzi: v.hanzi,
+            wordPinyin: v.pinyin,
+            wordMeaning: v.meaning_vi,
+            difficulty: 'easy',
+            exampleHanzi: v.example_hanzi,
+            examplePinyin: v.example_pinyin,
+            exampleVi: v.example_vi,
+          })
+        }
+      }
+
+      return { success: true, data: exercises }
+    }
+
+    // 2. Trường hợp từ vựng chưa thành thạo (Unlearned / Review)
+    if (params.onlyUnlearned) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        let uvQuery = supabase
+          .from('user_vocabularies')
+          .select(`
+            vocabulary_id,
+            vocabularies!inner(
+              id,
+              hanzi,
+              pinyin,
+              meaning_vi,
+              hsk_level,
+              example_hanzi,
+              example_pinyin,
+              example_vi,
+              vocabulary_examples(id, chinese, pinyin, meaning_vi, difficulty_level, order_index)
+            )
+          `)
+          .eq('user_id', user.id)
+          .eq('status', 'learning')
+          .limit(limit)
+
+        if (hskTag) {
+          uvQuery = uvQuery.eq('vocabularies.hsk_level', hskTag)
+        }
+
+        const { data: uvData } = await uvQuery
+        if (uvData && uvData.length > 0) {
+          const exercises: DBTypingExerciseItem[] = []
+          for (const item of uvData) {
+            const v = item.vocabularies as any
+            if (!v) continue
+            const examples = (v.vocabulary_examples as any[]) || []
+            const ex = examples[0]
+            if (ex) {
+              exercises.push({
+                id: `db-ex-${ex.id}`,
+                exampleId: ex.id,
+                vocabId: v.id,
+                titleZh: `${v.hanzi} [${v.pinyin}]`,
+                titleVi: v.meaning_vi,
+                hanzi: ex.chinese,
+                pinyin: ex.pinyin,
+                meaning: ex.meaning_vi,
+                mode: 'unlearned',
+                hskLevel: params.hskLevel,
+                level: `Cần ôn luyện: ${v.hanzi}`,
+                category: 'Từ chưa thuộc',
+                wordHanzi: v.hanzi,
+                wordPinyin: v.pinyin,
+                wordMeaning: v.meaning_vi,
+                difficulty: 'medium',
+                exampleHanzi: ex.chinese,
+                examplePinyin: ex.pinyin,
+                exampleVi: ex.meaning_vi,
+              })
+            } else if (v.example_hanzi) {
+              exercises.push({
+                id: `db-v-${v.id}`,
+                vocabId: v.id,
+                titleZh: `${v.hanzi} [${v.pinyin}]`,
+                titleVi: v.meaning_vi,
+                hanzi: v.example_hanzi,
+                pinyin: v.example_pinyin || v.pinyin,
+                meaning: v.example_vi || v.meaning_vi,
+                mode: 'unlearned',
+                hskLevel: params.hskLevel,
+                level: `Cần ôn luyện: ${v.hanzi}`,
+                category: 'Từ chưa thuộc',
+                wordHanzi: v.hanzi,
+                wordPinyin: v.pinyin,
+                wordMeaning: v.meaning_vi,
+                difficulty: 'easy',
+                exampleHanzi: v.example_hanzi,
+                examplePinyin: v.example_pinyin,
+                exampleVi: v.example_vi,
+              })
+            }
+          }
+          if (exercises.length > 0) {
+            return { success: true, data: exercises }
+          }
+        }
+      }
+    }
+
+    // 3. Mặc định theo Cấp độ HSK (HSK 1 - 5)
+    let query = supabase
+      .from('vocabulary_examples')
+      .select(`
+        id,
+        chinese,
+        pinyin,
+        meaning_vi,
+        difficulty_level,
+        order_index,
+        vocabularies!inner(
+          id,
+          hanzi,
+          pinyin,
+          meaning_vi,
+          hsk_level
+        )
+      `)
+      .order('order_index', { ascending: true })
+      .limit(limit)
+
+    if (hskTag) {
+      query = query.eq('vocabularies.hsk_level', hskTag)
+    }
+
+    const { data: exData } = await query
+    const exercises: DBTypingExerciseItem[] = []
+
+    if (exData && exData.length > 0) {
+      for (const row of exData as any[]) {
+        const v = row.vocabularies
+        if (!v) continue
+        exercises.push({
+          id: `db-ex-${row.id}`,
+          exampleId: row.id,
+          vocabId: v.id,
+          titleZh: `${v.hanzi} [${v.pinyin}]`,
+          titleVi: v.meaning_vi,
+          hanzi: row.chinese,
+          pinyin: row.pinyin,
+          meaning: row.meaning_vi,
+          mode: 'hsk',
+          hskLevel: params.hskLevel,
+          level: `${v.hsk_level} • ${v.hanzi}`,
+          category: v.hsk_level,
+          wordHanzi: v.hanzi,
+          wordPinyin: v.pinyin,
+          wordMeaning: v.meaning_vi,
+          difficulty: row.difficulty_level === 'basic' ? 'easy' : 'medium',
+          exampleHanzi: row.chinese,
+          examplePinyin: row.pinyin,
+          exampleVi: row.meaning_vi,
+        })
+      }
+    }
+
+    // Nếu số lượng câu từ bảng ví dụ chưa đủ limit, bù đắp từ câu ví dụ inline trong bảng vocabularies
+    if (exercises.length < limit && hskTag) {
+      const existingVocabIds = new Set(exercises.map(e => e.vocabId))
+      const { data: fallbackVocabs } = await supabase
+        .from('vocabularies')
+        .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
+        .eq('hsk_level', hskTag)
+        .not('example_hanzi', 'is', null)
+        .limit(limit * 2)
+
+      if (fallbackVocabs) {
+        for (const fv of fallbackVocabs) {
+          if (!fv.example_hanzi || existingVocabIds.has(fv.id)) continue
+          exercises.push({
+            id: `db-v-${fv.id}`,
+            vocabId: fv.id,
+            titleZh: `${fv.hanzi} [${fv.pinyin}]`,
+            titleVi: fv.meaning_vi,
+            hanzi: fv.example_hanzi,
+            pinyin: fv.example_pinyin || fv.pinyin,
+            meaning: fv.example_vi || fv.meaning_vi,
+            mode: 'hsk',
+            hskLevel: params.hskLevel,
+            level: `${fv.hsk_level} • ${fv.hanzi}`,
+            category: fv.hsk_level,
+            wordHanzi: fv.hanzi,
+            wordPinyin: fv.pinyin,
+            wordMeaning: fv.meaning_vi,
+            difficulty: 'easy',
+            exampleHanzi: fv.example_hanzi,
+            examplePinyin: fv.example_pinyin,
+            exampleVi: fv.example_vi,
+          })
+          existingVocabIds.add(fv.id)
+          if (exercises.length >= limit) break
+        }
+      }
+    }
+
+    return { success: exercises.length > 0, data: exercises }
+  } catch (err: any) {
+    console.error('getTypingExercisesFromDBAction error:', err)
+    return { success: false, data: [] }
+  }
+}
+
 

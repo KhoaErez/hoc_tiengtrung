@@ -18,7 +18,8 @@ import {
   HelpCircle,
   SlidersHorizontal,
   BookmarkCheck,
-  Loader2
+  Loader2,
+  Keyboard
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AudioButton } from '@/components/ui/audio-button'
@@ -313,6 +314,19 @@ export default function SystemLessonReader({
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Học lại bài này</span>
             </Button>
+
+            <Link
+              href={`/typing?mode=hsk&hskLevel=${lesson.hsk_level ? lesson.hsk_level.replace('HSK', '').trim() : 1}&lessonId=${lesson.id}`}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto font-serif text-xs h-10 px-4 rounded-xl gap-2 border-border hover:bg-page cursor-pointer"
+              >
+                <Keyboard className="w-3.5 h-3.5 text-app-accent" />
+                <span>Luyện gõ câu ví dụ vừa học</span>
+              </Button>
+            </Link>
 
             {nextLesson ? (
               <Link href={`/lessons/${nextLesson.id}`} className="w-full sm:w-auto">
@@ -691,18 +705,33 @@ export default function SystemLessonReader({
             </div>
           </div>
 
-          <Button
-            onClick={() => {
-              setLearningIndex(0)
-              setShowAnswer(false)
-              setUnlearnedInSession([])
-              setIsLearning(true)
-            }}
-            className="font-serif bg-app-accent hover:bg-app-accent/90 text-white rounded-xl px-6 h-10 text-xs sm:text-sm gap-2 shadow-2xs self-start sm:self-auto cursor-pointer"
-          >
-            <PlayCircle className="w-4 h-4" />
-            <span>Học bài này (Flashcard)</span>
-          </Button>
+          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+            <Link
+              href={`/typing?mode=hsk&hskLevel=${lesson.hsk_level ? lesson.hsk_level.replace('HSK', '').trim() : 1}&lessonId=${lesson.id}`}
+            >
+              <Button
+                variant="outline"
+                className="font-serif border-border hover:bg-page text-title rounded-xl px-4 h-10 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer"
+                title="Luyện đánh máy IME các câu ví dụ của bài học này"
+              >
+                <Keyboard className="w-4 h-4 text-app-accent" />
+                <span>Luyện đánh máy</span>
+              </Button>
+            </Link>
+
+            <Button
+              onClick={() => {
+                setLearningIndex(0)
+                setShowAnswer(false)
+                setUnlearnedInSession([])
+                setIsLearning(true)
+              }}
+              className="font-serif bg-app-accent hover:bg-app-accent/90 text-white rounded-xl px-5 h-10 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer"
+            >
+              <PlayCircle className="w-4 h-4" />
+              <span>Học bài này (Flashcard)</span>
+            </Button>
+          </div>
         </div>
       </div>
 

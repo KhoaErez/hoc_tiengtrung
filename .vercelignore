@@ -1,0 +1,17 @@
+# Vercel Ignore File
+# Excludes heavy or non-production assets to accelerate deployments and prevent build bloat
+
+.github
+.agents
+agentic-awesome-skills
+scratch
+scripts
+supabase
+codebase.txt
+tree.txt
+*.sql
+*.mjs
+test-*.js
+test_kie.mjs
+tsconfig.tsbuildinfo
+*.md
