@@ -17,15 +17,25 @@ import {
   ChevronRight,
   HelpCircle,
   SlidersHorizontal,
-  BookmarkCheck
+  BookmarkCheck,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AudioButton } from '@/components/ui/audio-button'
+import { AudioSpeedSelector } from '@/components/ui/audio-speed-selector'
 import { useChineseTTS } from '@/hooks/use-chinese-tts'
-import { markVocabLearnedAction } from '../../review/actions'
+import { markVocabLearnedAction, revalidateReviewSessionAction } from '../../review/actions'
 import { ttsEngine } from '@/lib/tts/tts-engine'
 import { toast } from 'sonner'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
+import { MascotAvatar } from '@/components/mascot/mascot-avatar'
+
+function getHanziSizeClass(hanzi: string) {
+  const len = hanzi ? hanzi.trim().length : 0
+  if (len <= 2) return 'text-6xl sm:text-7xl md:text-8xl'
+  if (len <= 4) return 'text-5xl sm:text-6xl md:text-7xl'
+  return 'text-4xl sm:text-5xl'
+}
 
 export type Vocabulary = {
   id: string
@@ -74,10 +84,10 @@ export default function SystemLessonReader({
   const [isLearning, setIsLearning] = useState(false)
   const [learningIndex, setLearningIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [pendingLearnAction, setPendingLearnAction] = useState<'learned' | 'unlearned' | null>(null)
+  const isLearnPending = pendingLearnAction !== null
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'unlearned' | 'learned'>('all')
-  const [speechRate, setSpeechRate] = useState<number>(1.0)
   const [updatingVocabId, setUpdatingVocabId] = useState<string | null>(null)
 
   // Track unlearned items during the session for targeted review
@@ -120,21 +130,25 @@ export default function SystemLessonReader({
       if (newIsLearned) {
         toast.success('Đã ghi nhận thuộc từ vựng', { duration: 1500 })
       }
-    } catch {
+    } catch (err: unknown) {
       // Rollback on failure
       setLocalUserVocabs((prev) =>
         isCurrentlyLearned ? [...prev, vocabId] : prev.filter((id) => id !== vocabId)
       )
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      if (errorMsg.includes('Server Action') || errorMsg.includes('was not found')) {
+        toast.error('Mã nguồn vừa được cập nhật mới. Vui lòng nhấn F5 (Tải lại trang) để tiếp tục.', { duration: 4000 })
+        return
+      }
       toast.error('Không thể lưu trạng thái. Vui lòng thử lại sau.')
     } finally {
       setUpdatingVocabId(null)
     }
   }
 
-  // Answer handler in Flashcard Learning Mode
   const handleLearnAnswer = async (isRemembered: boolean) => {
-    if (isUpdating) return
-    setIsUpdating(true)
+    if (isLearnPending) return
+    setPendingLearnAction(isRemembered ? 'learned' : 'unlearned')
     const currentVocab = vocabularies[learningIndex]
 
     // Optimistically update
@@ -146,17 +160,39 @@ export default function SystemLessonReader({
       setUnlearnedInSession((prev) => Array.from(new Set([...prev, currentVocab.id])))
     }
 
+    // Guest mode: do not call server action, advance smoothly with notification
+    if (!isLoggedIn) {
+      setShowAnswer(false)
+      const nextIdx = learningIndex + 1
+      setLearningIndex(nextIdx)
+      setPendingLearnAction(null)
+      toast.info('Đăng nhập để lưu tiến độ vĩnh viễn vào tài khoản', { duration: 2500 })
+      return
+    }
+
     try {
       await markVocabLearnedAction(currentVocab.id, isRemembered)
-    } catch {
-      // Non-blocking toast for guest or transient error
-      if (!isLoggedIn) {
-        toast.info('Đăng nhập để lưu tiến độ vĩnh viễn vào tài khoản', { duration: 2500 })
-      }
-    } finally {
-      setIsUpdating(false)
       setShowAnswer(false)
-      setLearningIndex((prev) => prev + 1)
+      const nextIdx = learningIndex + 1
+      setLearningIndex(nextIdx)
+
+      // Nếu đã hoàn thành thẻ cuối cùng, revalidate trong nền
+      if (nextIdx >= vocabularies.length) {
+        revalidateReviewSessionAction().catch(() => {})
+      }
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error('Learn answer error:', err)
+      
+      // Nếu là lỗi do trình duyệt mở từ trước khi sửa code (Server Action ID cũ)
+      if (errorMsg.includes('Server Action') || errorMsg.includes('was not found')) {
+        toast.error('Mã nguồn vừa được cập nhật mới. Vui lòng nhấn F5 (Tải lại trang) để tiếp tục.', { duration: 4000 })
+        return
+      }
+      
+      toast.error('Có lỗi khi lưu tiến độ. Bạn có thể bấm thử lại.')
+    } finally {
+      setPendingLearnAction(null)
     }
   }
 
@@ -174,10 +210,10 @@ export default function SystemLessonReader({
           setShowAnswer(true)
           const currentVocab = vocabularies[learningIndex]
           if (currentVocab) {
-            speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}`, rate: speechRate })
+            speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
           }
         }
-      } else if (showAnswer) {
+      } else if (showAnswer && !isLearnPending) {
         if (e.key === '1' || e.key === 'ArrowLeft') {
           e.preventDefault()
           handleLearnAnswer(false)
@@ -190,7 +226,7 @@ export default function SystemLessonReader({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isLearning, showAnswer, learningIndex, vocabularies, speechRate, isUpdating])
+  }, [isLearning, showAnswer, learningIndex, vocabularies, isLearnPending])
 
   // Filtered vocabularies for list view
   const filteredVocabularies = useMemo(() => {
@@ -222,6 +258,7 @@ export default function SystemLessonReader({
   const isAllCompleted = totalVocabs > 0 && learnedCount >= totalVocabs
 
   // -------------------------------------------------------------
+  // -------------------------------------------------------------
   // FLASHCARD / LEARNING MODE VIEW
   // -------------------------------------------------------------
   if (isLearning) {
@@ -229,40 +266,36 @@ export default function SystemLessonReader({
       const sessionUnlearnedCount = unlearnedInSession.length
 
       return (
-        <div className="max-w-xl mx-auto py-12 px-4 text-center font-serif space-y-6 animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-20 h-20 rounded-3xl bg-emerald-50 text-jade mx-auto flex items-center justify-center border border-jade/30 shadow-sm">
-            <Sparkles className="w-10 h-10 text-jade" />
+        <div className="max-w-xl mx-auto py-12 px-6 text-center font-serif space-y-6 rounded-3xl border border-border bg-card shadow-xs animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex justify-center">
+            <MascotAvatar state="success" size="2xl" />
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-title">Xuất sắc hoàn thành!</h2>
-            <p className="text-sm text-muted">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-jade-soft text-jade text-xs font-serif font-bold border border-jade/20">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Hoàn thành xuất sắc bài học!</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-title">Xuất sắc hoàn thành!</h2>
+            <p className="text-xs sm:text-sm text-muted max-w-sm mx-auto leading-relaxed">
               Bạn đã ôn tập xong toàn bộ {totalVocabs} từ vựng của{' '}
-              <strong className="text-title">{lesson.title}</strong>.
+              <strong className="text-title font-semibold">{lesson.title}</strong>.
             </p>
           </div>
 
           {/* Result Card */}
-          <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-2xs space-y-3 max-w-sm mx-auto text-left">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted">Tổng số từ trong bài:</span>
-              <span className="font-bold text-title">{totalVocabs} từ</span>
+          <div className="grid grid-cols-3 gap-2.5 p-4 rounded-2xl bg-page border border-border/80 max-w-sm mx-auto text-center font-serif">
+            <div>
+              <p className="text-[11px] text-muted">Tổng số từ</p>
+              <p className="text-lg font-bold text-title mt-0.5">{totalVocabs}</p>
             </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted">Đã thuộc tích lũy:</span>
-              <span className="font-bold text-jade">{learnedCount} từ ({progressPercent}%)</span>
+            <div className="border-x border-border/80">
+              <p className="text-[11px] text-jade font-medium">Đã thuộc</p>
+              <p className="text-lg font-bold text-jade mt-0.5">{learnedCount}</p>
             </div>
-            {sessionUnlearnedCount > 0 && (
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-muted">Cần củng cố thêm:</span>
-                <span className="font-bold text-amber-600">{sessionUnlearnedCount} từ</span>
-              </div>
-            )}
-            <div className="w-full bg-black/5 rounded-full h-2 overflow-hidden">
-              <div
-                className="bg-jade h-full transition-all duration-500 rounded-full"
-                style={{ width: `${progressPercent}%` }}
-              />
+            <div>
+              <p className="text-[11px] text-amber-600 font-medium">Cần củng cố</p>
+              <p className="text-lg font-bold text-amber-600 mt-0.5">{sessionUnlearnedCount}</p>
             </div>
           </div>
 
@@ -275,7 +308,7 @@ export default function SystemLessonReader({
                 setShowAnswer(false)
                 setUnlearnedInSession([])
               }}
-              className="w-full sm:w-auto font-serif text-xs h-10 rounded-xl gap-2 border-border"
+              className="w-full sm:w-auto font-serif text-xs h-10 px-5 rounded-xl gap-2 border-border hover:bg-black/5 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Học lại bài này</span>
@@ -283,7 +316,7 @@ export default function SystemLessonReader({
 
             {nextLesson ? (
               <Link href={`/lessons/${nextLesson.id}`} className="w-full sm:w-auto">
-                <Button className="w-full font-serif bg-title hover:bg-[#2A3250] text-white text-xs h-10 rounded-xl gap-2 shadow-2xs">
+                <Button className="w-full font-serif bg-title hover:bg-[#2A3250] text-white text-xs h-10 px-5 rounded-xl gap-2 shadow-2xs cursor-pointer">
                   <span>Sang {nextLesson.title}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
@@ -291,7 +324,7 @@ export default function SystemLessonReader({
             ) : (
               <Button
                 onClick={() => setIsLearning(false)}
-                className="w-full sm:w-auto font-serif bg-app-accent hover:bg-app-accent/90 text-white text-xs h-10 rounded-xl gap-2 shadow-2xs"
+                className="w-full sm:w-auto font-serif bg-app-accent hover:bg-accent-hover text-white text-xs h-10 px-5 rounded-xl gap-2 shadow-2xs cursor-pointer"
               >
                 <span>Xem danh sách từ</span>
               </Button>
@@ -302,157 +335,232 @@ export default function SystemLessonReader({
     }
 
     const currentVocab = vocabularies[learningIndex]
+    const learningPercent = totalVocabs > 0 ? Math.round(((learningIndex) / totalVocabs) * 100) : 0
 
     return (
-      <div className="max-w-xl mx-auto py-8 font-serif px-4 space-y-6">
+      <div className="max-w-xl mx-auto py-6 font-serif px-4 space-y-5 select-none">
+        
         {/* Top bar controls */}
-        <div className="flex justify-between items-center text-xs text-muted border-b border-border/80 pb-3">
-          <button
-            onClick={() => {
-              ttsEngine.stop()
-              setIsLearning(false)
-            }}
-            className="flex items-center gap-1.5 text-body hover:text-app-accent transition-colors font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Thoát chế độ học</span>
-          </button>
-
-          <div className="flex items-center gap-3">
-            {/* Speed toggle */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-xs text-muted">
             <button
-              onClick={() => setSpeechRate((r) => (r === 1.0 ? 0.75 : 1.0))}
-              className="px-2 py-0.5 rounded-md border border-border text-[11px] font-mono hover:border-app-accent/40"
-              title="Tốc độ phát âm"
+              onClick={() => {
+                ttsEngine.stop()
+                setIsLearning(false)
+              }}
+              className="flex items-center gap-1.5 text-body hover:text-app-accent transition-colors font-medium cursor-pointer"
             >
-              Tốc độ: {speechRate}x
+              <ArrowLeft className="w-4 h-4" />
+              <span>Thoát chế độ học</span>
             </button>
-            <span className="font-mono bg-page px-2 py-0.5 rounded-md border border-border">
-              {learningIndex + 1} / {totalVocabs}
-            </span>
+
+            <div className="flex items-center gap-2.5">
+              {/* Tùy chọn tốc độ âm thanh 6 mức toàn hệ thống */}
+              <AudioSpeedSelector variant="dropdown" size="xs" />
+              <span className="font-sans font-semibold text-title text-xs bg-page px-2 py-0.5 rounded-lg border border-border">
+                {learningIndex + 1} / {totalVocabs}
+              </span>
+            </div>
+          </div>
+
+          {/* Mini Progress Bar */}
+          <div className="w-full bg-track h-1.5 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-app-accent to-gold rounded-full transition-all duration-300"
+              style={{ width: `${learningPercent}%` }}
+            />
           </div>
         </div>
 
-        {/* Flashcard Box */}
-        <div
-          onClick={() => {
-            if (!showAnswer) {
-              setShowAnswer(true)
-              speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}`, rate: speechRate })
-            }
-          }}
-          className={`w-full min-h-[340px] md:min-h-[380px] rounded-3xl border-2 transition-all duration-200 cursor-pointer p-6 flex flex-col items-center justify-center select-none shadow-sm ${
-            showAnswer
-              ? 'bg-card border-app-accent/30'
-              : 'bg-[#FDFBF7] hover:border-app-accent/40 border-border active:scale-[0.99]'
-          }`}
-        >
-          {!showAnswer ? (
-            <div className="text-center space-y-4 py-8">
-              <span className="text-6xl md:text-8xl font-serif text-title tracking-wide leading-none block">
-                {currentVocab.hanzi}
-              </span>
-              <p className="text-xs text-muted flex items-center justify-center gap-1">
-                <span>Chạm hoặc nhấn</span>
-                <kbd className="px-1.5 py-0.5 bg-page border border-border rounded text-[10px] font-mono">
-                  Space
-                </kbd>
-                <span>để lật thẻ</span>
-              </p>
-            </div>
-          ) : (
-            <div className="w-full text-center space-y-4 animate-in fade-in duration-150">
-              {/* Pinyin */}
-              <p className="text-lg md:text-xl text-body font-sans tracking-widest text-app-accent font-semibold">
-                {currentVocab.pinyin}
-              </p>
+        {/* 3D Flashcard Box */}
+        <div className="perspective-1000 w-full">
+          <div
+            onClick={() => {
+              if (!showAnswer) {
+                setShowAnswer(true)
+                speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
+              }
+            }}
+            className={`transform-style-3d transition-transform duration-300 ease-out relative w-full min-h-[380px] sm:min-h-[420px] cursor-pointer ${
+              showAnswer ? 'rotate-y-180' : ''
+            }`}
+            role="button"
+            tabIndex={0}
+            aria-label={showAnswer ? 'Mặt sau thẻ từ vựng' : 'Mặt trước thẻ từ vựng, chạm để lật thẻ'}
+          >
+            {/* MẶT TRƯỚC FLASHCARD */}
+            <div className="backface-hidden absolute inset-0 w-full h-full rounded-3xl bg-card border border-border/80 p-6 sm:p-8 flex flex-col justify-between items-center shadow-xs hover:border-app-accent/40 transition-colors overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-border/60" />
 
-              {/* Hanzi + Audio */}
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-5xl md:text-7xl font-serif text-title font-bold leading-tight">
-                  {currentVocab.hanzi}
+              <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
+                <span className="px-2 py-0.5 rounded-md bg-page border border-border/60 text-[10px] font-sans">
+                  Chữ Hán
                 </span>
-                <AudioButton
-                  text={currentVocab.hanzi}
-                  id={`fc-${currentVocab.id}`}
-                  size="md"
-                  variant="subtle"
-                  rate={speechRate}
-                  tooltip="Nghe lại phát âm"
-                />
-              </div>
-
-              {/* Meaning */}
-              <div className="bg-app-accent-soft/40 border border-app-accent/20 px-6 py-2.5 rounded-xl inline-block max-w-md">
-                <span className="text-lg md:text-xl font-serif text-title font-bold">
-                  {currentVocab.meaning_vi}
+                <span className="text-[11px] font-sans text-muted/70">
+                  #{learningIndex + 1}
                 </span>
               </div>
 
-              {/* Example sentence */}
-              {currentVocab.example_hanzi && (
-                <div className="bg-page border border-border/80 p-3.5 rounded-xl max-w-md mx-auto text-center space-y-1 mt-2">
-                  <p className="text-[11px] font-sans text-muted">{currentVocab.example_pinyin}</p>
-                  <div className="text-sm md:text-base font-serif text-title flex items-center justify-center gap-2">
-                    <span>{currentVocab.example_hanzi}</span>
+              <div className="flex-1 flex flex-col items-center justify-center py-4 space-y-4">
+                <div className="flex items-center justify-center gap-3 sm:gap-4">
+                  <span className={`font-hanzi font-serif font-bold text-title tracking-wide leading-none ${getHanziSizeClass(currentVocab.hanzi)}`}>
+                    {currentVocab.hanzi}
+                  </span>
+                  <div onClick={(e) => e.stopPropagation()}>
                     <AudioButton
-                      text={currentVocab.example_hanzi}
-                      id={`fc-ex-${currentVocab.id}`}
-                      size="xs"
-                      variant="ghost"
-                      rate={speechRate}
-                      tooltip="Nghe câu ví dụ"
+                      text={currentVocab.hanzi}
+                      id={`fc-${currentVocab.id}`}
+                      size="lg"
+                      variant="subtle"
+                      tooltip="Nghe phát âm chuẩn"
                     />
                   </div>
-                  <p className="text-xs text-body font-serif italic">{currentVocab.example_vi}</p>
                 </div>
-              )}
+              </div>
+
+              <div className="pt-2 text-center">
+                <p className="text-xs text-muted/80 font-serif flex items-center justify-center gap-1.5">
+                  <span>Chạm vào thẻ hoặc nhấn</span>
+                  <kbd className="px-1.5 py-0.5 bg-page border border-border rounded text-[10px] font-mono shadow-2xs">
+                    Space
+                  </kbd>
+                  <span>để lật thẻ</span>
+                </p>
+              </div>
             </div>
-          )}
+
+            {/* MẶT SAU FLASHCARD */}
+            <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-3xl bg-card border border-border/80 p-6 sm:p-8 flex flex-col justify-between items-center shadow-xs overflow-y-auto no-scrollbar">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
+
+              <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
+                <span className="px-2 py-0.5 rounded-md bg-app-accent-soft text-app-accent border border-app-accent/20 text-[10px] font-sans font-medium">
+                  Đáp án
+                </span>
+                <span className="text-[11px] font-sans text-muted/70">
+                  #{learningIndex + 1}
+                </span>
+              </div>
+
+              <div className="flex-1 w-full flex flex-col items-center justify-center py-3 space-y-4 text-center">
+                <p className="text-xl sm:text-2xl font-sans tracking-widest text-app-accent font-semibold">
+                  {currentVocab.pinyin}
+                </p>
+
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-4xl sm:text-5xl font-hanzi font-serif font-bold text-title leading-tight">
+                    {currentVocab.hanzi}
+                  </span>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <AudioButton
+                      text={currentVocab.hanzi}
+                      id={`fc-back-${currentVocab.id}`}
+                      size="md"
+                      variant="subtle"
+                      tooltip="Nghe lại phát âm"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-app-accent-soft/40 border border-app-accent/20 px-6 py-2 rounded-2xl max-w-md mx-auto shadow-2xs">
+                  <span className="text-lg sm:text-xl font-serif text-title font-bold">
+                    {currentVocab.meaning_vi}
+                  </span>
+                </div>
+
+                {currentVocab.example_hanzi && (
+                  <div className="w-full bg-page border border-border/70 rounded-2xl p-3.5 sm:p-4 max-w-md mx-auto text-center space-y-1">
+                    <p className="text-[11px] font-sans text-muted tracking-wide">
+                      {currentVocab.example_pinyin}
+                    </p>
+                    <div className="text-sm sm:text-base font-hanzi font-serif text-title flex items-center justify-center gap-2">
+                      <span>{currentVocab.example_hanzi}</span>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <AudioButton
+                          text={currentVocab.example_hanzi}
+                          id={`fc-ex-${currentVocab.id}`}
+                          size="xs"
+                          variant="ghost"
+                          tooltip="Nghe câu ví dụ"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs sm:text-sm font-serif text-body italic">
+                      {currentVocab.example_vi}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-1 text-center">
+                <p className="text-[11px] text-muted/70 font-serif">
+                  Nhấn phím 1 (Chưa thuộc) hoặc 2 (Đã thuộc) để qua thẻ tiếp theo
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex gap-3 h-12">
+        <div className="pt-2">
           {!showAnswer ? (
             <Button
-              className="w-full h-full text-sm font-serif bg-app-accent hover:bg-app-accent/90 text-white rounded-xl shadow-2xs gap-2"
+              className="w-full h-12 sm:h-13 text-sm sm:text-base font-serif bg-app-accent hover:bg-accent-hover text-white rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
               onClick={() => {
                 setShowAnswer(true)
-                speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}`, rate: speechRate })
+                speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
               }}
             >
-              <span>Lật thẻ</span>
-              <kbd className="hidden sm:inline-block px-1.5 py-0.2 bg-white/20 rounded text-[10px] font-mono">
+              <span>Lật thẻ xem đáp án</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
                 Space
               </kbd>
             </Button>
           ) : (
-            <>
+            <div className="flex gap-3">
               <Button
                 variant="outline"
-                disabled={isUpdating}
-                className="flex-1 h-full text-xs sm:text-sm font-serif border-red-200 text-red-700 hover:bg-red-50 rounded-xl gap-1.5"
+                disabled={isLearnPending}
+                className="flex-1 h-12 sm:h-13 text-xs sm:text-sm font-serif border-red-200 bg-red-50/70 hover:bg-red-100/80 text-red-700 rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.99] disabled:opacity-60"
                 onClick={() => handleLearnAnswer(false)}
               >
-                <XCircle className="w-4 h-4 text-red-500" />
-                <span>Chưa thuộc</span>
-                <kbd className="hidden sm:inline-block px-1 py-0.2 bg-black/5 rounded text-[10px] font-mono ml-1">
+                {pendingLearnAction === 'unlearned' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-red-600" />
+                    <span>Đang lưu...</span>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4 text-red-500" />
+                    <span>Chưa thuộc</span>
+                  </>
+                )}
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-red-200/60 rounded text-[10px] font-mono">
                   1
                 </kbd>
               </Button>
 
               <Button
-                disabled={isUpdating}
-                className="flex-1 h-full text-xs sm:text-sm font-serif bg-jade hover:bg-jade/90 text-white rounded-xl shadow-2xs gap-1.5"
+                disabled={isLearnPending}
+                className="flex-1 h-12 sm:h-13 text-xs sm:text-sm font-serif bg-jade hover:bg-jade/90 text-white rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.99] disabled:opacity-60"
                 onClick={() => handleLearnAnswer(true)}
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Đã thuộc</span>
-                <kbd className="hidden sm:inline-block px-1 py-0.2 bg-white/20 rounded text-[10px] font-mono ml-1">
+                {pendingLearnAction === 'learned' ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                    <span>Đang lưu...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    <span>Đã thuộc</span>
+                  </>
+                )}
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
                   2
                 </kbd>
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -514,10 +622,35 @@ export default function SystemLessonReader({
 
         {/* Title & Level Badge */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-app-accent-soft text-app-accent border border-app-accent/20">
               {lesson.hsk_level} • Bài {lesson.lesson_number || '01'}
             </span>
+            {(() => {
+              const lvl = lesson.hsk_level || ''
+              if (/HSK\s*[1-3]/i.test(lvl)) {
+                return (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-sans font-medium bg-emerald-50 text-jade border border-jade/30">
+                    HSK 3.0 • Sơ cấp (初等)
+                  </span>
+                )
+              }
+              if (/HSK\s*[4-6]/i.test(lvl)) {
+                return (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-sans font-medium bg-amber-50 text-gold border border-gold/30">
+                    HSK 3.0 • Trung cấp (中等)
+                  </span>
+                )
+              }
+              if (/HSK\s*(7|8|9|7-9)/i.test(lvl)) {
+                return (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-sans font-medium bg-indigo-50 text-indigo-700 border-indigo-200">
+                    HSK 3.0 • Cao cấp (高等)
+                  </span>
+                )
+              }
+              return null
+            })()}
             {isAllCompleted && (
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-emerald-50 text-jade border border-jade/30">
                 <Check className="w-3 h-3" />
@@ -629,6 +762,8 @@ export default function SystemLessonReader({
               Đã thuộc
             </button>
           </div>
+
+          <AudioSpeedSelector variant="dropdown" size="xs" />
         </div>
       </div>
 

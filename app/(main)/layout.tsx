@@ -1,6 +1,6 @@
 import { ReactNode, Suspense } from 'react'
 import Link from 'next/link'
-import { BookOpen, Search, PlusCircle, LogOut, LogIn, ShieldCheck } from 'lucide-react'
+import { LogOut, ShieldCheck } from 'lucide-react'
 import { MobileHeader, MobileNav } from '@/components/dashboard/mobile-nav'
 import { UserNav } from '@/components/dashboard/user-nav'
 import { logout } from '@/app/auth/actions'
@@ -9,38 +9,33 @@ import { checkIsAdmin } from '@/app/actions/feedback'
 import { AuthModalProvider } from '@/components/auth/auth-modal-context'
 import { AuthModal } from '@/components/auth/auth-modal'
 import { SidebarAuthButton } from '@/components/dashboard/sidebar-auth-button'
-import { ProtectedLink } from '@/components/protected-link'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const { isAdmin, user, profile } = await checkIsAdmin()
 
   return (
     <AuthModalProvider initialUser={user}>
-      <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-hidden">
+      <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-clip">
         {/* Notebook Background Pattern - Self-hosted for 0ms network latency */}
         <div className="fixed inset-0 bg-[url('/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply z-0" />
         
         {/* Desktop Sidebar - Cố định hoàn toàn (Fixed Sidebar) */}
-        <aside className="w-64 border-r border-border bg-page/95 backdrop-blur z-30 flex-col hidden md:flex fixed top-0 left-0 bottom-0 h-screen select-none">
+        <aside className="w-64 border-r border-border/60 bg-page/95 backdrop-blur-md z-30 flex-col hidden md:flex fixed top-0 left-0 bottom-0 h-screen select-none">
           {/* Header Logo - Cố định ở đầu */}
-          <div className="p-6 border-b border-border flex-shrink-0">
-            <Link href="/" className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-app-accent" />
-              <span className="font-bold text-xl text-app-accent tracking-wide">漢字</span>
-            </Link>
-            <p className="text-xs text-muted mt-1 uppercase tracking-widest">Chinese Notebook</p>
+          <div className="px-5 py-3.5 border-b border-border/50 flex-shrink-0">
+            <BrandLogo variant="horizontal" size="md" />
           </div>
           
           {/* Dynamic Sidebar Navigation */}
           <Suspense
             fallback={
-              <div className="flex-1 overflow-y-auto py-4 px-3 space-y-6 no-scrollbar">
+              <div className="flex-1 overflow-y-auto py-3 px-3 space-y-5 no-scrollbar">
                 <div className="space-y-1">
-                  <div className="h-9 bg-black/5 rounded-md animate-pulse" />
-                  <div className="h-9 bg-black/5 rounded-md animate-pulse" />
-                  <div className="h-9 bg-black/5 rounded-md animate-pulse" />
-                  <div className="h-9 bg-black/5 rounded-md animate-pulse" />
-                  <div className="h-9 bg-black/5 rounded-md animate-pulse" />
+                  <div className="h-8 bg-black/5 rounded-lg animate-pulse" />
+                  <div className="h-8 bg-black/5 rounded-lg animate-pulse" />
+                  <div className="h-8 bg-black/5 rounded-lg animate-pulse" />
+                  <div className="h-8 bg-black/5 rounded-lg animate-pulse" />
                 </div>
               </div>
             }
@@ -49,20 +44,20 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </Suspense>
 
           {/* Footer Đăng nhập / Đăng xuất - Cố định ở đáy Sidebar */}
-          <div className="p-3 border-t border-border flex-shrink-0 bg-page/95 space-y-1">
+          <div className="p-3 border-t border-border/50 flex-shrink-0 bg-page/95 space-y-1">
             {user ? (
               <>
                 <Link 
                   href="/profile" 
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-title hover:text-app-accent hover:bg-black/5 transition-colors rounded-lg group"
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-title hover:text-app-accent hover:bg-black/5 transition-colors rounded-xl group"
                   title="Xem thông tin cá nhân"
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#23272F] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-xs">
+                  <div className="w-7 h-7 rounded-full bg-[#23272F] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-2xs">
                     {(profile?.display_name || user.email)?.[0]?.toUpperCase() || 'U'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-medium text-title truncate group-hover:text-app-accent">
+                      <p className="text-xs font-serif font-bold text-title truncate group-hover:text-app-accent leading-tight">
                         {profile?.display_name || user.email?.split('@')[0]}
                       </p>
                       {isAdmin && (
@@ -71,15 +66,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted truncate">
+                    <p className="text-[10px] text-muted font-sans truncate leading-none mt-0.5">
                       {isAdmin ? 'Quản trị viên' : 'Hồ sơ & Tiến độ'}
                     </p>
                   </div>
                 </Link>
                 <form action={logout}>
-                  <button className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-muted hover:text-red-600 hover:bg-black/5 transition-colors rounded-lg group text-left cursor-pointer">
+                  <button className="w-full flex items-center justify-between px-3 py-1.5 text-xs text-muted hover:text-red-600 hover:bg-red-500/5 transition-colors rounded-lg group text-left cursor-pointer">
                     <span>Đăng xuất</span>
-                    <LogOut className="h-3.5 w-3.5 text-muted group-hover:text-red-600 flex-shrink-0" />
+                    <LogOut className="h-3.5 w-3.5 text-muted group-hover:text-red-600 flex-shrink-0 transition-transform group-hover:translate-x-0.5" />
                   </button>
                 </form>
               </>
@@ -94,44 +89,39 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           {/* Mobile Header */}
           <MobileHeader isLoggedIn={!!user} />
 
-          {/* Desktop Header - Cố định trên đầu khi cuộn trang */}
-          <header className="hidden md:flex h-16 border-b border-border bg-page/80 backdrop-blur items-center justify-between px-6 sticky top-0 z-20">
-            <div className="flex items-center w-full max-w-md bg-transparent border-b-2 border-border-strong focus-within:border-app-accent transition-colors pb-1">
-              <Search className="h-4 w-4 text-muted mr-2" />
-              <input 
-                type="text" 
-                placeholder="Tìm kiếm từ vựng, bài học..." 
-                className="bg-transparent border-none outline-none w-full text-body placeholder:text-muted text-sm font-serif h-8"
-              />
+          {/* Desktop Header - Cố định ở đầu trang (Fixed Header), đồng bộ với fixed sidebar */}
+          <header className="hidden md:flex h-14 border-b border-border/60 bg-page/85 backdrop-blur-md items-center justify-between px-6 sm:px-8 fixed top-0 right-0 left-0 md:left-64 z-20">
+            {/* Nhãn văn hóa Đông Phương tinh tế thay thế khoảng trống tìm kiếm */}
+            <div className="flex items-center gap-2 select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-app-accent/80" />
+              <span className="text-xs font-serif text-muted tracking-wide">
+                Nền tảng học Hán ngữ & Luyện thi HSK
+              </span>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Cụm nút hành động chuẩn hóa chiều cao, font và bo góc */}
+            <div className="flex items-center gap-2.5">
               {isAdmin && (
                 <Link 
                   href="/admin" 
-                  className="flex items-center gap-1.5 border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white px-3 py-2 rounded-md text-sm transition-colors shadow-2xs font-serif"
+                  className="h-9 px-3.5 rounded-xl border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white transition-all text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs select-none"
                   title="Trung tâm Quản trị & Phân quyền"
                 >
                   <ShieldCheck className="h-4 w-4" />
                   <span>Quản trị</span>
                 </Link>
               )}
-              <ProtectedLink
-                href="/lessons/create"
-                isLoggedIn={!!user}
-                actionName="tạo bài học mới"
-                className="flex items-center gap-2 bg-title hover:bg-[#2A3250] text-white px-4 py-2 rounded-md text-sm transition-colors shadow-sm"
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span>Tạo bài học</span>
-              </ProtectedLink>
               <UserNav 
                 user={user} 
-                displayName={profile?.display_name} 
+                displayName={profile?.display_name || undefined} 
                 avatarUrl={profile?.avatar_url} 
                 isAdmin={isAdmin}
               />
             </div>
           </header>
+
+          {/* Spacer bù đắp chiều cao h-14 (56px) cho Fixed Header trên Desktop & Mobile */}
+          <div className="h-14 flex-shrink-0" aria-hidden="true" />
 
           {/* Page Content */}
           <main className="flex-1 p-4 md:p-8 lg:p-10 min-w-0 pb-20 md:pb-12">

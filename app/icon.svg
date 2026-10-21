@@ -1,4 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <rect width="256" height="256" rx="60" fill="#C83D32"/>
-  <text x="128" y="128" font-family="serif" font-size="150" font-weight="bold" fill="#FDFBF7" text-anchor="middle" dominant-baseline="central">中</text>
+  <!-- 1. Nền con dấu triện bo góc mềm mại (Vermilion Seal Background) -->
+  <rect width="256" height="256" rx="56" fill="#B8312B"/>
+  
+  <!-- Viền đôi con dấu học giả truyền thống -->
+  <rect x="16" y="16" width="224" height="224" rx="44" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="4" fill="none"/>
+  
+  <!-- 2. Cuốn sổ tay mở trang (Open Notebook Stylized Silhouette) -->
+  <!-- Trang bên trái mang chữ Hán (Left cover/page) -->
+  <path d="M48 64C48 57.37 53.37 52 60 52H122C128.63 52 134 57.37 134 64V192C134 198.63 128.63 204 122 204H60C53.37 204 48 198.63 48 192V64Z" fill="#FAF7F2"/>
+  
+  <!-- Trang bên phải lật mở mềm mại (Right turning page) -->
+  <path d="M142 52C152 54 196 60 212 70V196C194 188 152 182 142 180V52Z" fill="#FAF7F2" fill-opacity="0.95"/>
+  
+  <!-- Gáy sổ & dải ruy-băng hoàng kim (Golden bookmark ribbon) -->
+  <rect x="133" y="44" width="9" height="172" rx="4.5" fill="#E9C46A"/>
+  
+  <!-- 3. Chữ Hán "汉" thư pháp tinh xảo trên trang sổ chính -->
+  <g fill="#B8312B">
+    <!-- Bộ chấm Thủy 氵 -->
+    <circle cx="68" cy="85" r="5.5" />
+    <circle cx="66" cy="112" r="5.5" />
+    <path d="M62 146C65 142 71 135 75 131L78 135C75 140 69 148 65 152L62 146Z" />
+    
+    <!-- Chữ Hựu 又 -->
+    <!-- Nét ngang phẩy (横撇) -->
+    <path d="M82 86H114C117 86 118 87.5 116.5 90L100 114H109C113 114 115 116.5 115 120C111 132 103 148 88 158L85 154C98 145 105 133 107 124H94L82 86Z" />
+    <!-- Nét mác (捺) -->
+    <path d="M91 108C99 116 109 130 119 156L113 160C104 137 95 123 88 116L91 108Z" />
+  </g>
+  
+  <!-- 4. Dòng kẻ vở ở trang phải -->
+  <g stroke="#B8312B" stroke-opacity="0.28" stroke-width="3" stroke-linecap="round">
+    <line x1="156" y1="88" x2="198" y2="94"/>
+    <line x1="156" y1="112" x2="202" y2="119"/>
+    <line x1="156" y1="136" x2="196" y2="143"/>
+  </g>
 </svg>

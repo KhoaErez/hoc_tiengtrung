@@ -12,7 +12,6 @@
     "@base-ui/react": "^1.8.0",
     "@google/genai": "^2.25.0",
     "@hookform/resolvers": "^5.9.1",
-    "@leonsilicon/hsk2.0": "^0.0.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "class-variance-authority": "^0.7.1",
@@ -20,7 +19,6 @@
     "hanzi-writer": "^3.7.3",
     "lucide-react": "^1.49.0",
     "next": "16.3.8",
-    "nextjs-toploader": "^3.9.17",
     "openai": "^7.28.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -31,6 +29,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@leonsilicon/hsk2.0": "^0.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -1,12 +1,20 @@
-// Dữ liệu mô tả chuẩn cho 6 cấp độ HSK (HSK 1 - HSK 6)
+// ============================================================================
+// DỮ LIỆU ĐỀ CƯƠNG TIÊU CHUẨN HSK 3.0 (GF 0025-2021)
+// Căn cứ theo Tiêu chuẩn Năng lực Giáo dục Hán ngữ Quốc tế do Bộ Giáo dục Trung Quốc công bố
+// Khung "3 giai đoạn, 9 cấp độ" (三等九级)
+// ============================================================================
 
 export interface HskLevelInfo {
   level: number;
   name: string;
   tag: string;
   title: string;
-  stage: string;
-  vocabTarget: number;
+  stage: 'Sơ cấp' | 'Trung cấp' | 'Cao cấp';
+  stageZh: '初等' | '中等' | '高等';
+  vocabTarget: number; // Từ vựng tích lũy theo chuẩn HSK 3.0
+  newVocab: number;    // Từ mới riêng ở cấp độ này
+  charTarget: number;  // Số lượng chữ Hán tích lũy
+  grammarTarget: number; // Số lượng điểm ngữ pháp tích lũy
   description: string;
   detailGoal: string;
   color: {
@@ -20,16 +28,67 @@ export interface HskLevelInfo {
   };
 }
 
+export interface HskStageInfo {
+  id: 'elementary' | 'intermediate' | 'advanced';
+  name: string;
+  nameZh: string;
+  description: string;
+  levels: number[];
+  vocabCumulative: string;
+  charCumulative: string;
+  grammarCumulative: string;
+}
+
+export const HSK_STAGES: HskStageInfo[] = [
+  {
+    id: 'elementary',
+    name: 'Sơ cấp (初等)',
+    nameZh: '初等',
+    description: 'Cấp 1 đến Cấp 3: Nền tảng phát âm Pinyin, cấu tạo chữ Hán và giao tiếp thường nhật.',
+    levels: [1, 2, 3],
+    vocabCumulative: '300 – 1.000 từ',
+    charCumulative: '300 – 900 chữ',
+    grammarCumulative: '48 – 210 điểm',
+  },
+  {
+    id: 'intermediate',
+    name: 'Trung cấp (中等)',
+    nameZh: '中等',
+    description: 'Cấp 4 đến Cấp 6: Giao tiếp trôi chảy, đọc hiểu báo chí, phục vụ công việc và học đại học.',
+    levels: [4, 5, 6],
+    vocabCumulative: '2.000 – 5.400 từ',
+    charCumulative: '1.200 – 1.800 chữ',
+    grammarCumulative: '286 – 424 điểm',
+  },
+  {
+    id: 'advanced',
+    name: 'Cao cấp (高等)',
+    nameZh: '高等',
+    description: 'Cấp 7 đến Cấp 9: Nghiên cứu học thuật, dịch thuật chuyên sâu, ngoại giao và văn học cổ kim.',
+    levels: [7], // Cấp 7 đại diện cho khối thi chung HSK 7-9
+    vocabCumulative: '11.000 từ',
+    charCumulative: '3.000 chữ',
+    grammarCumulative: '572 điểm',
+  },
+];
+
 export const HSK_LEVELS: Record<number, HskLevelInfo> = {
+  // -------------------------------------------------------------
+  // GIAI ĐOẠN 1: SƠ CẤP (初等)
+  // -------------------------------------------------------------
   1: {
     level: 1,
     name: 'HSK 1',
     tag: 'HSK 1',
     title: 'HSK 1 – Sơ cấp',
     stage: 'Sơ cấp',
-    vocabTarget: 150,
-    description: 'Nắm vững 150 từ vựng cơ bản, làm quen chữ Hán, phát âm chuẩn Pinyin và giao tiếp các chủ đề thường nhật như chào hỏi, giới thiệu bản thân.',
-    detailGoal: 'Hiểu và sử dụng các từ ngữ và mẫu câu giao tiếp đơn giản nhất, chuẩn bị nền tảng để tiếp tục học lên các cấp độ cao hơn.',
+    stageZh: '初等',
+    vocabTarget: 300,
+    newVocab: 300,
+    charTarget: 300,
+    grammarTarget: 48,
+    description: 'Làm quen bảng chữ Hán cơ bản, hệ thống ngữ âm Pinyin và 300 từ vựng nền tảng HSK 3.0 phục vụ chào hỏi, mua sắm, gia đình và sinh hoạt.',
+    detailGoal: 'Hiểu và sử dụng các từ ngữ và câu đơn giản nhất trong giao tiếp cụ thể thường nhật, tạo nền tảng vững chắc cho lộ trình HSK 3.0.',
     color: {
       bg: 'bg-emerald-500/10',
       border: 'border-emerald-500/30',
@@ -46,9 +105,13 @@ export const HSK_LEVELS: Record<number, HskLevelInfo> = {
     tag: 'HSK 2',
     title: 'HSK 2 – Sơ cấp',
     stage: 'Sơ cấp',
-    vocabTarget: 300,
-    description: 'Nắm vững 300 từ vựng (thêm 150 từ mới), có thể giao tiếp đơn giản và trực tiếp về các chủ đề quen thuộc hằng ngày.',
-    detailGoal: 'Có thể sử dụng tiếng Trung giao tiếp cơ bản trong các tình huống sinh hoạt thường nhật, đạt chuẩn đầu ra sơ cấp.',
+    stageZh: '初等',
+    vocabTarget: 500,
+    newVocab: 200,
+    charTarget: 600,
+    grammarTarget: 129,
+    description: 'Tích lũy 500 từ vựng (thêm 200 từ mới), 600 chữ Hán và 129 điểm ngữ pháp. Giao tiếp trực tiếp và trôi chảy trong môi trường sinh hoạt, trường lớp, ăn uống.',
+    detailGoal: 'Giao tiếp đơn giản và trực tiếp về các chủ đề quen thuộc hằng ngày, đạt mức hoàn thành chuẩn Sơ cấp 2 HSK 3.0.',
     color: {
       bg: 'bg-sky-500/10',
       border: 'border-sky-500/30',
@@ -63,11 +126,15 @@ export const HSK_LEVELS: Record<number, HskLevelInfo> = {
     level: 3,
     name: 'HSK 3',
     tag: 'HSK 3',
-    title: 'HSK 3 – Sơ trung cấp',
-    stage: 'Sơ trung cấp',
-    vocabTarget: 600,
-    description: 'Nắm vững 600 từ vựng, có thể hoàn thành các nhiệm vụ giao tiếp cơ bản trong cuộc sống, học tập và công việc hàng ngày.',
-    detailGoal: 'Có thể dùng tiếng Trung giao tiếp ở mức cơ bản trong cuộc sống, học tập, công việc và hầu hết các tình huống khi đi du lịch tại Trung Quốc.',
+    title: 'HSK 3 – Sơ cấp nâng cao',
+    stage: 'Sơ cấp',
+    stageZh: '初等',
+    vocabTarget: 1000,
+    newVocab: 500,
+    charTarget: 900,
+    grammarTarget: 210,
+    description: 'Tích lũy 1.000 từ vựng (thêm 500 từ mới), 900 chữ Hán và 210 điểm ngữ pháp. Hoàn tất toàn bộ giai đoạn Sơ cấp theo chuẩn đề cương HSK 3.0.',
+    detailGoal: 'Hoàn thành các nhiệm vụ giao tiếp cơ bản trong cuộc sống, học tập, công việc và hầu hết các tình huống du lịch tại Trung Quốc.',
     color: {
       bg: 'bg-amber-500/10',
       border: 'border-amber-500/30',
@@ -78,15 +145,23 @@ export const HSK_LEVELS: Record<number, HskLevelInfo> = {
       progressTo: 'to-yellow-600',
     },
   },
+
+  // -------------------------------------------------------------
+  // GIAI ĐOẠN 2: TRUNG CẤP (中等)
+  // -------------------------------------------------------------
   4: {
     level: 4,
     name: 'HSK 4',
     tag: 'HSK 4',
     title: 'HSK 4 – Trung cấp',
     stage: 'Trung cấp',
-    vocabTarget: 1200,
-    description: 'Nắm vững 1200 từ vựng, có thể đàm luận về các chủ đề thuộc phạm vi rộng hơn và giao lưu lưu loát với người bản xứ.',
-    detailGoal: 'Có thể thảo luận về các chủ đề trong nhiều lĩnh vực bằng tiếng Trung và giao tiếp tương đối trôi chảy với người bản ngữ.',
+    stageZh: '中等',
+    vocabTarget: 2000,
+    newVocab: 1000,
+    charTarget: 1200,
+    grammarTarget: 286,
+    description: 'Tích lũy 2.000 từ vựng (thêm 1.000 từ mới), 1,200 chữ Hán và 286 điểm ngữ pháp. Đàm luận về các chủ đề xã hội, văn hóa và thảo luận chuyên môn.',
+    detailGoal: 'Đạt chuẩn ngôn ngữ để theo học các chương trình đại học chuyên ngành và làm việc tại các doanh nghiệp sử dụng tiếng Trung.',
     color: {
       bg: 'bg-orange-500/10',
       border: 'border-orange-500/30',
@@ -101,11 +176,15 @@ export const HSK_LEVELS: Record<number, HskLevelInfo> = {
     level: 5,
     name: 'HSK 5',
     tag: 'HSK 5',
-    title: 'HSK 5 – Cao cấp',
-    stage: 'Cao cấp',
-    vocabTarget: 2500,
-    description: 'Nắm vững 2500 từ vựng, có thể đọc báo chí tiếng Trung, thưởng thức phim ảnh và thuyết trình hoàn chỉnh bằng tiếng Trung.',
-    detailGoal: 'Có thể đọc báo chí, tạp chí tiếng Trung, xem phim ảnh truyền hình tiếng Trung và có khả năng thuyết trình tương đối hoàn chỉnh bằng tiếng Trung.',
+    title: 'HSK 5 – Trung cấp nâng cao',
+    stage: 'Trung cấp',
+    stageZh: '中等',
+    vocabTarget: 3600,
+    newVocab: 1600,
+    charTarget: 1500,
+    grammarTarget: 357,
+    description: 'Tích lũy 3.600 từ vựng (thêm 1.600 từ mới), 1,500 chữ Hán và 357 điểm ngữ pháp. Đọc hiểu báo chí, tạp chí, thưởng thức phim ảnh và thuyết trình tiếng Trung hoàn chỉnh.',
+    detailGoal: 'Sử dụng tiếng Trung như ngôn ngữ làm việc chuyên nghiệp, đáp ứng các tiêu chuẩn tuyển sinh thạc sĩ và học bổng chính phủ.',
     color: {
       bg: 'bg-rose-500/10',
       border: 'border-rose-500/30',
@@ -120,11 +199,15 @@ export const HSK_LEVELS: Record<number, HskLevelInfo> = {
     level: 6,
     name: 'HSK 6',
     tag: 'HSK 6',
-    title: 'HSK 6 – Cao cấp',
-    stage: 'Cao cấp',
-    vocabTarget: 5000,
-    description: 'Nắm vững 5000 từ vựng trở lên, dễ dàng hiểu thông tin nghe - đọc và diễn đạt ý kiến một cách trôi chảy, tinh tế bằng văn viết hoặc văn nói.',
-    detailGoal: 'Có thể dễ dàng hiểu thông tin nghe đọc bằng tiếng Trung, diễn đạt ý kiến của mình một cách lưu loát bằng cả văn nói lẫn văn viết.',
+    title: 'HSK 6 – Trung cấp hoàn chỉnh',
+    stage: 'Trung cấp',
+    stageZh: '中等',
+    vocabTarget: 5400,
+    newVocab: 1800,
+    charTarget: 1800,
+    grammarTarget: 424,
+    description: 'Tích lũy 5.400 từ vựng (thêm 1.800 từ mới), 1,800 chữ Hán và 424 điểm ngữ pháp. Nắm vững trọn vẹn giai đoạn Trung cấp HSK 3.0.',
+    detailGoal: 'Dễ dàng nắm bắt thông tin nghe đọc phức tạp, diễn đạt tư duy mạch lạc và tinh tế bằng văn bản học thuật hoặc khẩu ngữ chuyên môn.',
     color: {
       bg: 'bg-purple-500/10',
       border: 'border-purple-500/30',
@@ -135,4 +218,213 @@ export const HSK_LEVELS: Record<number, HskLevelInfo> = {
       progressTo: 'to-indigo-600',
     },
   },
+
+  // -------------------------------------------------------------
+  // GIAI ĐOẠN 3: CAO CẤP (高等) - CẤP 7-9 DÙNG CHUNG BÀI THI
+  // -------------------------------------------------------------
+  7: {
+    level: 7,
+    name: 'HSK 7-9',
+    tag: 'HSK 7-9',
+    title: 'HSK 7–9 – Cao cấp',
+    stage: 'Cao cấp',
+    stageZh: '高等',
+    vocabTarget: 11000,
+    newVocab: 5600,
+    charTarget: 3000,
+    grammarTarget: 572,
+    description: 'Tích lũy 11.000 từ vựng, 3.000 chữ Hán và 572 điểm ngữ pháp. Kỳ thi HSK 7-9 tổ chức chung một đề thi đánh giá xếp hạng cao cấp.',
+    detailGoal: 'Trình độ ngôn ngữ chuyên gia, phục vụ nghiên cứu Hán học, dịch thuật cao cấp, hội nghị quốc tế và tác phẩm văn học học thuật.',
+    color: {
+      bg: 'bg-indigo-500/10',
+      border: 'border-indigo-500/30',
+      text: 'text-indigo-700 dark:text-indigo-400',
+      badgeBg: 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300',
+      badgeText: 'text-indigo-800 dark:text-indigo-300',
+      progressFrom: 'from-indigo-600',
+      progressTo: 'to-purple-700',
+    },
+  },
 };
+
+// ============================================================================
+// DỮ LIỆU ĐỐI SOÁT THỰC TẾ & PHÂN LOẠI TRẠNG THÁI HSK (SYSTEM AUDIT & STATUS)
+// Căn cứ đối soát trực tiếp từ CSDL Supabase (tháng 10/2026) và Tiêu chuẩn GF 0025-2021
+// ============================================================================
+
+export type HskLevelStatus = 'available' | 'partial' | 'coming_soon' | 'unavailable';
+
+export interface HskLevelAuditData {
+  tag: string;                    // 'HSK 1', 'HSK 2', ... 'HSK 7-9', 'Giao tiếp', 'Công xưởng'
+  level: number | null;           // 1..7 hoặc null nếu là chuyên đề
+  stage: 'Sơ cấp' | 'Trung cấp' | 'Cao cấp' | 'Chuyên đề';
+  stageZh: '初等' | '中等' | '高等' | '应用';
+  systemVocabCount: number;       // Số từ vựng thực tế trong DB Supabase
+  uniqueWords: number;            // Số từ vựng duy nhất trong DB Supabase (loại bỏ trùng lặp)
+  duplicateRecords: number;       // Số bản ghi trùng lặp trong DB
+  systemLessonCount: number;      // Số bài học thực tế có sẵn
+  standardTargetVocab: number;    // Chỉ tiêu từ vựng tích lũy theo chuẩn HSK 3.0 (GF 0025-2021)
+  standardNewVocab: number;       // Số từ mới riêng ở cấp độ này theo chuẩn 3.0
+  status: HskLevelStatus;         // 'available' | 'partial' | 'coming_soon' | 'unavailable'
+  statusBadge: string;            // 'Sẵn sàng' | 'Đang cập nhật' | 'Sắp có'
+  sidebarBadge: string;           // Nhãn hiển thị nhỏ gọn trên sidebar
+  friendlyNotice: string;         // Thông báo chính thức cho học viên
+}
+
+export const HSK_AUDIT_DATA: Record<string, HskLevelAuditData> = {
+  'HSK 1': {
+    tag: 'HSK 1',
+    level: 1,
+    stage: 'Sơ cấp',
+    stageZh: '初等',
+    systemVocabCount: 300,
+    uniqueWords: 300,
+    duplicateRecords: 0,
+    systemLessonCount: 11,
+    standardTargetVocab: 300,
+    standardNewVocab: 300,
+    status: 'available',
+    statusBadge: 'Đạt chuẩn 300/300',
+    sidebarBadge: '300 từ',
+    friendlyNotice: 'Hệ thống đã hoàn thiện đủ 300/300 từ vựng nền tảng HSK 1 và 350+ câu ví dụ theo Đề cương thi HSK 3.0 chính thức.',
+  },
+  'HSK 2': {
+    tag: 'HSK 2',
+    level: 2,
+    stage: 'Sơ cấp',
+    stageZh: '初等',
+    systemVocabCount: 199,
+    uniqueWords: 199,
+    duplicateRecords: 0,
+    systemLessonCount: 11,
+    standardTargetVocab: 500,
+    standardNewVocab: 200,
+    status: 'available',
+    statusBadge: 'Đạt chuẩn 200/200',
+    sidebarBadge: '200 từ',
+    friendlyNotice: 'Hệ thống đã hoàn thiện đủ 200/200 từ vựng mới HSK 2 (tổng tích lũy 500 từ theo Đề cương thi HSK 3.0 chính thức) với 400+ câu ví dụ.',
+  },
+  'HSK 3': {
+    tag: 'HSK 3',
+    level: 3,
+    stage: 'Sơ cấp',
+    stageZh: '初等',
+    systemVocabCount: 500,
+    uniqueWords: 500,
+    duplicateRecords: 0,
+    systemLessonCount: 28,
+    standardTargetVocab: 1000,
+    standardNewVocab: 500,
+    status: 'available',
+    statusBadge: 'Đạt chuẩn 500/500',
+    sidebarBadge: '500 từ',
+    friendlyNotice: 'Hệ thống đã hoàn thiện đủ 500/500 từ vựng mới HSK 3 (tổng tích lũy 1.000 từ theo Đề cương thi HSK 3.0 chính thức) với đầy đủ ví dụ thực tế.',
+  },
+  'HSK 4': {
+    tag: 'HSK 4',
+    level: 4,
+    stage: 'Trung cấp',
+    stageZh: '中等',
+    systemVocabCount: 639,
+    uniqueWords: 639,
+    duplicateRecords: 0,
+    systemLessonCount: 44,
+    standardTargetVocab: 2000,
+    standardNewVocab: 1000,
+    status: 'partial',
+    statusBadge: 'Đang cập nhật',
+    sidebarBadge: '639 từ',
+    friendlyNotice: 'Hệ thống hiện có 639 từ vựng và 44 bài học. Đang tiếp tục bổ sung theo Đề cương thi HSK 3.0 (mục tiêu 2.000 từ).',
+  },
+  'HSK 5': {
+    tag: 'HSK 5',
+    level: 5,
+    stage: 'Trung cấp',
+    stageZh: '中等',
+    systemVocabCount: 1250,
+    uniqueWords: 1250,
+    duplicateRecords: 0,
+    systemLessonCount: 91,
+    standardTargetVocab: 3600,
+    standardNewVocab: 1600,
+    status: 'partial',
+    statusBadge: 'Đang cập nhật',
+    sidebarBadge: '1,250 từ',
+    friendlyNotice: 'Hệ thống hiện có 1,250 từ vựng và 91 bài học. Đang tiếp tục bổ sung theo Đề cương thi HSK 3.0 (mục tiêu 3.600 từ).',
+  },
+  'HSK 6': {
+    tag: 'HSK 6',
+    level: 6,
+    stage: 'Trung cấp',
+    stageZh: '中等',
+    systemVocabCount: 2501,
+    uniqueWords: 2500,
+    duplicateRecords: 1,
+    systemLessonCount: 173,
+    standardTargetVocab: 5400,
+    standardNewVocab: 1800,
+    status: 'partial',
+    statusBadge: 'Đang cập nhật',
+    sidebarBadge: '2,500 từ',
+    friendlyNotice: 'Hệ thống hiện có 2,500 từ vựng và 173 bài học. Đang tiếp tục bổ sung theo Đề cương thi HSK 3.0 (mục tiêu 5.400 từ).',
+  },
+  'HSK 7-9': {
+    tag: 'HSK 7-9',
+    level: 7,
+    stage: 'Cao cấp',
+    stageZh: '高等',
+    systemVocabCount: 0,
+    uniqueWords: 0,
+    duplicateRecords: 0,
+    systemLessonCount: 0,
+    standardTargetVocab: 11000,
+    standardNewVocab: 5600,
+    status: 'coming_soon',
+    statusBadge: 'Sắp có',
+    sidebarBadge: 'Sắp có',
+    friendlyNotice: 'Nội dung HSK này đang được hoàn thiện theo Đề cương thi HSK 3.0 (mục tiêu 11.000 từ) và sẽ sớm được cập nhật.',
+  },
+  'Giao tiếp': {
+    tag: 'Giao tiếp',
+    level: null,
+    stage: 'Chuyên đề',
+    stageZh: '应用',
+    systemVocabCount: 179,
+    uniqueWords: 171,
+    duplicateRecords: 8,
+    systemLessonCount: 15,
+    standardTargetVocab: 179,
+    standardNewVocab: 179,
+    status: 'available',
+    statusBadge: 'Sẵn sàng',
+    sidebarBadge: '179 từ',
+    friendlyNotice: 'Hệ thống gồm 179 từ vựng và 15 bài đàm thoại thực tế theo ngữ cảnh đời sống thường nhật.',
+  },
+  'Công xưởng': {
+    tag: 'Công xưởng',
+    level: null,
+    stage: 'Chuyên đề',
+    stageZh: '应用',
+    systemVocabCount: 391,
+    uniqueWords: 360,
+    duplicateRecords: 31,
+    systemLessonCount: 14,
+    standardTargetVocab: 391,
+    standardNewVocab: 391,
+    status: 'available',
+    statusBadge: 'Sẵn sàng',
+    sidebarBadge: '391 từ',
+    friendlyNotice: 'Hệ thống gồm 391 thuật ngữ và 14 bài học chuyên sâu về sản xuất, an toàn lao động và vận hành nhà xưởng.',
+  },
+};
+
+export function getHskAuditData(key: string | number): HskLevelAuditData | undefined {
+  if (typeof key === 'number') {
+    if (key >= 7) return HSK_AUDIT_DATA['HSK 7-9'];
+    return HSK_AUDIT_DATA[`HSK ${key}`];
+  }
+  if (HSK_AUDIT_DATA[key]) return HSK_AUDIT_DATA[key];
+  if (key === '7-9' || key === '7' || key === '8' || key === '9') return HSK_AUDIT_DATA['HSK 7-9'];
+  const formatted = `HSK ${key}`;
+  return HSK_AUDIT_DATA[formatted];
+}

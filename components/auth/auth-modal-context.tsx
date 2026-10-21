@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
-import { toast } from 'sonner'
 
 export type AuthModalView = 'none' | 'login-required' | 'login-form' | 'register-form'
 

@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { 
   BookOpen, 
   CheckCircle2, 
   ChevronRight, 
+  ChevronLeft,
   Sparkles, 
   BookType, 
   GraduationCap, 
@@ -17,22 +18,29 @@ import {
   LogIn,
   Layers,
   ArrowRight,
-  Filter
+  Filter,
+  Loader2,
+  ArrowLeft,
+  Clock
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AudioButton } from '@/components/ui/audio-button'
-import { HSK_LEVELS } from '@/data/hsk-curriculum'
+import { AudioSpeedSelector } from '@/components/ui/audio-speed-selector'
+import { HSK_LEVELS, HSK_AUDIT_DATA, getHskAuditData } from '@/data/hsk-curriculum'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
+import { getTopicVocabulariesAction, TopicVocabItem } from './actions'
+import { formatNumber } from '@/lib/utils'
 
 const HSK_TOTAL_VOCAB: Record<string, number> = {
-  'HSK 1': 150,
-  'HSK 2': 150,
-  'HSK 3': 300,
-  'HSK 4': 600,
-  'HSK 5': 1300,
-  'HSK 6': 2500,
-  'Giao tiếp': 150,
-  'Công xưởng': 150,
+  'HSK 1': 300,
+  'HSK 2': 500,
+  'HSK 3': 1000,
+  'HSK 4': 2000,
+  'HSK 5': 3600,
+  'HSK 6': 5400,
+  'HSK 7-9': 11000,
+  'Giao tiếp': 179,
+  'Công xưởng': 391,
 }
 
 export type LessonItem = {
@@ -68,6 +76,7 @@ interface HskDashboardClientProps {
   reviewVocabCount: number
   recentVocabs?: RecentVocab[]
   globalVocabs?: GlobalVocab[]
+  totalLevelVocabCount?: number
   isLoggedIn: boolean
 }
 
@@ -78,6 +87,7 @@ export default function HskDashboardClient({
   reviewVocabCount,
   recentVocabs = [],
   globalVocabs = [],
+  totalLevelVocabCount,
   isLoggedIn,
 }: HskDashboardClientProps) {
   const { openLoginForm } = useAuthModal()
@@ -85,13 +95,24 @@ export default function HskDashboardClient({
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
   const [vocabSearchQuery, setVocabSearchQuery] = useState('')
+  const [visibleLessonsCount, setVisibleLessonsCount] = useState(24)
 
-  // Level info from curriculum
-  const levelNum = parseInt(currentHsk.replace('HSK ', ''), 10)
+  // Level info from curriculum (HSK 3.0: HSK 1 - 6, HSK 7-9)
+  const levelNum = currentHsk === 'HSK 7-9' || currentHsk === 'HSK 7'
+    ? 7
+    : parseInt(currentHsk.replace('HSK ', ''), 10)
   const levelInfo = !isNaN(levelNum) ? HSK_LEVELS[levelNum] : null
+  const auditData = getHskAuditData(currentHsk)
+
+  // Số từ thực tế trong hệ thống & Số từ chuẩn theo tiêu chuẩn HSK 3.0
+  const actualVocabCount = typeof totalLevelVocabCount === 'number'
+    ? totalLevelVocabCount
+    : auditData?.systemVocabCount ?? 0
+  const standardVocabTarget = levelInfo?.vocabTarget || auditData?.standardTargetVocab || actualVocabCount
+  const isComingSoon = auditData?.status === 'coming_soon' || (actualVocabCount === 0 && lessons.length === 0 && currentHsk === 'HSK 7-9')
 
   const stage = levelInfo 
-    ? levelInfo.stage 
+    ? `${levelInfo.stage} (${levelInfo.stageZh})` 
     : currentHsk === 'Giao tiếp' 
     ? 'Thực hành' 
     : 'Chuyên ngành'
@@ -102,8 +123,9 @@ export default function HskDashboardClient({
     ? 'Các bài học đàm thoại và mẫu câu giao tiếp tiếng Trung theo tình huống sinh hoạt thực tế.'
     : 'Hệ thống từ vựng và thuật ngữ chuyên ngành sản xuất, nhà máy, công xưởng và an toàn lao động.'
 
-  const totalVocab = levelInfo?.vocabTarget || HSK_TOTAL_VOCAB[currentHsk] || 150
-  const progressPercent = Math.min(100, Math.round((userVocabCount / totalVocab) * 100))
+  const progressPercent = actualVocabCount > 0
+    ? Math.min(100, Math.round((userVocabCount / actualVocabCount) * 100))
+    : 0
 
   const completedLessonsCount = lessons.filter(l => l.is_completed).length
   const inProgressLessonsCount = lessons.filter(l => !l.is_completed && (l.learned_vocab_count || 0) > 0).length
@@ -154,16 +176,62 @@ export default function HskDashboardClient({
     return result
   }, [lessons, searchQuery, statusFilter, isLoggedIn])
 
-  // Filter vocabs
-  const filteredVocabs = useMemo(() => {
-    if (!vocabSearchQuery.trim()) return globalVocabs
-    const q = vocabSearchQuery.toLowerCase().trim()
-    return globalVocabs.filter(v =>
-      v.hanzi.includes(q) ||
-      v.pinyin.toLowerCase().includes(q) ||
-      v.meaning_vi.toLowerCase().includes(q)
-    )
-  }, [globalVocabs, vocabSearchQuery])
+  // On-demand Vocabulary states
+  const [vocabList, setVocabList] = useState<TopicVocabItem[]>(globalVocabs)
+  const [vocabPage, setVocabPage] = useState(1)
+  const [vocabTotalCount, setVocabTotalCount] = useState(actualVocabCount)
+  const [isLoadingVocabs, setIsLoadingVocabs] = useState(false)
+  const [hasMoreVocabs, setHasMoreVocabs] = useState(false)
+  const [debouncedVocabSearch, setDebouncedVocabSearch] = useState('')
+
+  // Debounce vocab search input (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedVocabSearch(vocabSearchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [vocabSearchQuery])
+
+  // Load vocabs on demand from server action
+  const loadVocabs = useCallback(async () => {
+    setIsLoadingVocabs(true)
+    try {
+      const res = await getTopicVocabulariesAction({
+        hskLevel: currentHsk,
+        page: vocabPage,
+        pageSize: 30,
+        search: debouncedVocabSearch,
+      })
+      if (res.success) {
+        setVocabList(res.vocabs)
+        setVocabTotalCount(res.totalCount)
+        setHasMoreVocabs(res.hasMore)
+      }
+    } finally {
+      setIsLoadingVocabs(false)
+    }
+  }, [currentHsk, vocabPage, debouncedVocabSearch])
+
+  // Reset page and search when HSK level changes
+  useEffect(() => {
+    setVocabPage(1)
+    setVocabSearchQuery('')
+    setDebouncedVocabSearch('')
+    setVisibleLessonsCount(24)
+  }, [currentHsk])
+
+  // Fetch when vocab tab is activated or pagination/search triggers
+  useEffect(() => {
+    if (activeTab === 'vocab') {
+      loadVocabs()
+    }
+  }, [activeTab, loadVocabs])
+
+  // Lessons to display with pagination
+  const displayedLessons = useMemo(() => {
+    if (searchQuery.trim()) return filteredLessons
+    return filteredLessons.slice(0, visibleLessonsCount)
+  }, [filteredLessons, searchQuery, visibleLessonsCount])
 
   const levelTabs = [
     'HSK 1',
@@ -172,6 +240,7 @@ export default function HskDashboardClient({
     'HSK 4',
     'HSK 5',
     'HSK 6',
+    'HSK 7-9',
     'Giao tiếp',
     'Công xưởng',
   ]
@@ -179,8 +248,8 @@ export default function HskDashboardClient({
   return (
     <div className="min-h-full font-serif space-y-8 pb-12">
       
-      {/* 1. LEVEL SELECTOR TAB BAR (Sticky, Glassmorphic on scroll) */}
-      <div className="bg-page/90 backdrop-blur-md sticky top-0 z-20 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 py-3 border-b border-border transition-all">
+      {/* 1. LEVEL SELECTOR TAB BAR (Sticky, Glassmorphic on scroll below 56px fixed header) */}
+      <div className="bg-page/90 backdrop-blur-md sticky top-14 z-10 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 py-3 border-b border-border transition-all">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 scroll-smooth">
             {levelTabs.map((level) => {
@@ -208,7 +277,56 @@ export default function HskDashboardClient({
         </div>
       </div>
 
-      <div className="space-y-8">
+      {isComingSoon ? (
+        <div className="py-6 space-y-6">
+          <section className="bg-card border border-border p-8 sm:p-12 rounded-2xl shadow-2xs text-center space-y-6 max-w-2xl mx-auto relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-gold to-amber-600" />
+            
+            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+              <Clock className="w-8 h-8 animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-serif font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                <span>{currentHsk} • {stage}</span>
+                <span>•</span>
+                <span>Đang hoàn thiện</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-title tracking-tight">
+                Lộ trình {currentHsk}
+              </h1>
+              <p className="text-sm sm:text-base text-body font-serif font-medium max-w-lg mx-auto pt-2 leading-relaxed">
+                Nội dung HSK này đang được hoàn thiện và sẽ sớm được cập nhật. Vui lòng quay lại sau nhé!
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-5 rounded-xl bg-page border border-border/80 text-left text-xs font-serif text-muted space-y-2 max-w-xl mx-auto">
+              <div className="font-semibold text-title flex items-center gap-1.5">
+                <GraduationCap className="w-4 h-4 text-app-accent" />
+                <span>Tiêu chuẩn HSK 3.0 (GF 0025-2021)</span>
+              </div>
+              <p className="leading-relaxed">
+                Khối thi Cao cấp HSK 7–9 theo chuẩn Giáo dục Hán ngữ Quốc tế do Bộ Giáo dục Trung Quốc công bố gồm <strong>11,092 từ vựng tích lũy</strong>, <strong>3,000 chữ Hán</strong> và <strong>572 điểm ngữ pháp</strong>. Đội ngũ học thuật đang thẩm định nội dung để đảm bảo bài học đạt chất lượng tốt nhất.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <Link href="/topics?q=HSK 1" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl py-3 px-6 shadow-xs text-sm flex items-center justify-center gap-2">
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Quay lại lộ trình HSK 1 – 6</span>
+                </Button>
+              </Link>
+              <Link href="/" className="w-full sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto font-serif border-border rounded-xl py-3 px-6 text-sm">
+                  <span>Về trang chủ</span>
+                </Button>
+              </Link>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <div className="space-y-8">
         
         {/* 2. HERO OVERVIEW & ACTION CARD */}
         <section className="bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xs relative overflow-hidden transition-all">
@@ -225,9 +343,28 @@ export default function HskDashboardClient({
                 <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-serif text-muted bg-page border border-border">
                   {stage}
                 </span>
-                <span className="text-xs text-muted font-serif flex items-center gap-1">
+                {levelInfo && (
+                  <span className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                    HSK 3.0 • GF 0025-2021
+                  </span>
+                )}
+                <span className="text-xs text-muted font-serif flex items-center gap-1.5 flex-wrap">
                   <span>•</span>
-                  <span>Mục tiêu: <strong>{totalVocab}</strong> từ vựng</span>
+                  <span>Từ hệ thống: <strong suppressHydrationWarning>{formatNumber(actualVocabCount)}</strong> từ</span>
+                  <span>•</span>
+                  <span>Mục tiêu HSK 3.0: <strong suppressHydrationWarning>{formatNumber(standardVocabTarget)}</strong> từ</span>
+                  {levelInfo?.charTarget && (
+                    <>
+                      <span>•</span>
+                      <span><strong suppressHydrationWarning>{formatNumber(levelInfo.charTarget)}</strong> chữ Hán</span>
+                    </>
+                  )}
+                  {levelInfo?.grammarTarget && (
+                    <>
+                      <span>•</span>
+                      <span><strong suppressHydrationWarning>{formatNumber(levelInfo.grammarTarget)}</strong> ngữ pháp</span>
+                    </>
+                  )}
                   <span>•</span>
                   <span><strong>{lessons.length}</strong> bài học</span>
                 </span>
@@ -240,6 +377,23 @@ export default function HskDashboardClient({
               <p className="text-xs sm:text-sm text-body font-serif leading-relaxed">
                 {description}
               </p>
+
+              {/* Thông báo phân loại trạng thái cấp độ HSK */}
+              {actualVocabCount >= standardVocabTarget && standardVocabTarget > 0 ? (
+                <div className="flex items-center gap-2 text-xs font-serif text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>
+                    Kho từ vựng <strong>{currentHsk}</strong> đã đạt chuẩn hoàn chỉnh <strong>{formatNumber(actualVocabCount)}/{formatNumber(standardVocabTarget)} mục từ</strong> theo Đề cương thi HSK 3.0 chính thức với đầy đủ phát âm, phân loại từ và câu ví dụ.
+                  </span>
+                </div>
+              ) : auditData?.status === 'partial' ? (
+                <div className="flex items-center gap-2 text-xs font-serif text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span>
+                    Hệ thống hiện có <strong>{formatNumber(actualVocabCount)}</strong> từ vựng và <strong>{lessons.length}</strong> bài học thực tế. Nội dung đang tiếp tục được bổ sung theo khung chuẩn HSK 3.0 (mục tiêu {formatNumber(standardVocabTarget)} từ).
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             {/* Smart Call To Action */}
@@ -290,10 +444,10 @@ export default function HskDashboardClient({
                 <div className="flex items-center justify-between text-xs font-serif">
                   <span className="text-muted flex items-center gap-1.5 font-medium">
                     <WholeWord className="w-3.5 h-3.5 text-app-accent" />
-                    Tiến độ từ vựng
+                    Tiến độ từ vựng thực tế
                   </span>
                   <span className="font-bold text-title">
-                    {userVocabCount} / {totalVocab} từ ({progressPercent}%)
+                    {userVocabCount} / {actualVocabCount} từ ({progressPercent}%)
                   </span>
                 </div>
                 <div className="w-full bg-track h-2 rounded-full overflow-hidden">
@@ -359,15 +513,15 @@ export default function HskDashboardClient({
                 }`}
               >
                 <WholeWord className="w-4 h-4" />
-                <span>Từ vựng cấp độ ({globalVocabs.length})</span>
+                <span>Từ vựng cấp độ ({vocabTotalCount})</span>
               </button>
             </div>
 
             {/* Stats summary label */}
             <div className="text-xs text-muted font-serif hidden md:block">
               {activeTab === 'lessons' 
-                ? `Đang hiển thị ${filteredLessons.length} bài học`
-                : `Đang hiển thị ${filteredVocabs.length} từ vựng`
+                ? `Đang hiển thị ${displayedLessons.length} / ${filteredLessons.length} bài học`
+                : `Đang hiển thị ${vocabList.length} / ${vocabTotalCount} từ vựng`
               }
             </div>
           </div>
@@ -467,7 +621,7 @@ export default function HskDashboardClient({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredLessons.map((lesson, idx) => {
+                  {displayedLessons.map((lesson, idx) => {
                     const lessonNum = lesson.lesson_number ?? (idx + 1)
                     const formattedNum = String(lessonNum).padStart(2, '0')
                     const isCompleted = lesson.is_completed
@@ -553,6 +707,33 @@ export default function HskDashboardClient({
                       </Link>
                     )
                   })}
+
+                  {/* Điều khiển phân trang / tải thêm bài học khi danh sách lớn */}
+                  {!searchQuery.trim() && filteredLessons.length > visibleLessonsCount && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border mt-4 shadow-2xs">
+                      <span className="text-xs font-serif text-muted">
+                        Đang hiển thị <strong>{Math.min(visibleLessonsCount, filteredLessons.length)}</strong> trên tổng số <strong>{filteredLessons.length}</strong> bài học
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setVisibleLessonsCount((prev) => prev + 24)}
+                          className="font-serif text-xs border-border hover:bg-page"
+                        >
+                          Xem thêm 24 bài tiếp theo
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setVisibleLessonsCount(filteredLessons.length)}
+                          className="font-serif text-xs text-muted hover:text-title"
+                        >
+                          Xem tất cả ({filteredLessons.length} bài)
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -562,105 +743,225 @@ export default function HskDashboardClient({
           {activeTab === 'vocab' && (
             <div className="space-y-4">
               {/* Vocab Search Toolbar */}
-              <div className="relative max-w-md">
-                <Search className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={vocabSearchQuery}
-                  onChange={(e) => setVocabSearchQuery(e.target.value)}
-                  placeholder="Tìm từ vựng (chữ Hán, Pinyin hoặc nghĩa tiếng Việt)..."
-                  className="w-full pl-9 pr-8 py-2 rounded-xl text-xs sm:text-sm font-serif bg-card border border-border text-title placeholder:text-muted focus:outline-none focus:border-app-accent/60 transition-colors shadow-2xs"
-                />
-                {vocabSearchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setVocabSearchQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-title"
-                    title="Xóa tìm kiếm"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="relative max-w-md w-full">
+                  <Search className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={vocabSearchQuery}
+                    onChange={(e) => {
+                      setVocabSearchQuery(e.target.value)
+                      setVocabPage(1)
+                    }}
+                    placeholder="Tìm từ vựng (chữ Hán, Pinyin hoặc nghĩa tiếng Việt)..."
+                    className="w-full pl-9 pr-8 py-2 rounded-xl text-xs sm:text-sm font-serif bg-card border border-border text-title placeholder:text-muted focus:outline-none focus:border-app-accent/60 transition-colors shadow-2xs"
+                  />
+                  {vocabSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVocabSearchQuery('')
+                        setVocabPage(1)
+                      }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-title"
+                      title="Xóa tìm kiếm"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <AudioSpeedSelector variant="dropdown" size="sm" />
+                  <div className="text-xs text-muted font-serif">
+                    Tổng cộng: <strong className="text-title">{vocabTotalCount}</strong> từ vựng
+                  </div>
+                </div>
               </div>
 
-              {filteredVocabs.length === 0 ? (
+              {isLoadingVocabs ? (
+                <div className="p-12 rounded-2xl border border-border bg-card/60 text-center space-y-3">
+                  <Loader2 className="w-8 h-8 text-app-accent animate-spin mx-auto opacity-70" />
+                  <p className="text-xs sm:text-sm font-serif text-muted">Đang tải danh sách từ vựng...</p>
+                </div>
+              ) : vocabList.length === 0 ? (
                 <div className="p-10 rounded-2xl border border-dashed border-border bg-card/60 text-center space-y-2">
                   <WholeWord className="w-10 h-10 text-muted mx-auto opacity-50" />
                   <p className="text-sm font-serif text-title">Không tìm thấy từ vựng phù hợp</p>
                   <p className="text-xs text-muted font-serif">Thử lại với từ khóa khác.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {filteredVocabs.map((v, i) => (
-                    <div 
-                      key={v.id} 
-                      className="p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-app-accent/30 transition-all shadow-2xs group"
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-                        
-                        {/* Left: Index & Hanzi & Audio */}
-                        <div className="flex items-center sm:items-start gap-3 sm:w-44 shrink-0">
-                          <span className="text-xs font-serif text-muted/60 w-5 text-right shrink-0">
-                            {i + 1}
-                          </span>
-                          <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="text-2xl sm:text-3xl font-serif font-bold text-title group-hover:text-app-accent transition-colors">
-                                {v.hanzi}
+                <>
+                  <div className="space-y-3">
+                    {vocabList.map((v, i) => {
+                      const itemIndex = (vocabPage - 1) * 30 + i + 1
+                      return (
+                        <div 
+                          key={v.id} 
+                          className="p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-app-accent/30 transition-all shadow-2xs group"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                            
+                            {/* Left: Index & Hanzi & Audio */}
+                            <div className="flex items-center sm:items-start gap-3 sm:w-44 shrink-0">
+                              <span className="text-xs font-serif text-muted/60 w-6 text-right shrink-0">
+                                {itemIndex}
                               </span>
-                              <AudioButton 
-                                text={v.hanzi} 
-                                id={`topic-v-${v.id}`} 
-                                size="xs" 
-                                variant="ghost" 
-                                tooltip="Phát âm từ vựng" 
-                              />
+                              <div className="flex flex-col">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-2xl sm:text-3xl font-serif font-bold text-title group-hover:text-app-accent transition-colors">
+                                    {v.hanzi}
+                                  </span>
+                                  <AudioButton 
+                                    text={v.hanzi} 
+                                    id={`topic-v-${v.id}`} 
+                                    size="xs" 
+                                    variant="ghost" 
+                                    tooltip="Phát âm từ vựng" 
+                                  />
+                                </div>
+                                <span className="text-xs sm:text-sm font-sans text-app-accent/80 tracking-wide mt-0.5">
+                                  {v.pinyin}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-xs sm:text-sm font-sans text-app-accent/80 tracking-wide mt-0.5">
-                              {v.pinyin}
-                            </span>
+
+                            {/* Right: Meaning & Example Sentences */}
+                            <div className="flex-1 min-w-0 sm:border-l sm:border-border sm:pl-5 space-y-2.5 pt-2 sm:pt-0">
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <p className="text-sm sm:text-base font-serif font-medium text-title">
+                                  {v.meaning_vi}
+                                </p>
+                                {v.word_type && (
+                                  <span className="px-2 py-0.5 rounded-full text-[11px] font-sans font-medium bg-app-accent/10 text-app-accent border border-app-accent/20">
+                                    {v.word_type}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Multi-Example Sentences List */}
+                              {v.examples && v.examples.length > 0 ? (
+                                <div className="space-y-2 mt-2">
+                                  {v.examples.map((ex, exIdx) => {
+                                    const isBasic = ex.difficulty_level === 'basic' || exIdx === 0
+                                    return (
+                                      <div 
+                                        key={ex.id || `ex-${v.id}-${exIdx}`} 
+                                        className="p-3 rounded-xl bg-page/70 border border-border/80 space-y-1.5 transition-colors hover:border-app-accent/30"
+                                      >
+                                        <div className="flex items-center justify-between gap-2">
+                                          <div className="flex items-center gap-2 flex-wrap">
+                                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-sans font-semibold uppercase tracking-wider ${
+                                              isBasic 
+                                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' 
+                                                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                                            }`}>
+                                              {isBasic ? 'Ví dụ 1 (Cơ bản)' : 'Ví dụ 2 (Ứng dụng)'}
+                                            </span>
+                                            <span className="text-sm sm:text-base font-serif text-title font-medium">
+                                              {ex.chinese}
+                                            </span>
+                                          </div>
+                                          <AudioButton 
+                                            text={ex.chinese} 
+                                            id={`topic-ex-${v.id}-${exIdx}`} 
+                                            size="xs" 
+                                            variant="subtle" 
+                                            tooltip="Nghe câu ví dụ" 
+                                          />
+                                        </div>
+                                        {ex.pinyin && (
+                                          <p className="text-xs font-sans text-muted tracking-wide pl-0.5">
+                                            {ex.pinyin}
+                                          </p>
+                                        )}
+                                        {ex.meaning_vi && (
+                                          <p className="text-xs sm:text-sm font-serif text-body italic pl-0.5">
+                                            {ex.meaning_vi}
+                                          </p>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              ) : v.example_hanzi ? (
+                                <div className="p-3 rounded-xl bg-page/70 border border-border/80 space-y-1 mt-2">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="px-1.5 py-0.5 rounded text-[10px] font-sans font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
+                                        Ví dụ
+                                      </span>
+                                      <span className="text-sm sm:text-base font-serif text-title font-medium">
+                                        {v.example_hanzi}
+                                      </span>
+                                    </div>
+                                    <AudioButton 
+                                      text={v.example_hanzi} 
+                                      id={`topic-ex-${v.id}`} 
+                                      size="xs" 
+                                      variant="subtle" 
+                                      tooltip="Nghe câu ví dụ" 
+                                    />
+                                  </div>
+                                  {v.example_pinyin && (
+                                    <p className="text-xs font-sans text-muted tracking-wide">
+                                      {v.example_pinyin}
+                                    </p>
+                                  )}
+                                  {v.example_vi && (
+                                    <p className="text-xs sm:text-sm font-serif text-body italic">
+                                      {v.example_vi}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : null}
+                            </div>
+
                           </div>
                         </div>
+                      )
+                    })}
+                  </div>
 
-                        {/* Right: Meaning & Example Sentence */}
-                        <div className="flex-1 min-w-0 sm:border-l sm:border-border sm:pl-5 space-y-2 pt-2 sm:pt-0">
-                          <p className="text-sm sm:text-base font-serif font-medium text-title">
-                            {v.meaning_vi}
-                          </p>
+                  {/* Thanh phân trang từ vựng (Pagination Bar) */}
+                  {vocabTotalCount > 30 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border mt-4 shadow-2xs">
+                      <span className="text-xs font-serif text-muted">
+                        Trang <strong>{vocabPage}</strong> / <strong>{Math.ceil(vocabTotalCount / 30)}</strong> ({vocabTotalCount} từ)
+                      </span>
 
-                          {/* Example Sentence Box */}
-                          {v.example_hanzi && (
-                            <div className="p-3 rounded-xl bg-page/70 border border-border/80 space-y-1 mt-2">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="text-sm sm:text-base font-serif text-title font-medium">
-                                  {v.example_hanzi}
-                                </span>
-                                <AudioButton 
-                                  text={v.example_hanzi} 
-                                  id={`topic-ex-${v.id}`} 
-                                  size="xs" 
-                                  variant="subtle" 
-                                  tooltip="Nghe câu ví dụ" 
-                                />
-                              </div>
-                              {v.example_pinyin && (
-                                <p className="text-xs font-sans text-muted tracking-wide">
-                                  {v.example_pinyin}
-                                </p>
-                              )}
-                              {v.example_vi && (
-                                <p className="text-xs sm:text-sm font-serif text-body italic">
-                                  {v.example_vi}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={vocabPage <= 1 || isLoadingVocabs}
+                          onClick={() => {
+                            setVocabPage((p) => Math.max(1, p - 1))
+                            window.scrollTo({ top: 350, behavior: 'smooth' })
+                          }}
+                          className="font-serif text-xs border-border flex items-center gap-1"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <span>Trang trước</span>
+                        </Button>
 
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!hasMoreVocabs || vocabPage >= Math.ceil(vocabTotalCount / 30) || isLoadingVocabs}
+                          onClick={() => {
+                            setVocabPage((p) => p + 1)
+                            window.scrollTo({ top: 350, behavior: 'smooth' })
+                          }}
+                          className="font-serif text-xs border-border flex items-center gap-1"
+                        >
+                          <span>Trang tiếp</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -705,6 +1006,7 @@ export default function HskDashboardClient({
         )}
 
       </div>
+      )}
     </div>
   )
 }

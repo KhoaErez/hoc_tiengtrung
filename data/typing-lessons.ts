@@ -1,7 +1,7 @@
 // Dữ liệu bài luyện đánh máy tiếng Trung (Chinese Typing Practice Data)
-// Bao gồm 4 chế độ: Câu mẫu, Từ vựng, Đoạn văn, và Theo HSK (HSK 1 - 6)
+// Bao gồm các chế độ: Câu mẫu (ca dao tục ngữ), Đoạn văn, và Theo HSK (HSK 1 - 6)
 
-export type TypingMode = 'sentence' | 'vocabulary' | 'paragraph' | 'hsk';
+export type TypingMode = 'sentence' | 'paragraph' | 'hsk' | 'vocabulary';
 export type TypingDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface TypingExercise {
@@ -19,174 +19,30 @@ export interface TypingExercise {
   exampleHanzi?: string;  // Câu ví dụ chữ Hán (khi luyện HSK)
   examplePinyin?: string; // Pinyin câu ví dụ
   exampleVi?: string;     // Nghĩa câu ví dụ
+  vietnamese?: string;    // Câu ca dao, tục ngữ nguyên bản
+  chinese?: string;       // Bản dịch tiếng Trung
+  sourceType?: 'Tục ngữ' | 'Ca dao' | 'Dân gian';
+  translationType?: 'Tương đương' | 'Chuyển ngữ';
+  culturalNote?: string;  // Chú thích văn hóa nếu có
 }
 
-// 1. Chế độ 1: Luyện gõ theo câu mẫu (Sentences)
-export const sentenceExercises: TypingExercise[] = [
-  // Cơ bản
-  {
-    id: 'sen-1',
-    hanzi: '你好，很高兴认识你。',
-    pinyin: 'Nǐ hǎo, hěn gāoxìng rènshi nǐ.',
-    meaning: 'Xin chào, rất vui được làm quen với bạn.',
-    mode: 'sentence',
-    level: 'Cơ bản',
-    category: 'Giao tiếp hàng ngày',
-    difficulty: 'easy',
-  },
-  {
-    id: 'sen-2',
-    hanzi: '我喜欢学习中文。',
-    pinyin: 'Wǒ xǐhuan xuéxí zhōngwén.',
-    meaning: 'Tôi thích học tiếng Trung.',
-    mode: 'sentence',
-    level: 'Cơ bản',
-    category: 'Học tập',
-    difficulty: 'easy',
-  },
-  {
-    id: 'sen-3',
-    hanzi: '今天天气非常晴朗。',
-    pinyin: 'Jīntiān tiānqì fēicháng qínglǎng.',
-    meaning: 'Hôm nay thời tiết rất trong xanh.',
-    mode: 'sentence',
-    level: 'Cơ bản',
-    category: 'Thời tiết',
-    difficulty: 'easy',
-  },
-  {
-    id: 'sen-4',
-    hanzi: '请问，洗手间在哪里？',
-    pinyin: 'Qǐngwèn, xǐshǒujiān zài nǎlǐ?',
-    meaning: 'Xin hỏi, nhà vệ sinh ở đâu vậy?',
-    mode: 'sentence',
-    level: 'Cơ bản',
-    category: 'Hỏi đường',
-    difficulty: 'easy',
-  },
-  {
-    id: 'sen-5',
-    hanzi: '这个苹果真好吃。',
-    pinyin: 'Zhège píngguǒ zhēn hǎochī.',
-    meaning: 'Quả táo này thật là ngon.',
-    mode: 'sentence',
-    level: 'Cơ bản',
-    category: 'Ăn uống',
-    difficulty: 'easy',
-  },
-  // Trung cấp
-  {
-    id: 'sen-6',
-    hanzi: '虽然工作很忙，但我每天都坚持跑步。',
-    pinyin: 'Suīrán gōngzuò hěn máng, dàn wǒ měitiān dōu jiānchí pǎobù.',
-    meaning: 'Tuy công việc rất bận, nhưng ngày nào tôi cũng kiên trì chạy bộ.',
-    mode: 'sentence',
-    level: 'Trung cấp',
-    category: 'Đời sống',
-    difficulty: 'medium',
-  },
-  {
-    id: 'sen-7',
-    hanzi: '书籍是人类进步的阶梯。',
-    pinyin: 'Shūjí shì rénlèi jìnbù de jiētī.',
-    meaning: 'Sách là bậc thang tiến bộ của loài người.',
-    mode: 'sentence',
-    level: 'Trung cấp',
-    category: 'Châm ngôn',
-    difficulty: 'medium',
-  },
-  {
-    id: 'sen-8',
-    hanzi: '多听、多说、多读、多写是学好外语的方法。',
-    pinyin: 'Duō tīng, duō shuō, duō dú, duō xiě shì xué hǎo wàiyǔ de fāngfǎ.',
-    meaning: 'Nghe nhiều, nói nhiều, đọc nhiều, viết nhiều là phương pháp học giỏi ngoại ngữ.',
-    mode: 'sentence',
-    level: 'Trung cấp',
-    category: 'Học tập',
-    difficulty: 'medium',
-  },
-  {
-    id: 'sen-9',
-    hanzi: '如果你明天有空，我们一起去看电影吧。',
-    pinyin: 'Rúguǒ nǐ míngtiān yǒu kòng, wǒmen yìqǐ qù kàn diànyǐng ba.',
-    meaning: 'Nếu ngày mai bạn rảnh, chúng mình cùng đi xem phim nhé.',
-    mode: 'sentence',
-    level: 'Trung cấp',
-    category: 'Hẹn hò',
-    difficulty: 'medium',
-  },
-  // Nâng cao
-  {
-    id: 'sen-10',
-    hanzi: '千里之行，始于足下。',
-    pinyin: 'Qiān lǐ zhī xíng, shǐ yú zú xià.',
-    meaning: 'Hành trình ngàn dặm bắt đầu từ một bước chân.',
-    mode: 'sentence',
-    level: 'Nâng cao',
-    category: 'Thành ngữ',
-    difficulty: 'hard',
-  },
-  {
-    id: 'sen-11',
-    hanzi: '无论面对什么困难，我们都要保持积极乐观的心态。',
-    pinyin: 'Wúlùn miànduì shénme kùnnan, wǒmen dōu yào bǎochí jījí lèguān de xīntài.',
-    meaning: 'Bất luận đối mặt với khó khăn gì, chúng ta đều phải giữ tâm thế tích cực và lạc quan.',
-    mode: 'sentence',
-    level: 'Nâng cao',
-    category: 'Tư duy',
-    difficulty: 'hard',
-  },
-  {
-    id: 'sen-12',
-    hanzi: '科技的发展极大地改变了现代人们的生活方式。',
-    pinyin: 'Kējì de fāzhǎn jídà de gǎibiàn le xiàndài rénmen de shēnghuó fāngshì.',
-    meaning: 'Sự phát triển của công nghệ đã thay đổi to lớn lối sống của con người hiện đại.',
-    mode: 'sentence',
-    level: 'Nâng cao',
-    category: 'Khoa học công nghệ',
-    difficulty: 'hard',
-  },
-];
+// 1. Chế độ 1: 100 câu ca dao, tục ngữ Việt Nam chuyển ngữ sang tiếng Trung
+import {
+  VIETNAMESE_PROVERB_EXERCISES,
+  VIETNAMESE_PROVERB_CATEGORIES,
+  VietnameseProverbExercise,
+  getProverbExercises
+} from './vietnamese-proverbs-typing';
 
-// 2. Chế độ 2: Luyện gõ từ vựng (Vocabulary)
-export const vocabularyExercises: TypingExercise[] = [
-  // Chào hỏi & Xã giao
-  { id: 'voc-1', hanzi: '你好', pinyin: 'nǐ hǎo', meaning: 'Xin chào', mode: 'vocabulary', category: 'Chào hỏi' },
-  { id: 'voc-2', hanzi: '谢谢', pinyin: 'xièxie', meaning: 'Cảm ơn', mode: 'vocabulary', category: 'Chào hỏi' },
-  { id: 'voc-3', hanzi: '不客气', pinyin: 'bú kèqi', meaning: 'Đừng khách sáo / Không có chi', mode: 'vocabulary', category: 'Chào hỏi' },
-  { id: 'voc-4', hanzi: '对不起', pinyin: 'duìbuqǐ', meaning: 'Xin lỗi', mode: 'vocabulary', category: 'Chào hỏi' },
-  { id: 'voc-5', hanzi: '再见', pinyin: 'zàijiàn', meaning: 'Tạm biệt', mode: 'vocabulary', category: 'Chào hỏi' },
-  
-  // Thời gian & Đời sống
-  { id: 'voc-6', hanzi: '今天', pinyin: 'jīntiān', meaning: 'Hôm nay', mode: 'vocabulary', category: 'Thời gian' },
-  { id: 'voc-7', hanzi: '明天', pinyin: 'míngtiān', meaning: 'Ngày mai', mode: 'vocabulary', category: 'Thời gian' },
-  { id: 'voc-8', hanzi: '星期天', pinyin: 'xīngqītiān', meaning: 'Chủ nhật', mode: 'vocabulary', category: 'Thời gian' },
-  { id: 'voc-9', hanzi: '现在', pinyin: 'xiànzài', meaning: 'Bây giờ', mode: 'vocabulary', category: 'Thời gian' },
-  { id: 'voc-10', hanzi: '早安', pinyin: 'zǎo ān', meaning: 'Chào buổi sáng', mode: 'vocabulary', category: 'Thời gian' },
+export {
+  VIETNAMESE_PROVERB_CATEGORIES,
+  getProverbExercises,
+};
+export type { VietnameseProverbExercise };
 
-  // Gia đình & Con người
-  { id: 'voc-11', hanzi: '爸爸', pinyin: 'bàba', meaning: 'Bố, cha', mode: 'vocabulary', category: 'Gia đình' },
-  { id: 'voc-12', hanzi: '妈妈', pinyin: 'māma', meaning: 'Mẹ', mode: 'vocabulary', category: 'Gia đình' },
-  { id: 'voc-13', hanzi: '朋友', pinyin: 'péngyou', meaning: 'Bạn bè', mode: 'vocabulary', category: 'Con người' },
-  { id: 'voc-14', hanzi: '老师', pinyin: 'lǎoshī', meaning: 'Thầy cô giáo', mode: 'vocabulary', category: 'Con người' },
-  { id: 'voc-15', hanzi: '学生', pinyin: 'xuésheng', meaning: 'Học sinh, sinh viên', mode: 'vocabulary', category: 'Con người' },
+export const sentenceExercises: TypingExercise[] = VIETNAMESE_PROVERB_EXERCISES;
 
-  // Mua sắm & Ăn uống
-  { id: 'voc-16', hanzi: '米饭', pinyin: 'mǐfàn', meaning: 'Cơm', mode: 'vocabulary', category: 'Ăn uống' },
-  { id: 'voc-17', hanzi: '面条', pinyin: 'miàntiáo', meaning: 'Mì sợi', mode: 'vocabulary', category: 'Ăn uống' },
-  { id: 'voc-18', hanzi: '喝茶', pinyin: 'hē chá', meaning: 'Uống trà', mode: 'vocabulary', category: 'Ăn uống' },
-  { id: 'voc-19', hanzi: '多少钱', pinyin: 'duōshao qián', meaning: 'Bao nhiêu tiền', mode: 'vocabulary', category: 'Mua sắm' },
-  { id: 'voc-20', hanzi: '便宜一点', pinyin: 'piányi yìdiǎn', meaning: 'Rẻ hơn một chút', mode: 'vocabulary', category: 'Mua sắm' },
-
-  // Cảm xúc & Tính chất
-  { id: 'voc-21', hanzi: '高兴', pinyin: 'gāoxìng', meaning: 'Vui vẻ', mode: 'vocabulary', category: 'Cảm xúc' },
-  { id: 'voc-22', hanzi: '美丽', pinyin: 'měilì', meaning: 'Xinh đẹp', mode: 'vocabulary', category: 'Tính chất' },
-  { id: 'voc-23', hanzi: '认真', pinyin: 'rènzhēn', meaning: 'Chăm chỉ, nghiêm túc', mode: 'vocabulary', category: 'Tính chất' },
-  { id: 'voc-24', hanzi: '健康', pinyin: 'jiànkāng', meaning: 'Khỏe mạnh, sức khỏe', mode: 'vocabulary', category: 'Sức khỏe' },
-  { id: 'voc-25', hanzi: '幸福', pinyin: 'xìngfú', meaning: 'Hạnh phúc', mode: 'vocabulary', category: 'Cảm xúc' },
-];
-
-// 3. Chế độ 3: Luyện gõ đoạn văn (Paragraphs - 34 đoạn văn phân cấp độ rõ ràng)
+// 2. Chế độ 2: Đoạn văn (Paragraphs - 34 đoạn văn phân cấp độ rõ ràng)
 export const paragraphExercises: TypingExercise[] = [
   // 4 đoạn văn mẫu gốc
   {
@@ -763,15 +619,25 @@ export const hskExercises: TypingExercise[] = [
 // Tổng hợp toàn bộ bài tập
 export const allTypingExercises: TypingExercise[] = [
   ...sentenceExercises,
-  ...vocabularyExercises,
   ...paragraphExercises,
   ...hskExercises,
 ];
 
-export type { HskTypingWord } from './hsk-typing-vocabularies';
+export interface HskTypingWord {
+  id: number;
+  hanzi: string;
+  pinyin: string;
+  meaning: string;
+  hskLevel: number;
+  lessonNumber: number;
+  category: string;
+  exampleHanzi?: string;
+  examplePinyin?: string;
+  exampleVi?: string;
+}
 
 // Danh sách các bài học hiện có của cấp HSK (mỗi cấp 10 bài chuẩn)
-export function getHskLessonNumbers(_level: number): number[] {
+export function getHskLessonNumbers(_level?: number): number[] {
   return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 }
 
@@ -788,7 +654,6 @@ export interface ExerciseFilter {
 export function getExercisesByMode(mode: TypingMode, filter?: ExerciseFilter): TypingExercise[] {
   let list: TypingExercise[] = [];
   if (mode === 'sentence') list = sentenceExercises;
-  else if (mode === 'vocabulary') list = vocabularyExercises;
   else if (mode === 'paragraph') list = paragraphExercises;
   else if (mode === 'hsk') {
     list = hskExercises;
@@ -811,17 +676,3 @@ export function getExercisesByMode(mode: TypingMode, filter?: ExerciseFilter): T
 export function getExerciseById(id: string): TypingExercise | undefined {
   return allTypingExercises.find((item) => item.id === id);
 }
-
-// Danh mục chủ đề từ vựng
-export const vocabularyCategories = [
-  'Tất cả',
-  'Chào hỏi',
-  'Thời gian',
-  'Gia đình',
-  'Con người',
-  'Ăn uống',
-  'Mua sắm',
-  'Cảm xúc',
-  'Tính chất',
-  'Sức khỏe',
-];

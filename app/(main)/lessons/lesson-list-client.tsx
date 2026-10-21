@@ -73,15 +73,10 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
 
   if (!lessons || lessons.length === 0) {
     return (
-      <div className="text-center py-20 border-2 border-dashed border-slate-300 bg-white/30">
-        <BookOpen className="h-12 w-12 text-slate-300 mx-auto mb-4" />
-        <h3 className="text-lg font-serif text-slate-700">Chưa có bài học nào</h3>
-        <p className="text-slate-500 mb-6">Hãy tạo bài học đầu tiên của bạn bằng cách nhập văn bản tiếng Trung.</p>
-        <Link href="/lessons/create">
-          <Button variant="outline" className="font-serif">
-            Tạo bài học đầu tiên
-          </Button>
-        </Link>
+      <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/60 space-y-3">
+        <BookOpen className="h-10 w-10 text-muted mx-auto opacity-50" />
+        <h3 className="text-base font-serif font-bold text-title">Chưa có bài học nào</h3>
+        <p className="text-xs text-muted font-serif max-w-sm mx-auto">Hiện tại chưa có chủ đề nào trong danh sách sưu tầm.</p>
       </div>
     )
   }
@@ -147,9 +142,9 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
               )}
               
               {isSelectMode && isOwner && (
-                <div className="absolute top-0 right-0 z-30 bg-white/80 p-1">
-                  <div className={`w-5 h-5 rounded flex items-center justify-center border-2 ${isSelected ? 'bg-red-700 border-red-700' : 'border-slate-400 bg-white'}`}>
-                    {isSelected && <CheckSquare className="w-4 h-4 text-white" />}
+                <div className="absolute top-2 right-2 z-30 bg-card/90 rounded-md p-0.5">
+                  <div className={`w-5 h-5 rounded-md flex items-center justify-center border ${isSelected ? 'bg-app-accent border-app-accent text-white' : 'border-border bg-card'}`}>
+                    {isSelected && <CheckSquare className="w-3.5 h-3.5" />}
                   </div>
                 </div>
               )}
@@ -157,7 +152,7 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
               <div className="flex flex-col h-full">
                 <header className="mb-3">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xs font-bold text-white bg-app-accent px-2 py-0.5 uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-white bg-app-accent px-2.5 py-0.5 rounded-md uppercase tracking-wider font-sans">
                       {lesson.hsk_level || 'Chưa phân loại'}
                     </span>
                     <time className="text-xs text-muted font-sans uppercase tracking-widest">

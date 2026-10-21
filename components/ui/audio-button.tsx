@@ -14,7 +14,7 @@ export interface AudioButtonProps {
   size?: 'xs' | 'sm' | 'md' | 'lg'
   /** Kiểu dáng: ghost, outline, subtle, solid */
   variant?: 'ghost' | 'outline' | 'subtle' | 'solid'
-  /** Tốc độ phát âm: 0.75x, 1x, 1.25x... (mặc định 1.0) */
+  /** Tốc độ phát âm tùy chỉnh (nếu không truyền sẽ tự động áp dụng tốc độ toàn cục của hệ thống) */
   rate?: number
   /** Hiển thị nhãn chữ kèm theo icon */
   showLabel?: boolean
@@ -35,15 +35,15 @@ export function AudioButton({
   id,
   size = 'sm',
   variant = 'ghost',
-  rate = 1.0,
+  rate, // Không gán mặc định 1.0 để ưu tiên dùng tốc độ toàn cục từ ttsEngine
   showLabel = false,
   label = 'Nghe',
-  tooltip = 'Nghe phát âm tiếng Trung',
+  tooltip,
   className = '',
   onPlayStart,
   onPlayEnd,
 }: AudioButtonProps) {
-  const { speak, stop, isSpeakingItem, hasChineseVoice, voices } = useChineseTTS()
+  const { speak, stop, isSpeakingItem, hasChineseVoice, voices, rate: globalRate } = useChineseTTS()
   const [hasVoiceError, setHasVoiceError] = useState(false)
 
   const itemId = id || text
@@ -110,7 +110,8 @@ export function AudioButton({
 
     speak(text, {
       id: itemId,
-      rate,
+      // CHỈ truyền rate nếu có prop chỉ định riêng; nếu không, để ttsEngine tự động dùng globalRate
+      ...(rate !== undefined ? { rate } : {}),
       onStart: () => {
         setHasVoiceError(false)
         onPlayStart?.()
@@ -125,11 +126,15 @@ export function AudioButton({
     })
   }
 
+  const activeRate = rate !== undefined ? rate : globalRate
+  const rateSuffix = activeRate !== 1.0 ? ` (${activeRate}x)` : ''
+  const baseTooltip = tooltip || 'Nghe phát âm tiếng Trung'
+
   const currentTitle = isPlayingThis
     ? 'Nhấn để dừng phát âm'
     : hasVoiceError
     ? 'Lỗi phát âm'
-    : tooltip
+    : `${baseTooltip}${rateSuffix}`
 
   return (
     <button

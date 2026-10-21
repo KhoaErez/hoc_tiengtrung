@@ -14,6 +14,7 @@ import {
   Layers,
 } from 'lucide-react'
 import { AudioButton } from '@/components/ui/audio-button'
+import { AudioSpeedSelector } from '@/components/ui/audio-speed-selector'
 import { stopAllAudio } from '@/lib/tts/tts-engine'
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -99,7 +100,7 @@ export default function FlashcardClient() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <Link
           href="/radicals"
           className="flex items-center gap-2 text-muted hover:text-app-accent transition-colors font-serif text-sm"
@@ -107,7 +108,10 @@ export default function FlashcardClient() {
           <ChevronLeft className="w-4 h-4" />
           Danh sách bộ thủ
         </Link>
-        <h1 className="text-lg md:text-xl font-serif text-title">Flashcard</h1>
+        <div className="flex items-center gap-3">
+          <AudioSpeedSelector variant="dropdown" size="sm" />
+          <h1 className="text-lg md:text-xl font-serif text-title">Flashcard</h1>
+        </div>
       </div>
 
       {/* Filter chips */}

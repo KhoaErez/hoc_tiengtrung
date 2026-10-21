@@ -40,7 +40,7 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
         <button
           type="button"
           onClick={() => openLoginForm()}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-serif text-title hover:text-app-accent hover:bg-page transition-colors cursor-pointer"
+          className="h-9 flex items-center gap-1.5 px-3 rounded-xl text-xs font-serif text-title hover:text-app-accent hover:bg-page transition-colors cursor-pointer"
         >
           <LogIn className="w-4 h-4 text-muted" />
           <span>Đăng nhập</span>
@@ -48,7 +48,7 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
         <button
           type="button"
           onClick={() => openRegisterForm()}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-serif bg-title hover:bg-[#2A3250] text-white transition-colors shadow-2xs cursor-pointer"
+          className="h-9 flex items-center gap-1.5 px-3.5 rounded-xl text-xs font-serif bg-title hover:bg-[#2A3250] text-white transition-colors shadow-2xs cursor-pointer font-medium"
         >
           <UserPlus className="w-4 h-4" />
           <span>Đăng ký</span>
@@ -65,7 +65,7 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
       {/* Nút bấm hiển thị Avatar & Tên */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2.5 p-1.5 pl-2.5 pr-3 rounded-xl border border-border/80 bg-card hover:border-app-accent/40 hover:shadow-2xs transition-all text-left"
+        className="h-9 flex items-center gap-2 px-2.5 rounded-xl border border-border/80 bg-card hover:border-app-accent/40 hover:shadow-2xs transition-all text-left cursor-pointer"
         title="Tài khoản người dùng"
       >
         {avatarUrl ? (

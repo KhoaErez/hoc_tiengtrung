@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { X, ArrowLeft } from 'lucide-react'
 import { LoginForm } from './login-form'
+import { BrandSymbol } from '@/components/ui/brand-logo'
 
 export const metadata = {
   title: 'Đăng nhập - Chinese Notebook',
@@ -39,8 +40,8 @@ export default async function LoginPage(props: {
 
         {/* Brand Stamp & Header */}
         <div className="text-center space-y-2 mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-app-accent text-white font-serif text-2xl font-bold shadow-xs border border-app-accent/30 ring-4 ring-app-accent/10">
-            汉
+          <div className="flex justify-center">
+            <BrandSymbol size={48} />
           </div>
           <div className="space-y-1 pt-1">
             <h1 className="text-2xl font-serif font-bold text-title tracking-tight">

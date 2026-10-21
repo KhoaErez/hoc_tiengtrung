@@ -1,7 +1,15 @@
 'use client'
 
 import { useCallback, useSyncExternalStore } from 'react'
-import { ttsEngine, TTSState, SpeakOptions } from '@/lib/tts/tts-engine'
+import {
+  ttsEngine,
+  TTSState,
+  SpeakOptions,
+  TTS_SPEED_RATES,
+  type TTSSpeedRate,
+} from '@/lib/tts/tts-engine'
+
+export { TTS_SPEED_RATES, type TTSSpeedRate }
 
 // Server snapshot cố định (bất biến) cho SSR
 const defaultServerSnapshot: TTSState = {
@@ -38,8 +46,12 @@ export function useChineseTTS() {
     ttsEngine.resume()
   }, [])
 
-  const setRate = useCallback((newRate: number) => {
-    ttsEngine.setRate(newRate)
+  const setRate = useCallback((newRate: number, restartIfPlaying = true) => {
+    ttsEngine.setRate(newRate, restartIfPlaying)
+  }, [])
+
+  const cycleNextRate = useCallback(() => {
+    return ttsEngine.cycleNextRate()
   }, [])
 
   const setVoiceURI = useCallback((uri: string) => {
@@ -72,6 +84,7 @@ export function useChineseTTS() {
     pause,
     resume,
     setRate,
+    cycleNextRate,
     setVoiceURI,
     isSpeakingItem,
   }

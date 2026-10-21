@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAuthModal } from './auth-modal-context'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -11,12 +11,12 @@ import {
   EyeOff,
   AlertCircle,
   Loader2,
-  BookOpen,
   ArrowRight,
   User,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { MascotAvatar } from '@/components/mascot/mascot-avatar'
 
 export function AuthModal() {
   const {
@@ -29,6 +29,7 @@ export function AuthModal() {
   } = useAuthModal()
 
   const router = useRouter()
+  const modalContentRef = useRef<HTMLDivElement>(null)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -50,12 +51,34 @@ export function AuthModal() {
     }
   }, [isOpen, view])
 
-  // Close on Escape key press
+  // Close on Escape key press and Focus Trap inside modal
   useEffect(() => {
     if (!isOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         closeModal()
+        return
+      }
+
+      if (e.key === 'Tab' && modalContentRef.current) {
+        const focusable = modalContentRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (!focusable.length) return
+        const first = focusable[0]
+        const last = focusable[focusable.length - 1]
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -224,12 +247,16 @@ export function AuthModal() {
     <div
       role="dialog"
       aria-modal="true"
+      aria-labelledby="auth-modal-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={(e) => {
         if (e.target === e.currentTarget) closeModal()
       }}
     >
-      <div className="relative w-full max-w-[420px] bg-card border border-border/80 rounded-2xl shadow-2xl p-6 sm:p-7 z-10 animate-in zoom-in-95 duration-150 select-none">
+      <div 
+        ref={modalContentRef}
+        className="relative w-full max-w-[420px] bg-card border border-border/80 rounded-2xl shadow-2xl p-6 sm:p-7 z-10 animate-in zoom-in-95 duration-150 select-none"
+      >
         {/* Nút đóng ở góc trên bên phải */}
         <button
           onClick={closeModal}
@@ -245,14 +272,14 @@ export function AuthModal() {
         {/* ======================================================== */}
         {view === 'login-required' && (
           <div className="space-y-5 text-center">
-            {/* Con dấu triện đỏ học giả thương hiệu Chinese Notebook */}
-            <div className="mx-auto w-14 h-14 rounded-2xl bg-app-accent text-white flex items-center justify-center shadow-md border border-app-accent/30 ring-4 ring-app-accent/10 mt-1">
-              <Lock className="w-6 h-6 text-white" />
+            {/* Mascot Tiểu Bút đồng hành */}
+            <div className="flex justify-center">
+              <MascotAvatar state="thinking" size="lg" />
             </div>
 
             {/* Tiêu đề & Nội dung chuẩn theo yêu cầu */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-serif font-bold text-title tracking-tight">
+              <h2 id="auth-modal-title" className="text-2xl font-serif font-bold text-title tracking-tight">
                 {options.title || 'Bạn cần đăng nhập'}
               </h2>
               <p className="text-xs sm:text-sm font-sans text-muted leading-relaxed max-w-xs mx-auto">
@@ -265,8 +292,9 @@ export function AuthModal() {
             <div className="space-y-2.5 pt-2">
               <button
                 type="button"
+                autoFocus
                 onClick={() => switchView('login-form')}
-                className="w-full h-11 rounded-xl bg-app-accent hover:bg-accent-hover text-white font-serif text-sm font-semibold flex items-center justify-center gap-2 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer"
+                className="w-full h-11 rounded-xl bg-app-accent hover:bg-accent-hover text-white font-serif text-sm font-semibold flex items-center justify-center gap-2 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40"
               >
                 <span>Đăng nhập ngay</span>
                 <ArrowRight className="w-4 h-4" />
@@ -290,7 +318,7 @@ export function AuthModal() {
           <div className="space-y-4">
             {/* Header: Tiêu đề & Mô tả */}
             <div className="text-center space-y-1">
-              <h2 className="text-2xl font-serif font-bold text-title tracking-tight">
+              <h2 id="auth-modal-title" className="text-2xl font-serif font-bold text-title tracking-tight">
                 Đăng nhập
               </h2>
               <p className="text-xs sm:text-sm font-sans text-muted">
@@ -298,17 +326,9 @@ export function AuthModal() {
               </p>
             </div>
 
-            {/* Minh họa Mascot / Con dấu thương hiệu độc quyền Chinese Notebook */}
-            <div className="flex justify-center py-1">
-              <div className="relative group">
-                {/* Con dấu triện tròn thư pháp cổ điển */}
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 via-app-accent to-red-800 text-white flex items-center justify-center shadow-md shadow-red-700/15 border-2 border-white ring-4 ring-app-accent/15">
-                  <div className="text-center leading-none">
-                    <span className="font-serif text-2xl font-bold tracking-tight">汉</span>
-                    <span className="block text-[8px] font-sans uppercase tracking-widest text-white/80 mt-0.5">CHINESE</span>
-                  </div>
-                </div>
-              </div>
+            {/* Mascot Tiểu Bút chào đón người học */}
+            <div className="flex justify-center py-0.5">
+              <MascotAvatar state="idle" size="lg" />
             </div>
 
             {/* Nút Đăng nhập bằng Google (Chuẩn Logo SVG 4 màu) */}
@@ -367,6 +387,7 @@ export function AuthModal() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoFocus
                     autoComplete="email"
                     placeholder="Email"
                     className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
@@ -465,7 +486,7 @@ export function AuthModal() {
         {view === 'register-form' && (
           <div className="space-y-4">
             <div className="text-center space-y-1">
-              <h2 className="text-2xl font-serif font-bold text-title tracking-tight">
+              <h2 id="auth-modal-title" className="text-2xl font-serif font-bold text-title tracking-tight">
                 Tạo tài khoản
               </h2>
               <p className="text-xs sm:text-sm font-sans text-muted">
@@ -473,14 +494,9 @@ export function AuthModal() {
               </p>
             </div>
 
-            {/* Mascot / Con dấu chữ Học */}
-            <div className="flex justify-center py-1">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-600 via-app-accent to-red-800 text-white flex items-center justify-center shadow-md shadow-red-700/15 border-2 border-white ring-4 ring-app-accent/15">
-                <div className="text-center leading-none">
-                  <span className="font-serif text-2xl font-bold tracking-tight">学</span>
-                  <span className="block text-[8px] font-sans uppercase tracking-widest text-white/80 mt-0.5">LEARN</span>
-                </div>
-              </div>
+            {/* Mascot Tiểu Bút đón mừng học viên mới */}
+            <div className="flex justify-center py-0.5">
+              <MascotAvatar state="open" size="lg" />
             </div>
 
             {/* Đăng ký nhanh với Google */}
@@ -535,6 +551,7 @@ export function AuthModal() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  autoFocus
                   placeholder="Tên hiển thị của bạn"
                   className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
                 />

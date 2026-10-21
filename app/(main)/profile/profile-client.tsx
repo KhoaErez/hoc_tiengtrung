@@ -30,6 +30,7 @@ import { updateDisplayName } from './actions'
 import { logout } from '@/app/auth/actions'
 import { getTypingStats, TypingStats } from '@/lib/typing-storage'
 import { getProgressStats, getQuizScores, QuizScore } from '@/lib/radicals-storage'
+import { formatNumber } from '@/lib/utils'
 
 interface UserProfileData {
   id: string
@@ -266,12 +267,15 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
         </Card>
       </div>
 
-      {/* 3. TIẾN ĐỘ 6 CẤP ĐỘ HSK */}
+      {/* 3. TIẾN ĐỘ LỘ TRÌNH HSK 3.0 */}
       <section id="progress" className="space-y-4">
         <div className="flex items-center justify-between border-b-2 border-app-accent/30 pb-2">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-gold" />
-            <h2 className="text-xl font-serif font-bold text-title">Tiến độ lộ trình HSK 1 - HSK 6</h2>
+            <h2 className="text-xl font-serif font-bold text-title">Tiến độ lộ trình HSK 3.0</h2>
+            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+              GF 0025-2021
+            </span>
           </div>
           <Link href="/" className="text-xs text-app-accent font-serif hover:underline">
             Xem toàn bộ lộ trình &rarr;
@@ -279,7 +283,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {([1, 2, 3, 4, 5, 6] as const).map((levelNum) => {
+          {([1, 2, 3, 4, 5, 6, 7] as const).map((levelNum) => {
             const info = HSK_LEVELS[levelNum]
             const learned = stats.hskCounts[levelNum] || 0
             const target = info.vocabTarget
@@ -292,11 +296,16 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className={`px-2.5 py-0.5 rounded-lg text-xs font-serif font-bold ${info.color.badgeBg}`}>
-                      {info.name}
-                    </span>
-                    <span className="text-xs font-serif font-bold text-title">
-                      {learned} / {target} từ ({percent}%)
+                    <div className="flex items-center gap-1.5">
+                      <span className={`px-2.5 py-0.5 rounded-lg text-xs font-serif font-bold ${info.color.badgeBg}`}>
+                        {info.name}
+                      </span>
+                      <span className="text-[10px] font-serif text-muted px-1.5 py-0.2 rounded bg-page border border-border">
+                        {info.stage}
+                      </span>
+                    </div>
+                    <span className="text-xs font-serif font-bold text-title" suppressHydrationWarning>
+                      {formatNumber(learned)} / {formatNumber(target)} từ ({percent}%)
                     </span>
                   </div>
 
@@ -318,7 +327,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
 
                   <div className="flex items-center justify-between pt-1">
                     <Link
-                      href={`/hsk/${levelNum}`}
+                      href={`/topics?q=${encodeURIComponent(info.tag)}`}
                       className="text-xs font-serif font-medium text-app-accent hover:text-accent-hover flex items-center gap-1"
                     >
                       <span>Vào học danh sách bài</span>

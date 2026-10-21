@@ -35,16 +35,23 @@ export default async function ProfilePage() {
     supabase.from('user_vocabularies').select('id, vocabularies!inner(hsk_level)').eq('user_id', user.id)
   ])
 
-  // 3. Count learned vocabs per HSK level
-  const hskCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }
+  // 3. Count learned vocabs per HSK 3.0 level
+  const hskCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 }
   userVocabsData?.forEach((uv: unknown) => {
     const item = uv as { vocabularies: { hsk_level?: string } | { hsk_level?: string }[] }
     const v = Array.isArray(item.vocabularies) ? item.vocabularies[0] : item.vocabularies
-    const match = v?.hsk_level?.match(/HSK (\d)/)
+    if (!v?.hsk_level) return
+    if (v.hsk_level === 'HSK 7-9' || v.hsk_level === 'HSK 7') {
+      hskCounts[7] = (hskCounts[7] || 0) + 1
+      return
+    }
+    const match = v.hsk_level.match(/HSK (\d)/)
     if (match) {
       const lvl = parseInt(match[1])
       if (lvl >= 1 && lvl <= 6) {
         hskCounts[lvl] = (hskCounts[lvl] || 0) + 1
+      } else if (lvl >= 7 && lvl <= 9) {
+        hskCounts[7] = (hskCounts[7] || 0) + 1
       }
     }
   })

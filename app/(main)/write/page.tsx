@@ -1,45 +1,62 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { correctWritingAction } from './actions'
-import { PenTool, CheckCircle2, Sparkles, Loader2, AlertCircle, XCircle, CheckCircle, BookOpen, Lightbulb } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { 
+  PenTool, 
+  Sparkles, 
+  BookOpen, 
+  CheckCircle2, 
+  Award, 
+  FileText, 
+  Lightbulb, 
+  Loader2, 
+  Compass, 
+  ArrowRight,
+  RotateCcw
+} from 'lucide-react'
 import { toast } from 'sonner'
-import { AudioButton } from '@/components/ui/audio-button'
-import { PassageAudioPlayer } from '@/components/ui/passage-audio-player'
+import { createClient } from '@/lib/supabase/client'
+import { correctWritingAction } from './actions'
+import { TopicSuggestions } from './components/topic-suggestions'
+import { WritingCanvas } from './components/writing-canvas'
+import { ResultOverview } from './components/result-overview'
+import { ResultErrors } from './components/result-errors'
+import { ResultPolished } from './components/result-polished'
+import { ResultVocabulary } from './components/result-vocabulary'
 
 interface AIResult {
-  score: number;
-  level: string;
-  summary: string;
-  correctedText: string;
+  score: number
+  level: string
+  summary: string
+  correctedText: string
   errors: Array<{
-    original: string;
-    correction: string;
-    type: string;
-    severity: string;
-    explanation: string;
-    reason: string;
-  }>;
-  strengths: string[];
-  weaknesses: string[];
+    original: string
+    correction: string
+    type: string
+    severity: string
+    explanation: string
+    reason: string
+  }>
+  strengths: string[]
+  weaknesses: string[]
   vocabularySuggestions: Array<{
-    word: string;
-    pinyin: string;
-    meaning: string;
-    example: string;
-  }>;
-  learningSuggestions: string[];
+    word: string
+    pinyin: string
+    meaning: string
+    example: string
+  }>
+  learningSuggestions: string[]
   scoreDetails: {
-    grammar: number;
-    vocabulary: number;
-    wordOrder: number;
-    naturalness: number;
-    coherence: number;
-    hskAppropriateness: number;
-  };
+    grammar: number
+    vocabulary: number
+    wordOrder: number
+    naturalness: number
+    coherence: number
+    hskAppropriateness: number
+  }
 }
+
+type ResultTabKey = 'overview' | 'errors' | 'polished' | 'vocabulary'
 
 export default function WritingClient() {
   const [text, setText] = useState('')
@@ -47,33 +64,105 @@ export default function WritingClient() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [result, setResult] = useState<AIResult | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<ResultTabKey>('overview')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null)
 
+  const resultsRef = useRef<HTMLDivElement>(null)
+
+  // 1. Load user ID and cached draft
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const uid = user?.id || 'guest'
+      setUserId(uid)
+
+      try {
+        const savedDraft = localStorage.getItem(`chinese_notebook_writing_draft_${uid}`)
+        if (savedDraft) {
+          const parsed = JSON.parse(savedDraft)
+          if (parsed.text && typeof parsed.text === 'string') {
+            setText(parsed.text)
+            if (parsed.level) setLevel(parsed.level)
+            if (parsed.savedAt) setLastSavedAt(parsed.savedAt)
+          }
+        }
+      } catch (e) {
+        console.error('Error loading writing draft:', e)
+      }
+    })
+  }, [])
+
+  // 2. Auto-save draft on text or level change (debounced 1000ms)
+  useEffect(() => {
+    if (!userId) return
+
+    const timer = setTimeout(() => {
+      if (text.trim().length > 0) {
+        const now = new Date()
+        const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+        try {
+          localStorage.setItem(
+            `chinese_notebook_writing_draft_${userId}`,
+            JSON.stringify({ text, level, savedAt: timeStr })
+          )
+          setLastSavedAt(timeStr)
+        } catch (e) {
+          console.error('Error auto-saving draft:', e)
+        }
+      }
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [text, level, userId])
+
+  // Clear draft
+  const handleClear = () => {
+    setText('')
+    if (userId) {
+      try {
+        localStorage.removeItem(`chinese_notebook_writing_draft_${userId}`)
+      } catch {}
+    }
+    setLastSavedAt(null)
+  }
+
+  // Handle Submit
   const handleSubmit = async () => {
+    if (isSubmitting) return
     if (!text.trim()) {
-      setErrorMsg("Vui lòng nhập bài viết trước khi phân tích.")
+      setErrorMsg('Vui lòng nhập bài viết tiếng Trung trước khi phân tích.')
       return
     }
+    if (text.length > 5000) {
+      setErrorMsg('Bài viết vượt quá giới hạn 5.000 ký tự. Vui lòng rút gọn.')
+      return
+    }
+
     setIsSubmitting(true)
     setErrorMsg(null)
-    setResult(null)
-    
-    const toastId = toast.loading('AI đang kiểm tra ngữ pháp, từ vựng và độ tự nhiên...')
-    
+
+    const toastId = toast.loading('AI đang kiểm tra ngữ pháp, từ vựng và chấm điểm theo HSK...')
+
     try {
       const res = await correctWritingAction(text, level)
       if (res.error) {
         setErrorMsg(res.error)
-        toast.error('Không thể phân tích bài viết. Vui lòng thử lại.', { id: toastId })
+        toast.error(res.error, { id: toastId })
       } else if (res.data) {
         setResult(res.data)
         if (res.data.level && res.data.level.startsWith('HSK')) {
           setLevel(res.data.level)
         }
-        toast.success('Phân tích hoàn tất', { id: toastId })
+        toast.success('Phân tích bài viết hoàn tất!', { id: toastId })
+        // Smooth scroll to results
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 150)
       }
     } catch (err: unknown) {
-      const error = err as Error;
-      const msg = error.message || "Lỗi không xác định khi kết nối với máy chủ."
+      const error = err as Error
+      const msg = error.message || 'Lỗi không xác định khi kết nối với máy chủ AI.'
       setErrorMsg(msg)
       toast.error('Không thể phân tích bài viết. Vui lòng thử lại.', { id: toastId })
     } finally {
@@ -82,247 +171,206 @@ export default function WritingClient() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-20 space-y-8">
-      <div className="border-b-2 border-red-700/30 pb-6">
-        <h1 className="text-3xl font-serif text-slate-800 mb-2 flex items-center gap-3">
-          <PenTool className="text-red-700" /> Luyện Viết (AI sửa)
-        </h1>
-        <p className="text-slate-500 font-serif">Viết một đoạn văn tiếng Trung và nhờ AI chấm điểm, sửa lỗi ngữ pháp.</p>
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex gap-4 items-center flex-wrap">
-          <span className="font-medium text-slate-700">Trình độ của bạn:</span>
-          <select 
-            value={level}
-            onChange={(e) => setLevel(e.target.value)}
-            className="border-2 border-slate-200 rounded-md p-2 font-serif focus:border-red-500 outline-none"
-          >
-            <option value="Chưa xác định">Chưa xác định</option>
-            <option value="HSK1">HSK 1 (Sơ cấp)</option>
-            <option value="HSK2">HSK 2</option>
-            <option value="HSK3">HSK 3</option>
-            <option value="HSK4">HSK 4 (Trung cấp)</option>
-            <option value="HSK5">HSK 5</option>
-            <option value="HSK6">HSK 6 (Cao cấp)</option>
-          </select>
-        </div>
-
-        <div className="bg-[#FDFBF7] p-6 border-2 border-slate-200 shadow-sm relative">
-          <Textarea 
-            placeholder="Nhập đoạn văn tiếng Trung của bạn vào đây... (Ví dụ: 我今天去超市买东西...)"
-            className="min-h-[200px] text-lg font-serif resize-y bg-transparent border-none focus-visible:ring-0 pl-10 pr-4 py-4 leading-loose tracking-wide disabled:opacity-50"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            disabled={isSubmitting}
-          />
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-red-700/20 pointer-events-none"></div>
-          <div className="absolute left-10 top-0 bottom-0 w-0.5 bg-red-700/20 pointer-events-none"></div>
-        </div>
-
-        {errorMsg && (
-          <div className="bg-red-50 text-red-700 p-4 border border-red-200 rounded-md flex items-start gap-2">
-            <AlertCircle className="shrink-0 mt-0.5" size={18} />
-            <p>{errorMsg}</p>
+    <div className="max-w-6xl mx-auto pb-28 md:pb-24 space-y-6 font-serif">
+      {/* 1. Page Header */}
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-2xs space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center border border-app-accent/20 shadow-2xs">
+              <PenTool className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-title">Luyện Viết Sổ Tay Hán Ngữ</h1>
+                <span className="bg-app-accent text-white text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  AI Giáo Viên
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-muted mt-0.5">
+                Không gian luyện viết tiếng Trung chuyên nghiệp: phát hiện lỗi ngữ pháp, tinh chỉnh văn phong và đối chiếu HSK 3.0
+              </p>
+            </div>
           </div>
-        )}
-
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSubmit} 
-            disabled={!text.trim() || isSubmitting}
-            size="lg" className="font-serif text-lg w-full md:w-auto mt-4"
-          >
-            {isSubmitting ? (
-              <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Đang phân tích...</>
-            ) : (
-              <><Sparkles className="mr-2 h-5 w-5" /> Phân tích bài viết</>
-            )}
-          </Button>
         </div>
       </div>
 
-      {result && (
-        <div className="bg-white border-2 border-slate-200 p-6 md:p-8 shadow-sm space-y-10 animate-in fade-in slide-in-from-bottom-4">
-          
-          {/* ĐIỂM */}
-          <div className="grid md:grid-cols-[auto_1fr] gap-8 border-b pb-8">
-            <div className="flex flex-col items-center justify-center space-y-2">
-              <div className="bg-green-100 text-green-800 text-5xl font-serif p-4 rounded-full w-32 h-32 flex items-center justify-center border-4 border-green-200 shadow-inner">
-                {result.score}
-              </div>
-              <span className="text-sm font-medium text-slate-500 uppercase tracking-widest">Điểm Tổng</span>
-              <span className="bg-red-100 text-red-800 font-bold px-4 py-1 rounded-full text-sm mt-2 border border-red-200 shadow-sm">
-                Đánh giá năng lực: {result.level}
-              </span>
-            </div>
-            
-            <div className="flex flex-col justify-center space-y-4">
-              <h2 className="text-2xl font-serif text-slate-800 border-b pb-2">Chi tiết tiêu chí</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex justify-between border-b border-dashed pb-1">
-                  <span className="text-slate-600">Ngữ pháp</span>
-                  <span className="font-semibold text-slate-800">{result.scoreDetails?.grammar || 0}/30</span>
-                </div>
-                <div className="flex justify-between border-b border-dashed pb-1">
-                  <span className="text-slate-600">Từ vựng</span>
-                  <span className="font-semibold text-slate-800">{result.scoreDetails?.vocabulary || 0}/20</span>
-                </div>
-                <div className="flex justify-between border-b border-dashed pb-1">
-                  <span className="text-slate-600">Trật tự từ</span>
-                  <span className="font-semibold text-slate-800">{result.scoreDetails?.wordOrder || 0}/15</span>
-                </div>
-                <div className="flex justify-between border-b border-dashed pb-1">
-                  <span className="text-slate-600">Độ tự nhiên</span>
-                  <span className="font-semibold text-slate-800">{result.scoreDetails?.naturalness || 0}/15</span>
-                </div>
-                <div className="flex justify-between border-b border-dashed pb-1">
-                  <span className="text-slate-600">Mạch lạc</span>
-                  <span className="font-semibold text-slate-800">{result.scoreDetails?.coherence || 0}/10</span>
-                </div>
-                <div className="flex justify-between border-b border-dashed pb-1">
-                  <span className="text-slate-600">Chuẩn HSK</span>
-                  <span className="font-semibold text-slate-800">{result.scoreDetails?.hskAppropriateness || 0}/10</span>
-                </div>
-              </div>
-              <p className="text-slate-700 italic mt-2">&quot;{result.summary}&quot;</p>
-            </div>
-          </div>
+      {/* 2. Topic Suggestions: "Hôm nay viết gì?" */}
+      <TopicSuggestions
+        currentText={text}
+        onSelectPrompt={(promptTemplate) => {
+          setText(promptTemplate)
+          toast.success('Đã nạp khung gợi ý vào bài viết!')
+        }}
+      />
 
-          {/* BÀI VIẾT GỐC & SỬA */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase flex items-center gap-2">
-                Bài viết gốc
-              </h3>
-              <div className="bg-slate-50 p-4 rounded-md border border-slate-200 min-h-[150px] text-lg font-serif leading-loose whitespace-pre-wrap">
-                {text}
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Bài viết đã sửa
-                </h3>
-                <PassageAudioPlayer 
-                  text={result.correctedText} 
-                  title="Nghe bài viết đã sửa" 
-                  id="ai-corrected-text" 
-                  compact 
-                />
-              </div>
-              <div className="bg-green-50 p-4 rounded-md border border-green-200 min-h-[150px] text-lg font-serif leading-loose whitespace-pre-wrap">
-                {result.correctedText}
-              </div>
-            </div>
-          </div>
+      {/* 3. Writing Canvas Workspace */}
+      <WritingCanvas
+        text={text}
+        setText={setText}
+        level={level}
+        setLevel={setLevel}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSubmit}
+        errorMsg={errorMsg}
+        lastSavedAt={lastSavedAt}
+        onClear={handleClear}
+      />
 
-          {/* LỖI CẦN CẢI THIỆN */}
-          <div className="space-y-4">
-            <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase border-b pb-2">
-              Lỗi cần cải thiện
+      {/* 4. Loading State Skeleton while AI is analyzing */}
+      {isSubmitting && (
+        <div className="bg-card border border-app-accent/30 rounded-2xl p-8 sm:p-12 text-center space-y-4 shadow-sm animate-in fade-in">
+          <div className="w-16 h-16 rounded-full bg-app-accent-soft text-app-accent flex items-center justify-center mx-auto border-2 border-app-accent/20 shadow-inner">
+            <Loader2 className="w-8 h-8 animate-spin" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-base sm:text-lg font-bold text-title">AI đang đọc & chấm điểm bài viết...</h3>
+            <p className="text-xs text-muted max-w-md mx-auto leading-relaxed">
+              Hệ thống đang đối chiếu ngữ pháp, từ vựng, trật tự câu và độ tự nhiên theo chuẩn HSK 3.0. Quá trình này thường mất khoảng 3–8 giây.
+            </p>
+          </div>
+          {/* Stepper indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-[11px] text-muted">
+            <span className="bg-page px-2.5 py-1 rounded-full border border-border">✓ Quét ngữ pháp</span>
+            <span>→</span>
+            <span className="bg-page px-2.5 py-1 rounded-full border border-border">✓ Đo độ tự nhiên</span>
+            <span>→</span>
+            <span className="bg-page px-2.5 py-1 rounded-full border border-border">✓ Viết bản trau chuốt</span>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Empty State Guide (Before submitting) */}
+      {!result && !isSubmitting && (
+        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xs space-y-3.5">
+          <div className="flex items-center gap-2 border-b border-border pb-2.5">
+            <Sparkles className="w-4 h-4 text-gold" />
+            <h3 className="font-bold text-xs sm:text-sm text-title">
+              Quy trình 3 bước nâng cao kỹ năng viết cùng AI
             </h3>
-            {(!result.errors || result.errors.length === 0) ? (
-              <p className="text-slate-500 italic">Không tìm thấy lỗi đáng kể nào! Bài viết của bạn rất tốt.</p>
-            ) : (
-              <div className="space-y-4">
-                {result.errors.map((err, idx) => (
-                  <div key={idx} className="bg-white border rounded-md p-4 shadow-sm space-y-3">
-                    <div className="flex items-start gap-3">
-                      {err.severity === 'error' ? (
-                        <XCircle className="text-red-500 shrink-0 mt-1" size={20} />
-                      ) : (
-                        <AlertCircle className="text-amber-500 shrink-0 mt-1" size={20} />
-                      )}
-                      <div>
-                        <span className={"text-xs font-semibold px-2 py-1 rounded mr-2 uppercase " + (err.severity === 'error' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700')}>
-                          {err.severity === 'error' ? 'LỖI (' + err.type + ')' : 'GỢI Ý (' + err.type + ')'}
-                        </span>
-                        <span className="text-lg line-through text-slate-500">{err.original}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 bg-green-50/60 p-2.5 rounded border border-green-200/60">
-                      <div className="flex items-start gap-2.5">
-                        <CheckCircle className="text-green-500 shrink-0 mt-1" size={18} />
-                        <div className="text-lg text-slate-800 font-medium">{err.correction}</div>
-                      </div>
-                      <AudioButton 
-                        text={err.correction} 
-                        id={`write-corr-${idx}`} 
-                        size="xs" 
-                        variant="ghost" 
-                        tooltip="Nghe câu sửa đúng" 
-                      />
-                    </div>
-                    <div className="pl-8 pt-2 border-t mt-2">
-                      <p className="text-slate-700"><strong>Giải thích:</strong> {err.explanation}</p>
-                    </div>
-                  </div>
-                ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="bg-page/60 p-3.5 rounded-xl border border-border/80 space-y-1">
+              <div className="font-bold text-title flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-title text-white text-[10px] flex items-center justify-center font-bold">1</span>
+                <span>Soạn thảo tự do</span>
               </div>
+              <p className="text-muted leading-relaxed">
+                Chọn chủ đề gợi ý hoặc tự viết nhật ký. Dùng bộ gõ Pinyin IME nhập liệu tự nhiên.
+              </p>
+            </div>
+
+            <div className="bg-page/60 p-3.5 rounded-xl border border-border/80 space-y-1">
+              <div className="font-bold text-title flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-app-accent text-white text-[10px] flex items-center justify-center font-bold">2</span>
+                <span>Phân tích 6 tiêu chuẩn</span>
+              </div>
+              <p className="text-muted leading-relaxed">
+                AI đánh giá ngữ pháp, từ vựng, trật tự câu, độ mạch lạc và xếp hạng chuẩn HSK 3.0.
+              </p>
+            </div>
+
+            <div className="bg-page/60 p-3.5 rounded-xl border border-border/80 space-y-1">
+              <div className="font-bold text-title flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-jade text-white text-[10px] flex items-center justify-center font-bold">3</span>
+                <span>Luyện nghe & Mở rộng</span>
+              </div>
+              <p className="text-muted leading-relaxed">
+                Nghe phát âm bản sửa hoàn chỉnh, đối chiếu lỗi sai và ghi nhớ từ vựng nâng cao.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. AI Results Workspace Hub */}
+      {result && (
+        <div ref={resultsRef} className="scroll-mt-6 space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-300">
+          {/* Results Navigation Bar */}
+          <div className="bg-card border border-border rounded-2xl p-2 shadow-2xs flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <button
+              type="button"
+              onClick={() => setActiveTab('overview')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-serif transition-colors cursor-pointer flex-shrink-0 ${
+                activeTab === 'overview'
+                  ? 'bg-app-accent text-white font-bold shadow-2xs'
+                  : 'text-title hover:bg-page'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>Tổng quan & Điểm ({result.score}đ)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('errors')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-serif transition-colors cursor-pointer flex-shrink-0 ${
+                activeTab === 'errors'
+                  ? 'bg-app-accent text-white font-bold shadow-2xs'
+                  : 'text-title hover:bg-page'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Phân tích sửa lỗi ({result.errors?.length || 0})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('polished')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-serif transition-colors cursor-pointer flex-shrink-0 ${
+                activeTab === 'polished'
+                  ? 'bg-app-accent text-white font-bold shadow-2xs'
+                  : 'text-title hover:bg-page'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Bản viết hoàn chỉnh</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('vocabulary')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-serif transition-colors cursor-pointer flex-shrink-0 ${
+                activeTab === 'vocabulary'
+                  ? 'bg-app-accent text-white font-bold shadow-2xs'
+                  : 'text-title hover:bg-page'
+              }`}
+            >
+              <Lightbulb className="w-4 h-4" />
+              <span>Từ vựng & Mở rộng ({result.vocabularySuggestions?.length || 0})</span>
+            </button>
+          </div>
+
+          {/* Active Tab View */}
+          <div className="transition-all duration-200">
+            {activeTab === 'overview' && (
+              <ResultOverview
+                score={result.score}
+                level={result.level}
+                summary={result.summary}
+                scoreDetails={result.scoreDetails}
+                strengths={result.strengths}
+                weaknesses={result.weaknesses}
+              />
+            )}
+
+            {activeTab === 'errors' && (
+              <ResultErrors errors={result.errors || []} />
+            )}
+
+            {activeTab === 'polished' && (
+              <ResultPolished
+                originalText={text}
+                correctedText={result.correctedText}
+              />
+            )}
+
+            {activeTab === 'vocabulary' && (
+              <ResultVocabulary
+                vocabularySuggestions={result.vocabularySuggestions}
+                learningSuggestions={result.learningSuggestions}
+              />
             )}
           </div>
-
-          {/* TỪ VỰNG GỢI Ý & GỢI Ý HỌC TẬP */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase flex items-center gap-2 border-b pb-2">
-                <BookOpen className="h-4 w-4" /> Từ vựng gợi ý
-              </h3>
-              {result.vocabularySuggestions?.length > 0 ? (
-                <ul className="space-y-4">
-                  {result.vocabularySuggestions.map((v, idx) => (
-                    <li key={idx} className="bg-slate-50 p-3.5 rounded border space-y-1.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-xl font-bold text-red-700">{v.word}</span>
-                          <span className="text-sm text-slate-500 font-sans">{v.pinyin}</span>
-                        </div>
-                        <AudioButton 
-                          text={v.word} 
-                          id={`sugg-word-${idx}`} 
-                          size="xs" 
-                          variant="ghost" 
-                          tooltip="Nghe từ vựng" 
-                        />
-                      </div>
-                      <p className="text-slate-700">{v.meaning}</p>
-                      {v.example && (
-                        <div className="flex items-center justify-between gap-2 text-sm text-slate-600 bg-white/70 p-2 rounded border border-slate-200/60 mt-1">
-                          <span className="italic">Ví dụ: {v.example}</span>
-                          <AudioButton 
-                            text={v.example} 
-                            id={`sugg-ex-${idx}`} 
-                            size="xs" 
-                            variant="subtle" 
-                            tooltip="Nghe câu ví dụ" 
-                          />
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-slate-500 italic">Không có từ vựng gợi ý mới.</p>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-sans tracking-[0.2em] text-sm text-slate-500 uppercase flex items-center gap-2 border-b pb-2">
-                <Lightbulb className="h-4 w-4 text-amber-500" /> Gợi ý học tập
-              </h3>
-              {result.learningSuggestions?.length > 0 ? (
-                <ul className="list-disc pl-5 space-y-2 text-slate-700 leading-relaxed">
-                  {result.learningSuggestions.map((s, idx) => (
-                    <li key={idx}>{s}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-slate-500 italic">Hãy tiếp tục phát huy nhé!</p>
-              )}
-            </div>
-          </div>
-          
         </div>
       )}
     </div>

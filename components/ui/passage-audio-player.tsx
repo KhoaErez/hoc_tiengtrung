@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useChineseTTS } from '@/hooks/use-chinese-tts'
 import { Button } from '@/components/ui/button'
+import { AudioSpeedSelector } from '@/components/ui/audio-speed-selector'
 
 export interface PassageAudioPlayerProps {
   /** Toàn bộ văn bản tiếng Trung cần đọc */
@@ -141,24 +142,8 @@ export function PassageAudioPlayer({
 
         <div className="h-4 w-px bg-border mx-0.5" />
 
-        {/* Nút chỉnh tốc độ */}
-        <div className="flex items-center gap-0.5">
-          {[0.75, 1, 1.25].map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => handleRateChange(r)}
-              className={`px-1.5 py-0.5 rounded text-[11px] font-sans transition-all cursor-pointer ${
-                rate === r
-                  ? 'bg-title text-white font-bold shadow-2xs'
-                  : 'text-muted hover:text-title'
-              }`}
-              title={`Tốc độ ${r}x`}
-            >
-              {r}x
-            </button>
-          ))}
-        </div>
+        {/* Nút chỉnh tốc độ đầy đủ 6 mức */}
+        <AudioSpeedSelector variant="cycle" size="xs" onRateChange={handleRateChange} />
       </div>
     )
   }
@@ -201,28 +186,8 @@ export function PassageAudioPlayer({
 
         {/* Bộ điều khiển phát & Tốc độ */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Tốc độ đọc */}
-          <div className="flex items-center bg-page border border-border rounded-xl p-0.5 text-xs font-serif">
-            <span className="px-2 py-0.5 text-[11px] text-muted flex items-center gap-1">
-              <Gauge className="w-3 h-3 text-muted" />
-              <span className="hidden xs:inline">Tốc độ:</span>
-            </span>
-            {[0.75, 1, 1.25].map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => handleRateChange(r)}
-                className={`px-2 py-0.5 rounded-lg text-xs font-sans transition-all cursor-pointer ${
-                  rate === r
-                    ? 'bg-title text-white font-bold shadow-2xs'
-                    : 'text-muted hover:text-title hover:bg-card'
-                }`}
-                title={`Đặt tốc độ đọc ${r}x`}
-              >
-                {r}x
-              </button>
-            ))}
-          </div>
+          {/* Tốc độ đọc 6 mức */}
+          <AudioSpeedSelector variant="dropdown" size="sm" onRateChange={handleRateChange} />
 
           {/* Các nút phát âm thanh chính */}
           <div className="flex items-center gap-1.5">

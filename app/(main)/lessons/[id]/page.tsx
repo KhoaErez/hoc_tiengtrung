@@ -2,8 +2,10 @@ import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { analyzeLessonAction } from '../actions'
-import LessonReader from './lesson-reader'
+import dynamic from 'next/dynamic'
 import SystemLessonReader from './system-lesson-reader'
+
+const LessonReader = dynamic(() => import('./lesson-reader'))
 
 export async function generateMetadata(props: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const params = await props.params

@@ -109,11 +109,12 @@ export default function HskLevelClient({
         <span className="font-bold text-title">{levelInfo.name}</span>
       </nav>
 
-      {/* 2. Thanh chuyển đổi nhanh giữa 6 cấp độ HSK */}
+      {/* 2. Thanh chuyển đổi nhanh giữa các cấp độ HSK 3.0 */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-border">
-        {([1, 2, 3, 4, 5, 6] as const).map((num) => {
+        {([1, 2, 3, 4, 5, 6, 7] as const).map((num) => {
           const isActive = num === levelInfo.level
           const item = HSK_LEVELS[num]
+          if (!item) return null
           return (
             <Link
               key={num}

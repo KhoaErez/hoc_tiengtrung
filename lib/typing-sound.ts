@@ -193,12 +193,14 @@ export function hasChineseVoiceAvailable(): boolean {
  * 4. PHÁT ÂM KÝ TỰ / TỪ TIẾNG TRUNG KHI GÕ (REAL-TIME TTS TYPING FEEDBACK)
  * Tự động hủy âm thanh gõ trước đó để âm thanh phát ngay lập tức không bị trễ hay chồng chéo
  */
+import { ttsEngine } from '@/lib/tts/tts-engine';
+
 let typingUtteranceId = 0;
 
 export function speakChineseCharacter(
   text: string,
   voiceURI?: string,
-  rate: number = 1.0
+  rate?: number
 ): number {
   if (typeof window === 'undefined' || !window.speechSynthesis) return 0;
   if (!text || !text.trim()) return 0;
@@ -207,9 +209,10 @@ export function speakChineseCharacter(
     const currentId = ++typingUtteranceId;
     window.speechSynthesis.cancel();
 
+    const effectiveRate = typeof rate === 'number' && !isNaN(rate) ? rate : ttsEngine.getRate();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'zh-CN';
-    utterance.rate = Math.max(0.75, Math.min(1.5, rate));
+    utterance.rate = Math.max(0.5, Math.min(2.0, effectiveRate));
 
     const voices = getChineseVoices();
     const voice = voices.find((v) => v.voiceURI === voiceURI) || voices[0];
@@ -221,3 +224,4 @@ export function speakChineseCharacter(
     return 0;
   }
 }
+

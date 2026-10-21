@@ -1,8 +1,14 @@
 // Singleton Speech Engine cho Tiếng Trung Phổ Thông (Mandarin zh-CN)
 // Hỗ trợ Web Speech API với cơ chế chống xung đột âm thanh, làm sạch văn bản,
-// khắc phục lỗi ngắt 15 giây của Chromium (keepalive) và hỗ trợ điều chỉnh tốc độ 0.75x, 1x, 1.25x.
+// khắc phục lỗi ngắt 15 giây của Chromium (keepalive), lưu trữ localStorage bền vững
+// và hỗ trợ đầy đủ 6 mức tốc độ: 0.5x, 0.75x, 1.0x (mặc định), 1.25x, 1.5x, 2.0x.
 
 export type TTSStatus = 'idle' | 'loading' | 'playing' | 'paused'
+
+export const TTS_SPEED_RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0] as const
+export type TTSSpeedRate = (typeof TTS_SPEED_RATES)[number]
+
+export const STORAGE_KEY_TTS_RATE = 'chinese_notebook_tts_rate'
 
 export interface TTSState {
   status: TTSStatus
@@ -40,7 +46,6 @@ export function sanitizeChineseText(rawText: string): string {
   text = text.replace(/<[^>]*>/g, '').replace(/[*_#`~]/g, '')
 
   // 2. Loại bỏ các phần chú thích trong ngoặc đơn/ngoặc vuông/ngoặc tròn nếu KHÔNG chứa chữ Hán
-  // (ví dụ: chứa Pinyin "zhōngwén", phiên âm quốc tế, hoặc nghĩa tiếng Việt)
   text = text.replace(/\([^()\u4e00-\u9fa5]*\)/g, '')
   text = text.replace(/\[[^\[\]\u4e00-\u9fa5]*\]/g, '')
   text = text.replace(/（[^（）\u4e00-\u9fa5]*）/g, '')
@@ -86,8 +91,7 @@ class ChineseTTSEngine {
   private listeners: Set<StateListener> = new Set()
   private isVoicesInitialized = false
 
-  // Cached snapshot bất biến để useSyncExternalStore so khớp Object.is an toàn,
-  // tuyệt đối không sinh object mới nếu state không đổi, tránh Maximum update depth exceeded.
+  // Cached snapshot bất biến để useSyncExternalStore so khớp Object.is an toàn
   private snapshot: TTSState = {
     status: 'idle',
     currentId: null,
@@ -106,6 +110,16 @@ class ChineseTTSEngine {
 
   private constructor() {
     if (typeof window !== 'undefined') {
+      try {
+        const savedRate = localStorage.getItem(STORAGE_KEY_TTS_RATE)
+        if (savedRate) {
+          const parsed = parseFloat(savedRate)
+          if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2.0) {
+            this.rate = parsed
+          }
+        }
+      } catch {}
+      this.updateSnapshot()
       this.initVoices()
     }
   }
@@ -195,8 +209,6 @@ class ChineseTTSEngine {
 
   /**
    * Đăng ký lắng nghe thay đổi trạng thái cho useSyncExternalStore
-   * TUYỆT ĐỐI KHÔNG gọi listener() đồng bộ bên trong subscribe,
-   * để tuân thủ quy tắc React và tránh lặp vô hạn (Maximum update depth exceeded).
    */
   public subscribe(listener: StateListener): () => void {
     this.listeners.add(listener)
@@ -207,6 +219,10 @@ class ChineseTTSEngine {
 
   public getState(): TTSState {
     return this.snapshot
+  }
+
+  public getRate(): number {
+    return this.rate
   }
 
   private updateSnapshot(): void {
@@ -255,8 +271,6 @@ class ChineseTTSEngine {
     this.activeOnErrorCallback = null
 
     this.notify()
-    // Lưu ý quan trọng: KHÔNG gọi activeOnEndCallback() khi chủ động dừng/hủy phiên phát,
-    // tránh gây lỗi lặp tự động đọc câu kế tiếp khi người dùng chuyển trang hoặc bấm dừng.
   }
 
   /**
@@ -292,14 +306,49 @@ class ChineseTTSEngine {
   }
 
   /**
-   * Đặt tốc độ đọc (0.75x, 1x, 1.25x...)
+   * Đặt tốc độ đọc (0.5x, 0.75x, 1.0x, 1.25x, 1.5x, 2.0x)
+   * Tự động lưu vào localStorage và phát lại ngay nếu âm thanh đang phát.
    */
-  public setRate(newRate: number): void {
-    const validRate = Math.max(0.5, Math.min(2.0, newRate))
-    if (this.rate !== validRate) {
-      this.rate = validRate
+  public setRate(newRate: number, restartIfPlaying = true): void {
+    const validRate = Math.max(0.5, Math.min(2.0, Number(newRate.toFixed(2))))
+    const rateChanged = Math.abs(this.rate - validRate) > 0.01
+
+    this.rate = validRate
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY_TTS_RATE, String(validRate))
+      } catch {}
+    }
+
+    if (rateChanged) {
       this.notify()
     }
+
+    // Nếu đang phát âm thanh, chuyển đổi tốc độ trực tiếp (Live Switch)
+    if (restartIfPlaying && this.status === 'playing' && this.currentText) {
+      const activeText = this.currentText
+      const activeId = this.currentId || activeText
+      const activeOnEnd = this.activeOnEndCallback
+      const activeOnError = this.activeOnErrorCallback
+      this.speak(activeText, {
+        id: activeId,
+        rate: validRate,
+        onEnd: activeOnEnd || undefined,
+        onError: activeOnError || undefined,
+      })
+    }
+  }
+
+  /**
+   * Luân chuyển sang mức tốc độ tiếp theo (0.5 -> 0.75 -> 1.0 -> 1.25 -> 1.5 -> 2.0 -> 0.5)
+   */
+  public cycleNextRate(): number {
+    const currentIndex = TTS_SPEED_RATES.findIndex((r) => Math.abs(r - this.rate) < 0.05)
+    const nextIndex = currentIndex === -1 ? 2 : (currentIndex + 1) % TTS_SPEED_RATES.length
+    const nextRate = TTS_SPEED_RATES[nextIndex]
+    this.setRate(nextRate)
+    return nextRate
   }
 
   /**
@@ -315,7 +364,7 @@ class ChineseTTSEngine {
   /**
    * PHÁT ÂM TIẾNG TRUNG
    * Tự động làm sạch văn bản, hủy âm thanh trước đó (tránh chồng chéo),
-   * chọn voice zh-CN tốt nhất và bắt đầu phát âm.
+   * áp dụng tốc độ đọc chuẩn và bắt đầu phát âm.
    */
   public speak(rawText: string, options?: SpeakOptions): Promise<boolean> {
     return new Promise((resolve) => {
@@ -335,7 +384,10 @@ class ChineseTTSEngine {
       this.stop()
 
       const currentEpoch = this.sessionEpoch
-      const rate = options?.rate ?? this.rate
+      // ĐẶC BIỆT QUAN TRỌNG: Nếu options không truyền rate riêng, PHẢI DÙNG this.rate (tốc độ toàn cục đã lưu)
+      const targetRate = options?.rate !== undefined ? options.rate : this.rate
+      const rate = Math.max(0.5, Math.min(2.0, targetRate))
+
       const id = options?.id ?? text
       this.currentId = id
       this.currentText = text
@@ -403,8 +455,15 @@ class ChineseTTSEngine {
           resolve(false)
         }
 
-        this.currentUtterance = utterance
-        window.speechSynthesis.speak(utterance)
+        // Độ trễ vi mô (15ms) để bảo đảm cancel() trước đó đã hoàn tất trên Chromium
+        setTimeout(() => {
+          if (currentEpoch !== this.sessionEpoch) return
+          if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume()
+          }
+          this.currentUtterance = utterance
+          window.speechSynthesis.speak(utterance)
+        }, 15)
       } catch (error) {
         if (currentEpoch !== this.sessionEpoch) return
         console.error('Lỗi khi kích hoạt SpeechSynthesis:', error)
@@ -422,7 +481,6 @@ class ChineseTTSEngine {
   /**
    * KEEPALIVE CHO CHROMIUM
    * Trình duyệt Chromium có lỗi ngầm tự ngắt speech sau 15 giây nếu không có tương tác.
-   * Kích hoạt pause/resume nhẹ định kỳ 10 giây để giữ audio engine hoạt động với đoạn văn dài.
    */
   private startKeepAlive(): void {
     this.clearKeepAlive()
@@ -448,3 +506,5 @@ class ChineseTTSEngine {
 
 export const ttsEngine = ChineseTTSEngine.getInstance()
 export const stopAllAudio = () => ChineseTTSEngine.stopAllAudio()
+export const getAudioPlaybackRate = (): number => ttsEngine.getRate()
+export const setAudioPlaybackRate = (rate: number): void => ttsEngine.setRate(rate)

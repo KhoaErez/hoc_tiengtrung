@@ -50,20 +50,23 @@ export default async function AdminPage() {
     )
   }
 
-  // 2. Fetch migration status and user list
+  // 2. Fetch migration status and page 1 of user list (max 20 per page)
   const [migrationStatus, usersResult] = await Promise.all([
     checkDatabaseMigrationStatusAction(),
-    getAdminUsersAction(),
+    getAdminUsersAction({ page: 1, pageSize: 20 }),
   ])
 
   return (
     <div className="max-w-6xl mx-auto py-4">
       <AdminPortalClient
         initialUsers={usersResult.users || []}
+        initialStats={usersResult.stats}
+        initialPagination={usersResult.pagination}
         currentUserId={user?.id}
         currentUserEmail={user?.email}
         hasFeedbackTable={migrationStatus.hasFeedbackTable}
         hasIsAdminColumn={migrationStatus.hasIsAdminColumn}
+        hasLastSeenAtColumn={migrationStatus.hasLastSeenAtColumn}
       />
     </div>
   )

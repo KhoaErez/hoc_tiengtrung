@@ -30,6 +30,7 @@ import {
   segmentAndAlignChinese,
   findWordIndexByCharIndex,
 } from '@/lib/tts/chinese-word-segmenter'
+import { ttsEngine } from '@/lib/tts/tts-engine'
 import TypingGeminiModal from './typing-gemini-modal'
 import TypingAudioControls from './typing-audio-controls'
 import { toast } from 'sonner'
@@ -221,10 +222,9 @@ export default function CustomParagraphMode({
 
     const prefs = getTypingPreferences()
     if (prefs.typingSoundEnabled !== undefined) setSoundEnabled(prefs.typingSoundEnabled)
-    if (prefs.speechRate !== undefined) {
-      setSpeechRate(prefs.speechRate)
-      speechRateRef.current = prefs.speechRate
-    }
+    const initialRate = prefs.speechRate || ttsEngine.getRate()
+    setSpeechRate(initialRate)
+    speechRateRef.current = initialRate
     if (prefs.autoSpeakNext !== undefined) {
       setAutoSpeakNext(prefs.autoSpeakNext)
       autoSpeakNextRef.current = prefs.autoSpeakNext
@@ -612,7 +612,13 @@ export default function CustomParagraphMode({
   const handleRateChange = (rate: number) => {
     setSpeechRate(rate)
     speechRateRef.current = rate
+    ttsEngine.setRate(rate as any)
     saveTypingPreferences({ speechRate: rate })
+
+    // Nếu đang phát âm, phát lại ngay với tốc độ mới
+    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
+      speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
+    }
   }
 
   const handleVoiceChange = (uri: string) => {

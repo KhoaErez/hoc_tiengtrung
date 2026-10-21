@@ -255,3 +255,102 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* ======================================================== */
+/* MASCOT MICRO-ANIMATIONS (PANDA SCHOLAR TIỂU BÚT)         */
+/* ======================================================== */
+@keyframes mascot-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes scarf-wave {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(5deg) scaleX(1.04);
+  }
+}
+
+@keyframes hand-wave {
+  0%, 100% {
+    transform: rotate(0deg);
+    transform-origin: 124px 108px;
+  }
+  50% {
+    transform: rotate(-14deg);
+    transform-origin: 124px 108px;
+  }
+}
+
+@keyframes ear-wiggle-left {
+  0%, 100% { transform: rotate(0deg); transform-origin: 44px 42px; }
+  25% { transform: rotate(-8deg); transform-origin: 44px 42px; }
+  75% { transform: rotate(6deg); transform-origin: 44px 42px; }
+}
+
+@keyframes ear-wiggle-right {
+  0%, 100% { transform: rotate(0deg); transform-origin: 116px 42px; }
+  25% { transform: rotate(8deg); transform-origin: 116px 42px; }
+  75% { transform: rotate(-6deg); transform-origin: 116px 42px; }
+}
+
+.mascot-animated {
+  animation: mascot-float 3.5s ease-in-out infinite;
+}
+
+.animate-scarf-wave {
+  animation: scarf-wave 2.8s ease-in-out infinite;
+  transform-origin: 102px 101px;
+}
+
+.animate-hand-wave {
+  animation: hand-wave 1.2s ease-in-out infinite;
+}
+
+.animate-wiggle-left {
+  animation: ear-wiggle-left 0.6s ease-in-out;
+}
+
+.animate-wiggle-right {
+  animation: ear-wiggle-right 0.6s ease-in-out;
+}
+
+/* ======================================================== */
+/* 3D FLASHCARD PERSPECTIVE & FLIP ANIMATION                */
+/* ======================================================== */
+.perspective-1000 {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Tuân thủ prefers-reduced-motion của người dùng */
+@media (prefers-reduced-motion: reduce) {
+  .mascot-animated,
+  .animate-scarf-wave,
+  .animate-hand-wave,
+  .animate-wiggle-left,
+  .animate-wiggle-right {
+    animation: none !important;
+    transform: none !important;
+  }
+}

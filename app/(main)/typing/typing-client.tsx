@@ -5,9 +5,9 @@ import {
   TypingMode,
   TypingExercise,
   getExercisesByMode,
-  vocabularyCategories,
   paragraphExercises,
   getHskLessonNumbers,
+  VIETNAMESE_PROVERB_CATEGORIES,
 } from '@/data/typing-lessons'
 import CustomParagraphMode from './components/custom-paragraph-mode'
 import TypingAudioControls from './components/typing-audio-controls'
@@ -38,7 +38,30 @@ import {
   getTypingPreferences,
   saveTypingPreferences,
   clearTypingHistory,
+  getLocalTypingProgress,
+  saveLocalTypingProgress,
+  resetLocalTypingProgress,
+  recordLocalTypingMistake,
+  getLocalTypingMistakes,
+  getAllLocalTypingDataForSync,
+  clearSyncedLocalData,
+  saveLocalTypingDraft,
+  getLocalTypingDraft,
+  clearLocalTypingDraft,
 } from '@/lib/typing-storage'
+import {
+  getTypingProgressAction,
+  saveTypingProgressAction,
+  recordTypingMistakeAction,
+  resetTypingProgressAction,
+  syncLocalTypingDataAction,
+  getTypingMistakesAction,
+  getHskTypingExercisesAction,
+  TypingProgressDTO,
+} from './actions'
+import { useAuthModal } from '@/components/auth/auth-modal-context'
+import TypingResumeBanner from './components/typing-resume-banner'
+import TypingMistakesReview from './components/typing-mistakes-review'
 import { toast } from 'sonner'
 import {
   Keyboard,
@@ -63,6 +86,7 @@ import {
   Layers,
   FileText,
   AlignLeft,
+  Flame,
 } from 'lucide-react'
 
 // Hàm chuẩn hóa ký tự dấu câu tiếng Trung & tiếng Anh tương đương
@@ -99,7 +123,14 @@ function isCharMatch(c1: string, c2: string, allowNormalize = true): boolean {
 }
 
 export default function TypingClient() {
-  // Chế độ & Bộ lọc
+  const { user, isLoggedIn } = useAuthModal()
+
+  // Chế độ & Tab điều hướng
+  const [activeTab, setActiveTab] = useState<'practice' | 'mistakes'>('practice')
+  const [mistakeCount, setMistakeCount] = useState<number>(0)
+  const [savedProgress, setSavedProgress] = useState<TypingProgressDTO | null>(null)
+  const [showResumeBanner, setShowResumeBanner] = useState<boolean>(false)
+
   const [mode, setMode] = useState<TypingMode>('sentence')
   const [paragraphType, setParagraphType] = useState<'preset' | 'custom'>('preset')
   const [levelFilter, setLevelFilter] = useState<string>('all')
@@ -113,38 +144,20 @@ export default function TypingClient() {
     return getHskLessonNumbers(hskLevel)
   }, [hskLevel])
 
-  // Dữ liệu bài tập HSK tải động theo nhu cầu để không làm phình to client bundle
+  // Dữ liệu bài tập HSK tải động qua Server Action theo nhu cầu để không làm phình to client bundle
   const [hskDynamicExercises, setHskDynamicExercises] = useState<TypingExercise[]>([])
 
   useEffect(() => {
     if (mode !== 'hsk') return
     let isCancelled = false
 
-    import('@/data/hsk-typing-vocabularies').then((mod) => {
+    getHskTypingExercisesAction(hskLevel, hskLesson, hskTarget).then((res) => {
       if (isCancelled) return
-      const words = mod.getHskWordsByLevel(hskLevel, {
-        lesson: hskLesson > 0 ? hskLesson : undefined,
-      })
-      const isExampleMode = hskTarget === 'example'
-      const mapped: TypingExercise[] = words.map((w) => ({
-        id: isExampleMode ? `hsk-${w.id}-ex` : `hsk-${w.id}`,
-        titleZh: isExampleMode ? `${w.hanzi} [${w.pinyin}]` : `Từ vựng HSK ${w.hskLevel}`,
-        titleVi: w.meaning,
-        hanzi: isExampleMode ? (w.exampleHanzi || w.hanzi) : w.hanzi,
-        pinyin: isExampleMode ? (w.examplePinyin || w.pinyin) : w.pinyin,
-        meaning: isExampleMode ? (w.exampleVi || w.meaning) : w.meaning,
-        mode: 'hsk' as TypingMode,
-        hskLevel: w.hskLevel,
-        level: `HSK ${w.hskLevel} - Bài ${w.lessonNumber}`,
-        category: w.category,
-        difficulty: w.hskLevel <= 2 ? 'easy' : w.hskLevel <= 4 ? 'medium' : 'hard',
-        exampleHanzi: w.exampleHanzi,
-        examplePinyin: w.examplePinyin,
-        exampleVi: w.exampleVi,
-      }))
-      setHskDynamicExercises(mapped)
+      if (res.success && res.data) {
+        setHskDynamicExercises(res.data as TypingExercise[])
+      }
     }).catch((err) => {
-      console.error('Failed to load HSK vocabulary chunk:', err)
+      console.error('Failed to load HSK exercises via server action:', err)
     })
 
     return () => {
@@ -219,10 +232,9 @@ export default function TypingClient() {
   useEffect(() => {
     const p = getTypingPreferences()
     setPreferences(p)
-    if (p.speechRate) {
-      setSpeechRate(p.speechRate)
-      speechRateRef.current = p.speechRate
-    }
+    const activeRate = p.speechRate || ttsEngine.getRate()
+    setSpeechRate(activeRate)
+    speechRateRef.current = activeRate
     if (p.preferredVoiceURI) {
       setSelectedVoiceURI(p.preferredVoiceURI)
       selectedVoiceURIRef.current = p.preferredVoiceURI
@@ -545,9 +557,21 @@ export default function TypingClient() {
   const handleRateChange = (rate: number) => {
     setSpeechRate(rate)
     speechRateRef.current = rate
+    ttsEngine.setRate(rate as any)
     const updated = { ...preferences, speechRate: rate }
     setPreferences(updated)
     saveTypingPreferences(updated)
+
+    // Nếu đang phát âm thanh, phát lại ngay câu hiện tại với tốc độ mới
+    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
+      speakSentence(
+        speakingSentenceIndex,
+        readingModeRef.current === 'all',
+        chineseSentencesRef.current,
+        exerciseWordTokensRef.current,
+        currentCardEpochRef.current
+      )
+    }
   }
 
   const handleVoiceChange = (uri: string) => {
@@ -600,6 +624,162 @@ export default function TypingClient() {
     resetExercise()
   }, [mode, levelFilter, categoryFilter, hskLevel, resetExercise])
 
+  // Làm mới số lượng câu sai cần ôn
+  const refreshMistakeCount = useCallback(async () => {
+    if (isLoggedIn) {
+      try {
+        const res = await getTypingMistakesAction()
+        if (res.success && res.mistakes) {
+          setMistakeCount(res.mistakes.filter((m) => m.reviewStatus !== 'mastered').length)
+          return
+        }
+      } catch {}
+    }
+    if (typeof getLocalTypingMistakes === 'function') {
+      try {
+        const localList = getLocalTypingMistakes()
+        setMistakeCount(localList.filter((m) => m.reviewStatus !== 'mastered').length)
+      } catch {}
+    }
+  }, [isLoggedIn])
+
+  useEffect(() => {
+    refreshMistakeCount()
+  }, [refreshMistakeCount])
+
+  // Tự động đồng bộ an toàn dữ liệu từ localStorage lên cloud khi đăng nhập
+  useEffect(() => {
+    if (isLoggedIn && typeof getAllLocalTypingDataForSync === 'function') {
+      try {
+        const localData = getAllLocalTypingDataForSync()
+        if (localData?.progressList?.length > 0 || localData?.mistakeList?.length > 0) {
+          syncLocalTypingDataAction(localData).then((res) => {
+            if (res.success && typeof clearSyncedLocalData === 'function') {
+              clearSyncedLocalData()
+              refreshMistakeCount()
+            }
+          })
+        }
+      } catch {}
+    }
+  }, [isLoggedIn, refreshMistakeCount])
+
+  // Tải tiến độ đã lưu khi mở bài học
+  useEffect(() => {
+    if (!currentExercise?.id) return
+    let isCancelled = false
+    setShowResumeBanner(false)
+    setSavedProgress(null)
+
+    const fetchProgress = async () => {
+      if (isLoggedIn) {
+        try {
+          const res = await getTypingProgressAction(mode, currentExercise.id)
+          if (!isCancelled && res.success && res.progress) {
+            if (
+              res.progress.status === 'in_progress' &&
+              (res.progress.completedSentences > 0 || res.progress.currentSentenceIndex > 0)
+            ) {
+              setSavedProgress(res.progress)
+              setShowResumeBanner(true)
+              return
+            }
+          }
+        } catch {}
+      }
+
+      // Fallback local
+      if (typeof getLocalTypingProgress === 'function') {
+        try {
+          const localP = getLocalTypingProgress(mode, currentExercise.id)
+          if (
+            !isCancelled &&
+            localP &&
+            localP.status === 'in_progress' &&
+            (localP.completedSentences > 0 || localP.currentSentenceIndex > 0)
+          ) {
+            setSavedProgress(localP as any)
+            setShowResumeBanner(true)
+          }
+        } catch {}
+      }
+    }
+
+    fetchProgress()
+    return () => {
+      isCancelled = true
+    }
+  }, [currentExercise?.id, mode, isLoggedIn])
+
+  // Xử lý tiếp tục bài học dở dang
+  const handleResumeProgress = useCallback(() => {
+    if (!savedProgress || !currentExercise) return
+    setShowResumeBanner(false)
+
+    const targetSentenceIndex = Math.min(
+      savedProgress.currentSentenceIndex,
+      Math.max(0, chineseSentences.length - 1)
+    )
+    const targetSentence = chineseSentences[targetSentenceIndex]
+
+    // Khôi phục bản nháp ký tự nếu có
+    const draft = getLocalTypingDraft(mode, currentExercise.id)
+    if (
+      draft &&
+      draft.draftText &&
+      draft.draftText.length > (targetSentence ? targetSentence.startIndex : 0)
+    ) {
+      setUserInput(draft.draftText)
+      committedLengthRef.current = draft.draftText.length
+    } else if (targetSentence && targetSentence.startIndex > 0) {
+      const restoredText = currentExercise.hanzi.slice(0, targetSentence.startIndex)
+      setUserInput(restoredText)
+      committedLengthRef.current = restoredText.length
+    }
+
+    setIsStarted(true)
+    setIsCompleted(false)
+    toast.success(`Tiếp tục bài học từ câu ${targetSentenceIndex + 1}`)
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }, [savedProgress, currentExercise, chineseSentences, mode])
+
+  // Xử lý bắt đầu lại bài học từ đầu (không xóa câu sai)
+  const handleRestartProgress = useCallback(async () => {
+    if (!currentExercise) return
+    setShowResumeBanner(false)
+    setSavedProgress(null)
+    clearLocalTypingDraft(mode, currentExercise.id)
+    if (typeof resetLocalTypingProgress === 'function') {
+      resetLocalTypingProgress(mode, currentExercise.id)
+    }
+    if (isLoggedIn) {
+      await resetTypingProgressAction(mode, currentExercise.id)
+    }
+    resetExercise()
+    toast.info('Đã bắt đầu lại từ câu 1. Lịch sử câu sai vẫn được bảo lưu an toàn.')
+  }, [currentExercise, mode, isLoggedIn, resetExercise])
+
+  // Tự động lưu bản nháp chuỗi ký tự đang gõ dở với debounce 300ms
+  const draftDebounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  useEffect(() => {
+    if (!currentExercise?.id || isCompleted) return
+    if (!userInput || userInput.length === 0) return
+
+    if (draftDebounceTimerRef.current) {
+      clearTimeout(draftDebounceTimerRef.current)
+    }
+
+    draftDebounceTimerRef.current = setTimeout(() => {
+      saveLocalTypingDraft(mode, currentExercise.id, currentTypingSentenceIndex, userInput)
+    }, 300)
+
+    return () => {
+      if (draftDebounceTimerRef.current) {
+        clearTimeout(draftDebounceTimerRef.current)
+      }
+    }
+  }, [userInput, currentExercise?.id, mode, currentTypingSentenceIndex, isCompleted])
+
   // Quản lý đồng hồ tính giờ
   useEffect(() => {
     if (isStarted && !isCompleted) {
@@ -629,7 +809,7 @@ export default function TypingClient() {
     const target = currentExercise.hanzi
     const input = userInput
     let correct = 0
-    let errors: { index: number; expected: string; actual: string }[] = []
+    const errors: { index: number; expected: string; actual: string }[] = []
 
     for (let i = 0; i < input.length; i++) {
       if (i < target.length) {
@@ -696,7 +876,68 @@ export default function TypingClient() {
     saveTypingSession(session)
     setStats(getTypingStats())
     setHistoryList(getTypingHistory())
-  }, [isCompleted, currentExercise, stopSpeech, preferences.soundEffects, mode, elapsedSeconds, evaluation])
+
+    // Ghi nhận câu sai nếu bài có lỗi hoặc chưa gõ đủ ký tự
+    if (evaluation.errorCount > 0 || userInput.length < currentExercise.hanzi.length) {
+      const mistakeDetails = evaluation.errors.map((e) => ({
+        index: e.index,
+        expected: e.expected,
+        actual: e.actual,
+      }))
+      const mistakePayload = {
+        mode,
+        exerciseId: currentExercise.id,
+        sentenceIndex: currentTypingSentenceIndex,
+        sentenceZh: currentExercise.hanzi,
+        pinyin: currentExercise.pinyin,
+        meaningVi: currentExercise.meaning,
+        lastInputZh: userInput,
+        mistakeDetails,
+      }
+      if (typeof recordLocalTypingMistake === 'function') {
+        recordLocalTypingMistake(mistakePayload)
+      }
+      if (isLoggedIn) {
+        recordTypingMistakeAction(mistakePayload)
+      }
+      setMistakeCount((prev) => prev + 1)
+    }
+
+    // Cập nhật tiến độ hoàn thành bài học
+    const finishProgress: TypingProgressDTO = {
+      mode,
+      exerciseId: currentExercise.id,
+      currentSentenceIndex: Math.max(0, chineseSentences.length - 1),
+      completedSentences: Math.max(1, chineseSentences.length),
+      totalSentences: Math.max(1, chineseSentences.length),
+      correctSentences: evaluation.errorCount === 0 ? Math.max(1, chineseSentences.length) : 0,
+      errorSentences: evaluation.errorCount > 0 ? 1 : 0,
+      lastTypedLength: userInput.length,
+      timeSpentSeconds: Math.max(elapsedSeconds, 1),
+      status: 'completed',
+    }
+    if (typeof saveLocalTypingProgress === 'function') {
+      saveLocalTypingProgress(finishProgress as any)
+    }
+    if (isLoggedIn) {
+      saveTypingProgressAction(finishProgress)
+    }
+    if (currentExercise?.id) {
+      clearLocalTypingDraft(mode, currentExercise.id)
+    }
+  }, [
+    isCompleted,
+    currentExercise,
+    stopSpeech,
+    preferences.soundEffects,
+    mode,
+    elapsedSeconds,
+    evaluation,
+    userInput,
+    currentTypingSentenceIndex,
+    chineseSentences,
+    isLoggedIn,
+  ])
 
   // Xử lý chuỗi ký tự đã được xác nhận (committed)
   // Xử lý ngay lập tức cho cả IME compositionend và input trực tiếp, loại bỏ 100% độ trễ 1 ký tự
@@ -767,6 +1008,73 @@ export default function TypingClient() {
         }
       }
 
+      // Đánh giá và lưu vết câu vừa hoàn thành trong bài nhiều câu (Đoạn văn)
+      if (chineseSentences.length > 1) {
+        const curSentence = chineseSentences.find(
+          (s) => prevLength < s.endIndex && newLength >= s.endIndex
+        )
+        if (curSentence) {
+          const targetSentenceText = curSentence.text
+          const userSentenceText = newVal.slice(curSentence.startIndex, Math.min(newLength, curSentence.endIndex))
+
+          const sentenceErrors: { index: number; expected: string; actual: string }[] = []
+          for (let i = 0; i < targetSentenceText.length; i++) {
+            const tChar = targetSentenceText[i]
+            const uChar = userSentenceText[i]
+            if (!uChar || !isCharMatch(uChar, tChar, preferences.normalizePunctuation)) {
+              sentenceErrors.push({
+                index: i + 1,
+                expected: tChar,
+                actual: uChar || '(thiếu)',
+              })
+            }
+          }
+
+          const isSentenceValid = sentenceErrors.length === 0 && userSentenceText.length >= targetSentenceText.length
+
+          if (!isSentenceValid) {
+            const mistakePayload = {
+              mode,
+              exerciseId: currentExercise.id,
+              sentenceIndex: curSentence.index,
+              sentenceZh: curSentence.text,
+              pinyin: currentExercise.pinyin,
+              meaningVi: currentExercise.meaning,
+              lastInputZh: userSentenceText,
+              mistakeDetails: sentenceErrors,
+            }
+            if (typeof recordLocalTypingMistake === 'function') {
+              recordLocalTypingMistake(mistakePayload)
+            }
+            if (isLoggedIn) {
+              recordTypingMistakeAction(mistakePayload)
+            }
+            setMistakeCount((prev) => prev + 1)
+          }
+
+          // Lưu tiến độ câu đang học
+          const isLastSentence = curSentence.index + 1 >= chineseSentences.length
+          const progressPayload: TypingProgressDTO = {
+            mode,
+            exerciseId: currentExercise.id,
+            currentSentenceIndex: isLastSentence ? curSentence.index : curSentence.index + 1,
+            completedSentences: curSentence.index + 1,
+            totalSentences: chineseSentences.length,
+            correctSentences: 0,
+            errorSentences: 0,
+            lastTypedLength: newLength,
+            timeSpentSeconds: elapsedSeconds,
+            status: isLastSentence ? 'completed' : 'in_progress',
+          }
+          if (typeof saveLocalTypingProgress === 'function') {
+            saveLocalTypingProgress(progressPayload as any)
+          }
+          if (isLoggedIn) {
+            saveTypingProgressAction(progressPayload)
+          }
+        }
+      }
+
       // Kiểm tra hoàn thành bài tập
       if (newLength >= currentExercise.hanzi.length) {
         handleFinish()
@@ -782,6 +1090,9 @@ export default function TypingClient() {
       chineseSentences,
       speakSentence,
       handleFinish,
+      mode,
+      isLoggedIn,
+      elapsedSeconds,
     ]
   )
 
@@ -925,11 +1236,13 @@ export default function TypingClient() {
               <Keyboard className="w-5 h-5" />
             </span>
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-title tracking-tight">
-              Luyện đánh máy tiếng Trung
+              {mode === 'sentence' ? '100 câu ca dao, tục ngữ Việt Nam' : 'Luyện đánh máy tiếng Trung'}
             </h1>
           </div>
           <p className="text-muted font-serif text-sm mt-1.5 max-w-2xl">
-            Rèn luyện kỹ năng gõ chữ Hán bằng Pinyin qua bộ gõ tiếng Trung (IME). Quan sát nội dung mục tiêu và tự gõ lại để cải thiện tốc độ và phản xạ.
+            {mode === 'sentence'
+              ? 'Luyện gõ chữ Hán qua 100 câu ca dao, tục ngữ Việt Nam được chuyển ngữ sang tiếng Trung giản thể. Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán.'
+              : 'Rèn luyện kỹ năng gõ chữ Hán bằng Pinyin qua bộ gõ tiếng Trung (IME). Quan sát nội dung mục tiêu và tự gõ lại để cải thiện tốc độ và phản xạ.'}
           </p>
         </div>
 
@@ -945,12 +1258,15 @@ export default function TypingClient() {
         </div>
       </div>
 
-      {/* 2. Thanh chọn chế độ luyện tập (4 chế độ) */}
+      {/* 2. Thanh chọn chế độ luyện tập (4 chế độ bao gồm Ôn câu sai) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-card border border-border rounded-xl p-1.5 shadow-xs">
         <button
-          onClick={() => setMode('sentence')}
+          onClick={() => {
+            setActiveTab('practice')
+            setMode('sentence')
+          }}
           className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
-            mode === 'sentence'
+            activeTab === 'practice' && mode === 'sentence'
               ? 'bg-app-accent text-white font-semibold shadow-xs'
               : 'text-muted hover:text-title hover:bg-page'
           }`}
@@ -960,21 +1276,12 @@ export default function TypingClient() {
         </button>
 
         <button
-          onClick={() => setMode('vocabulary')}
+          onClick={() => {
+            setActiveTab('practice')
+            setMode('paragraph')
+          }}
           className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
-            mode === 'vocabulary'
-              ? 'bg-app-accent text-white font-semibold shadow-xs'
-              : 'text-muted hover:text-title hover:bg-page'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>Từ vựng</span>
-        </button>
-
-        <button
-          onClick={() => setMode('paragraph')}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
-            mode === 'paragraph'
+            activeTab === 'practice' && mode === 'paragraph'
               ? 'bg-app-accent text-white font-semibold shadow-xs'
               : 'text-muted hover:text-title hover:bg-page'
           }`}
@@ -984,9 +1291,12 @@ export default function TypingClient() {
         </button>
 
         <button
-          onClick={() => setMode('hsk')}
+          onClick={() => {
+            setActiveTab('practice')
+            setMode('hsk')
+          }}
           className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
-            mode === 'hsk'
+            activeTab === 'practice' && mode === 'hsk'
               ? 'bg-app-accent text-white font-semibold shadow-xs'
               : 'text-muted hover:text-title hover:bg-page'
           }`}
@@ -994,7 +1304,53 @@ export default function TypingClient() {
           <GraduationCap className="w-4 h-4" />
           <span>Theo HSK</span>
         </button>
+
+        <button
+          onClick={() => {
+            stopSpeech()
+            setActiveTab('mistakes')
+          }}
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
+            activeTab === 'mistakes'
+              ? 'bg-app-accent text-white font-semibold shadow-xs'
+              : 'text-muted hover:text-title hover:bg-page'
+          }`}
+        >
+          <Flame className="w-4 h-4 text-amber-500" />
+          <span>Ôn câu sai</span>
+          {mistakeCount > 0 && (
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold ${
+                activeTab === 'mistakes'
+                  ? 'bg-white/25 text-white'
+                  : 'bg-red-500/15 text-red-600 dark:text-red-400'
+              }`}
+            >
+              {mistakeCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      {activeTab === 'mistakes' ? (
+        <TypingMistakesReview
+          isLoggedIn={isLoggedIn}
+          onBackToPractice={() => setActiveTab('practice')}
+        />
+      ) : (
+        <>
+          {/* Banner khôi phục tiến độ nếu có bài dở dang */}
+          {showResumeBanner && savedProgress && (
+            <TypingResumeBanner
+              currentSentenceIndex={savedProgress.currentSentenceIndex}
+              totalSentences={savedProgress.totalSentences}
+              completedSentences={savedProgress.completedSentences}
+              correctSentences={savedProgress.correctSentences}
+              onResume={handleResumeProgress}
+              onRestart={handleRestartProgress}
+              onDismiss={() => setShowResumeBanner(false)}
+            />
+          )}
 
       {/* Khi ở chế độ Đoạn văn: Lựa chọn "Luyện với văn bản có sẵn" hoặc "Tự tạo bài luyện" */}
       {mode === 'paragraph' && (
@@ -1046,36 +1402,81 @@ export default function TypingClient() {
           <span className="text-xs text-muted font-serif">Phân loại:</span>
 
           {mode === 'sentence' && (
-            <div className="flex items-center gap-1">
-              {['all', 'Cơ bản', 'Trung cấp', 'Nâng cao'].map((lvl) => (
-                <button
-                  key={lvl}
-                  onClick={() => setLevelFilter(lvl)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
-                    levelFilter === lvl
-                      ? 'bg-title text-white font-medium'
-                      : 'bg-page border border-border text-muted hover:text-title'
-                  }`}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Lọc theo chủ đề ca dao tục ngữ */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted font-serif">Chủ đề:</span>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => {
+                    setCategoryFilter(e.target.value)
+                    setCurrentIndex(0)
+                    resetExercise()
+                  }}
+                  className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2.5 py-1 focus:outline-none focus:border-app-accent max-w-[200px]"
                 >
-                  {lvl === 'all' ? 'Tất cả' : lvl}
-                </button>
-              ))}
+                  {VIETNAMESE_PROVERB_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat === 'Tất cả' ? 'all' : cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Lọc theo độ khó */}
+              <div className="flex items-center gap-1">
+                {[
+                  { key: 'all', label: 'Tất cả' },
+                  { key: 'Cơ bản', label: 'Cơ bản' },
+                  { key: 'Trung cấp', label: 'Trung cấp' },
+                  { key: 'Nâng cao', label: 'Nâng cao' },
+                ].map((lvl) => (
+                  <button
+                    key={lvl.key}
+                    onClick={() => {
+                      setLevelFilter(lvl.key)
+                      setCurrentIndex(0)
+                      resetExercise()
+                    }}
+                    className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
+                      levelFilter === lvl.key
+                        ? 'bg-app-accent text-white font-medium shadow-2xs'
+                        : 'bg-page border border-border text-muted hover:text-title'
+                    }`}
+                  >
+                    {lvl.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Danh sách chọn câu để chuyển nhanh đến câu bất kỳ */}
+              {exercises.length > 0 && (
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <span className="text-xs text-muted font-serif hidden md:inline">Chọn câu:</span>
+                  <select
+                    value={currentIndex}
+                    onChange={(e) => {
+                      const idx = parseInt(e.target.value, 10)
+                      if (!isNaN(idx) && idx >= 0 && idx < exercises.length) {
+                        setCurrentIndex(idx)
+                        resetExercise()
+                      }
+                    }}
+                    className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2 py-1 focus:outline-none focus:border-app-accent max-w-[170px] sm:max-w-[240px] truncate"
+                    title="Chuyển nhanh đến câu bất kỳ"
+                  >
+                    {exercises.map((ex, idx) => (
+                      <option key={ex.id || idx} value={idx}>
+                        {`#${idx + 1}: ${ex.vietnamese || ex.meaning}`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
-          {mode === 'vocabulary' && (
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2.5 py-1 focus:outline-none focus:border-app-accent"
-            >
-              {vocabularyCategories.map((cat) => (
-                <option key={cat} value={cat === 'Tất cả' ? 'all' : cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          )}
+
 
           {mode === 'paragraph' && (
             <div className="flex items-center gap-1 flex-wrap">
@@ -1100,25 +1501,36 @@ export default function TypingClient() {
 
           {mode === 'hsk' && (
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Chọn cấp HSK 1 - 6 */}
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <button
-                    key={num}
-                    onClick={() => {
-                      setHskLevel(num)
-                      setHskLesson(0)
-                      resetExercise()
-                    }}
-                    className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
-                      hskLevel === num
-                        ? 'bg-app-accent text-white font-semibold'
-                        : 'bg-page border border-border text-muted hover:text-title'
-                    }`}
+              {/* Chọn cấp HSK 3.0 */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded bg-page border border-border text-muted">
+                  HSK 3.0
+                </span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => {
+                        setHskLevel(num)
+                        setHskLesson(0)
+                        resetExercise()
+                      }}
+                      className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
+                        hskLevel === num
+                          ? 'bg-app-accent text-white font-semibold'
+                          : 'bg-page border border-border text-muted hover:text-title'
+                      }`}
+                    >
+                      HSK {num}
+                    </button>
+                  ))}
+                  <span
+                    title="HSK 7-9 (Cao cấp) đang cập nhật đề cương theo chuẩn GF 0025-2021"
+                    className="px-2 py-1 rounded-md text-[11px] font-serif bg-page/60 border border-border/60 text-muted/60 select-none cursor-default"
                   >
-                    HSK {num}
-                  </button>
-                ))}
+                    HSK 7-9
+                  </span>
+                </div>
               </div>
 
               {/* Nút toggle: Luyện từ vựng vs Luyện câu ví dụ */}
@@ -1263,9 +1675,13 @@ export default function TypingClient() {
             <Layers className="w-4 h-4" />
           </span>
           <div>
-            <p className="text-[11px] text-muted font-sans">Tiến độ bài</p>
+            <p className="text-[11px] text-muted font-sans">
+              {mode === 'sentence' ? 'Tiến độ câu' : 'Tiến độ bài'}
+            </p>
             <p className="text-lg font-serif font-bold text-title">
-              {exercises.length > 0 ? currentIndex + 1 : 0} / {exercises.length}
+              {mode === 'sentence'
+                ? `Câu ${exercises.length > 0 ? currentIndex + 1 : 0}/${exercises.length}`
+                : `${exercises.length > 0 ? currentIndex + 1 : 0} / ${exercises.length}`}
             </p>
           </div>
         </div>
@@ -1301,13 +1717,18 @@ export default function TypingClient() {
           <div className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm space-y-6">
             {/* Huy hiệu thông tin câu & Nút nghe phát âm tiếng Trung */}
             <div className="flex items-center justify-between gap-3 text-xs text-muted font-serif flex-wrap">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-2 py-0.5 rounded bg-page border border-border font-medium text-title">
                   {currentExercise.level || `HSK ${currentExercise.hskLevel || 1}`}
                 </span>
                 {currentExercise.category && (
                   <span className="text-muted">• {currentExercise.category}</span>
                 )}
+                {/* Trạng thái tự động lưu trực quan */}
+                <span className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                  <span>{isLoggedIn ? 'Tự động lưu đám mây' : 'Tự động lưu trên máy'}</span>
+                </span>
               </div>
 
               <div className="flex items-center gap-3 flex-wrap">
@@ -1331,8 +1752,51 @@ export default function TypingClient() {
               </div>
             </div>
 
-            {/* Tiêu đề bài tập song ngữ nếu có (cho đoạn văn hoặc câu HSK) */}
-            {(currentExercise.titleZh || currentExercise.titleVi) && (
+            {/* Tiêu đề bài tập: Ca dao tục ngữ Việt Nam trong chế độ câu mẫu */}
+            {mode === 'sentence' ? (
+              <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/25 rounded-xl p-4 md:p-5 space-y-2.5 -mt-1 shadow-2xs">
+                <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-app-accent text-white shadow-2xs">
+                      {currentExercise.sourceType || 'Tục ngữ'}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-serif bg-card border border-border text-title font-semibold">
+                      {currentExercise.category || 'Ca dao, tục ngữ'}
+                    </span>
+                    {currentExercise.translationType && (
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-page border border-border text-muted">
+                        {currentExercise.translationType === 'Tương đương'
+                          ? 'Thành ngữ tương đương'
+                          : 'Bản chuyển ngữ'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs font-serif font-semibold text-app-accent">
+                    Câu {currentIndex + 1} / {exercises.length}
+                  </span>
+                </div>
+
+                {/* Câu ca dao, tục ngữ nguyên bản tiếng Việt */}
+                <div className="pt-1">
+                  <p className="text-xs text-muted font-serif mb-0.5">Câu ca dao / tục ngữ gốc:</p>
+                  <p className="text-base sm:text-lg font-serif font-bold text-title leading-relaxed">
+                    &ldquo;{currentExercise.vietnamese || currentExercise.meaning}&rdquo;
+                  </p>
+                </div>
+
+                {/* Ý nghĩa và chú thích văn hóa nếu có */}
+                {currentExercise.meaning && (
+                  <p className="text-xs font-serif text-body/90 leading-relaxed pt-1.5 border-t border-border/60">
+                    <span className="font-semibold text-title">Ý nghĩa:</span> {currentExercise.meaning}
+                    {currentExercise.culturalNote && (
+                      <span className="text-muted block sm:inline sm:ml-1.5 mt-0.5 sm:mt-0">
+                        • <em>{currentExercise.culturalNote}</em>
+                      </span>
+                    )}
+                  </p>
+                )}
+              </div>
+            ) : (currentExercise.titleZh || currentExercise.titleVi) ? (
               <div className="border-b border-border/70 pb-3.5 -mt-1">
                 {currentExercise.titleZh && (
                   <h2 className="text-base md:text-lg font-serif font-bold text-title flex items-center gap-2">
@@ -1346,7 +1810,7 @@ export default function TypingClient() {
                   </p>
                 )}
               </div>
-            )}
+            ) : null}
 
             {/* Câu mục tiêu với từng ký tự hiển thị trực quan */}
             <div className="space-y-3 bg-page/70 border border-border/70 rounded-xl p-4 md:p-6">
@@ -1559,6 +2023,8 @@ export default function TypingClient() {
                   placeholder={
                     isCompleted
                       ? 'Đã hoàn thành! Bấm Enter hoặc nút "Câu tiếp theo" để tiếp tục.'
+                      : mode === 'sentence'
+                      ? 'Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán...'
                       : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                   }
                   className="w-full px-4 py-3.5 bg-card border-2 border-border focus:border-app-accent rounded-xl text-lg md:text-2xl font-serif text-title placeholder:text-muted placeholder:text-sm focus:outline-none transition-colors shadow-inner"
@@ -1691,7 +2157,7 @@ export default function TypingClient() {
                 onClick={handleNext}
                 className="flex items-center gap-1.5 px-4 py-2 bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs md:text-sm font-serif transition-all shadow-xs"
               >
-                <span>Chuyển câu</span>
+                <span>{mode === 'sentence' ? 'Câu tiếp theo' : 'Chuyển câu'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -1704,6 +2170,8 @@ export default function TypingClient() {
           <h3 className="text-base font-serif font-medium text-title">Chưa có bài tập cho mục này</h3>
           <p className="text-xs text-muted font-serif">Vui lòng chọn phân loại hoặc chế độ khác.</p>
         </div>
+      )}
+      </>
       )}
       </>
       )}

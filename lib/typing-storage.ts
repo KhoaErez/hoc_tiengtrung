@@ -324,3 +324,332 @@ export function updateCustomExerciseResult(
   } catch {}
 }
 
+// === QUẢN LÝ TIẾN ĐỘ & CÂU GÕ SAI TẠI LOCALSTORAGE (CHO KHÁCH & OFFLINE CACHE) ===
+
+export type ReviewStatus = 'need_review' | 'reviewing' | 'mastered';
+
+export interface TypingMistakeDetail {
+  index: number;
+  expected: string;
+  actual: string;
+}
+
+export interface TypingProgressItem {
+  id?: string;
+  mode: string;
+  exerciseId: string;
+  currentSentenceIndex: number;
+  completedSentences: number;
+  totalSentences: number;
+  correctSentences: number;
+  errorSentences: number;
+  lastTypedLength: number;
+  timeSpentSeconds: number;
+  status: 'not_started' | 'in_progress' | 'completed';
+  updatedAt: string;
+}
+
+export interface TypingMistakeItem {
+  id: string;
+  mode: string;
+  exerciseId: string;
+  sentenceIndex: number;
+  sentenceZh: string;
+  pinyin?: string;
+  meaningVi?: string;
+  lastInputZh: string;
+  mistakeDetails: TypingMistakeDetail[];
+  mistakeCount: number;
+  reviewStatus: ReviewStatus;
+  reviewCount: number;
+  reviewCorrectCount: number;
+  consecutiveCorrect: number;
+  lastErrorAt: string;
+  lastReviewedAt?: string;
+}
+
+const STORAGE_KEY_PROGRESS_LOCAL = 'typing_practice_progress_local';
+const STORAGE_KEY_MISTAKES_LOCAL = 'typing_practice_mistakes_local';
+
+// Lấy toàn bộ danh sách tiến độ local
+function getAllLocalProgressMap(): Record<string, TypingProgressItem> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PROGRESS_LOCAL);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+// Lấy tiến độ của một bài cụ thể từ local
+export function getLocalTypingProgress(mode: string, exerciseId: string): TypingProgressItem | null {
+  const map = getAllLocalProgressMap();
+  const key = `${mode}_${exerciseId}`;
+  return map[key] || null;
+}
+
+// Lưu tiến độ vào local
+export function saveLocalTypingProgress(item: TypingProgressItem): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const map = getAllLocalProgressMap();
+    const key = `${item.mode}_${item.exerciseId}`;
+    map[key] = {
+      ...item,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(STORAGE_KEY_PROGRESS_LOCAL, JSON.stringify(map));
+  } catch {}
+}
+
+// Đặt lại tiến độ bài về 0 trong local
+export function resetLocalTypingProgress(mode: string, exerciseId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const map = getAllLocalProgressMap();
+    const key = `${mode}_${exerciseId}`;
+    if (map[key]) {
+      map[key] = {
+        ...map[key],
+        currentSentenceIndex: 0,
+        completedSentences: 0,
+        correctSentences: 0,
+        errorSentences: 0,
+        lastTypedLength: 0,
+        status: 'not_started',
+        updatedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(STORAGE_KEY_PROGRESS_LOCAL, JSON.stringify(map));
+    }
+  } catch {}
+}
+
+// Lấy danh sách câu sai từ local
+export function getLocalTypingMistakes(filter?: {
+  mode?: string;
+  reviewStatus?: ReviewStatus | 'all';
+}): TypingMistakeItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_MISTAKES_LOCAL);
+    if (!raw) return [];
+    let list: TypingMistakeItem[] = JSON.parse(raw);
+
+    if (filter?.mode && filter.mode !== 'all') {
+      list = list.filter((m) => m.mode === filter.mode);
+    }
+    if (filter?.reviewStatus && filter.reviewStatus !== 'all') {
+      list = list.filter((m) => m.reviewStatus === filter.reviewStatus);
+    }
+    return list.sort((a, b) => new Date(b.lastErrorAt).getTime() - new Date(a.lastErrorAt).getTime());
+  } catch {
+    return [];
+  }
+}
+
+// Ghi nhận câu sai vào local (upsert)
+export function recordLocalTypingMistake(data: {
+  mode: string;
+  exerciseId: string;
+  sentenceIndex: number;
+  sentenceZh: string;
+  pinyin?: string;
+  meaningVi?: string;
+  lastInputZh: string;
+  mistakeDetails: TypingMistakeDetail[];
+}): TypingMistakeItem {
+  const list = getLocalTypingMistakes();
+  const now = new Date().toISOString();
+  const existingIdx = list.findIndex(
+    (m) => m.mode === data.mode && m.exerciseId === data.exerciseId && m.sentenceIndex === data.sentenceIndex
+  );
+
+  if (existingIdx !== -1) {
+    const existing = list[existingIdx];
+    const updated: TypingMistakeItem = {
+      ...existing,
+      sentenceZh: data.sentenceZh,
+      pinyin: data.pinyin || existing.pinyin,
+      meaningVi: data.meaningVi || existing.meaningVi,
+      lastInputZh: data.lastInputZh,
+      mistakeDetails: data.mistakeDetails,
+      mistakeCount: existing.mistakeCount + 1,
+      reviewStatus: 'need_review',
+      consecutiveCorrect: 0,
+      lastErrorAt: now,
+    };
+    list[existingIdx] = updated;
+    try {
+      localStorage.setItem(STORAGE_KEY_MISTAKES_LOCAL, JSON.stringify(list));
+    } catch {}
+    return updated;
+  }
+
+  const newMistake: TypingMistakeItem = {
+    id: `local-mistake-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    mode: data.mode,
+    exerciseId: data.exerciseId,
+    sentenceIndex: data.sentenceIndex,
+    sentenceZh: data.sentenceZh,
+    pinyin: data.pinyin,
+    meaningVi: data.meaningVi,
+    lastInputZh: data.lastInputZh,
+    mistakeDetails: data.mistakeDetails,
+    mistakeCount: 1,
+    reviewStatus: 'need_review',
+    reviewCount: 0,
+    reviewCorrectCount: 0,
+    consecutiveCorrect: 0,
+    lastErrorAt: now,
+  };
+
+  list.unshift(newMistake);
+  try {
+    localStorage.setItem(STORAGE_KEY_MISTAKES_LOCAL, JSON.stringify(list.slice(0, 300)));
+  } catch {}
+  return newMistake;
+}
+
+// Cập nhật kết quả ôn tập trong local
+export function updateLocalMistakeReview(mistakeId: string, isCorrect: boolean): TypingMistakeItem | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const list = getLocalTypingMistakes();
+    const idx = list.findIndex((m) => m.id === mistakeId);
+    if (idx === -1) return null;
+
+    const current = list[idx];
+    const now = new Date().toISOString();
+    const newReviewCount = current.reviewCount + 1;
+    let newReviewCorrectCount = current.reviewCorrectCount;
+    let newConsecutive = current.consecutiveCorrect;
+    let newStatus: ReviewStatus = current.reviewStatus;
+
+    if (isCorrect) {
+      newReviewCorrectCount += 1;
+      newConsecutive += 1;
+      newStatus = newConsecutive >= 2 ? 'mastered' : 'reviewing';
+    } else {
+      newConsecutive = 0;
+      newStatus = 'need_review';
+    }
+
+    const updated: TypingMistakeItem = {
+      ...current,
+      reviewCount: newReviewCount,
+      reviewCorrectCount: newReviewCorrectCount,
+      consecutiveCorrect: newConsecutive,
+      reviewStatus: newStatus,
+      lastReviewedAt: now,
+    };
+
+    list[idx] = updated;
+    localStorage.setItem(STORAGE_KEY_MISTAKES_LOCAL, JSON.stringify(list));
+    return updated;
+  } catch {
+    return null;
+  }
+}
+
+// Đổi trạng thái câu sai thủ công trong local
+export function updateLocalMistakeStatus(mistakeId: string, status: ReviewStatus): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const list = getLocalTypingMistakes();
+    const idx = list.findIndex((m) => m.id === mistakeId);
+    if (idx === -1) return false;
+
+    list[idx].reviewStatus = status;
+    localStorage.setItem(STORAGE_KEY_MISTAKES_LOCAL, JSON.stringify(list));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Lấy toàn bộ dữ liệu local chuẩn bị đồng bộ lên tài khoản người dùng
+export function getAllLocalTypingDataForSync(): {
+  progressList: TypingProgressItem[];
+  mistakeList: TypingMistakeItem[];
+} {
+  const map = getAllLocalProgressMap();
+  const progressList = Object.values(map);
+  const mistakeList = getLocalTypingMistakes();
+  return { progressList, mistakeList };
+}
+
+// Xóa sạch cache local sau khi đã đồng bộ an toàn lên Cloud
+export function clearSyncedLocalData(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEY_PROGRESS_LOCAL);
+    localStorage.removeItem(STORAGE_KEY_MISTAKES_LOCAL);
+  } catch {}
+}
+
+// === QUẢN LÝ BẢN NHÁP KÝ TỰ ĐANG GÕ DỞ (DEBOUNCED DRAFT PERSISTENCE) ===
+const STORAGE_KEY_TYPING_DRAFTS = 'typing_practice_drafts_v1';
+
+export interface TypingDraftItem {
+  mode: string;
+  exerciseId: string;
+  sentenceIndex: number;
+  draftText: string;
+  updatedAt: string;
+}
+
+// Lưu bản nháp chuỗi ký tự đang gõ dở (với debounce phía client)
+export function saveLocalTypingDraft(
+  mode: string,
+  exerciseId: string,
+  sentenceIndex: number,
+  draftText: string
+): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TYPING_DRAFTS);
+    const drafts: Record<string, TypingDraftItem> = raw ? JSON.parse(raw) : {};
+    const key = `${mode}_${exerciseId}`;
+    if (!draftText || !draftText.trim()) {
+      delete drafts[key];
+    } else {
+      drafts[key] = {
+        mode,
+        exerciseId,
+        sentenceIndex,
+        draftText,
+        updatedAt: new Date().toISOString(),
+      };
+    }
+    localStorage.setItem(STORAGE_KEY_TYPING_DRAFTS, JSON.stringify(drafts));
+  } catch {}
+}
+
+// Lấy bản nháp chuỗi ký tự đang gõ dở khi khôi phục bài học
+export function getLocalTypingDraft(mode: string, exerciseId: string): TypingDraftItem | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TYPING_DRAFTS);
+    if (!raw) return null;
+    const drafts: Record<string, TypingDraftItem> = JSON.parse(raw);
+    const key = `${mode}_${exerciseId}`;
+    return drafts[key] || null;
+  } catch {
+    return null;
+  }
+}
+
+// Xóa bản nháp khi câu hoàn thành hoặc làm lại từ đầu
+export function clearLocalTypingDraft(mode: string, exerciseId: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TYPING_DRAFTS);
+    if (!raw) return;
+    const drafts: Record<string, TypingDraftItem> = JSON.parse(raw);
+    delete drafts[`${mode}_${exerciseId}`];
+    localStorage.setItem(STORAGE_KEY_TYPING_DRAFTS, JSON.stringify(drafts));
+  } catch {}
+}
+
+

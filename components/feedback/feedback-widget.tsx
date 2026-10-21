@@ -3,10 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { 
-  MessageSquareQuote, 
   X, 
   Send, 
-  CheckCircle2, 
   AlertCircle, 
   Bug, 
   Lightbulb, 
@@ -14,10 +12,11 @@ import {
   BookOpen, 
   HelpCircle,
   Loader2,
-  ChevronLeft
+  Sparkles
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { submitFeedbackAction, FeedbackCategory } from '@/app/actions/feedback'
+import { MascotAvatar, MascotState } from '@/components/mascot/mascot-avatar'
 
 const CATEGORIES: {
   id: FeedbackCategory
@@ -66,6 +65,10 @@ const CATEGORIES: {
 export function FeedbackWidget() {
   const pathname = usePathname() || '/'
   const [isOpen, setIsOpen] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+  const [showTooltip, setShowTooltip] = useState(false)
+  const [hasDismissedTooltip, setHasDismissedTooltip] = useState(false)
+
   const [category, setCategory] = useState<FeedbackCategory>('bug')
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
@@ -79,6 +82,15 @@ export function FeedbackWidget() {
   const [cooldown, setCooldown] = useState(0)
 
   const widgetRef = useRef<HTMLDivElement>(null)
+
+  // Tooltip chào mừng xuất hiện sau 4 giây truy cập nếu chưa từng tắt
+  useEffect(() => {
+    if (hasDismissedTooltip || isOpen) return
+    const timer = setTimeout(() => {
+      setShowTooltip(true)
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [hasDismissedTooltip, isOpen])
 
   // Cooldown countdown
   useEffect(() => {
@@ -152,41 +164,58 @@ export function FeedbackWidget() {
     }
   }
 
-  const currentCategoryObj = CATEGORIES.find((c) => c.id === category) || CATEGORIES[0]
+  // Tính toán trạng thái của Mascot trong cửa sổ chat
+  const dialogMascotState: MascotState = isSuccess
+    ? 'success'
+    : isSubmitting
+    ? 'thinking'
+    : errorMessage
+    ? 'error'
+    : 'open'
+
+  // Trạng thái Mascot trên nút bấm nổi
+  const buttonMascotState: MascotState = isOpen
+    ? 'open'
+    : isHovered
+    ? 'hover'
+    : 'idle'
 
   return (
     <div ref={widgetRef} className="fixed z-40 select-none">
       
-      {/* 1. CHAT WINDOW PANEL */}
+      {/* 1. CHATBOT MASCOT DIALOG WINDOW */}
       {isOpen && (
         <div 
-          className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[400px] max-h-[82vh] bg-card border border-border shadow-xl rounded-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[410px] max-h-[84vh] bg-card border border-border shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
           role="dialog"
           aria-labelledby="feedback-dialog-title"
           aria-modal="true"
         >
           {/* Accent decorative bar */}
-          <div className="h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold shrink-0" />
+          <div className="h-1.5 bg-gradient-to-r from-app-accent via-red-500 to-gold shrink-0" />
 
-          {/* Window Header */}
+          {/* Window Header: Mascot & Assistant Name */}
           <div className="px-5 py-3.5 border-b border-border bg-page/95 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center font-serif font-bold text-sm">
-                汉
+            <div className="flex items-center gap-3">
+              <div className="p-0.5 rounded-full bg-white border border-app-accent/20 shadow-xs">
+                <MascotAvatar state={dialogMascotState} size="sm" />
               </div>
               <div>
                 <h2 id="feedback-dialog-title" className="text-sm font-serif font-bold text-title flex items-center gap-1.5">
-                  Góp ý & Báo lỗi
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Tiểu Bút</span>
+                  <span className="text-[11px] font-sans font-normal text-muted">• Trợ lý Học tập</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="Sẵn sàng hỗ trợ" />
                 </h2>
-                <p className="text-[11px] text-muted font-serif">Chinese Notebook luôn lắng nghe bạn</p>
+                <p className="text-[11px] text-muted font-serif">
+                  Bạn đồng hành cùng Chinese Notebook
+                </p>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-lg text-muted hover:text-title hover:bg-black/5 transition-colors"
+              className="p-1.5 rounded-xl text-muted hover:text-title hover:bg-black/5 transition-colors cursor-pointer"
               aria-label="Đóng cửa sổ"
             >
               <X className="w-4 h-4" />
@@ -196,22 +225,25 @@ export function FeedbackWidget() {
           {/* Window Body (Scrollable) */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 no-scrollbar font-serif">
             {isSuccess ? (
-              /* Success State */
-              <div className="py-8 px-4 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-14 h-14 rounded-full bg-jade-soft text-jade mx-auto flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8" />
+              /* Success State with Happy Mascot */
+              <div className="py-6 px-3 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                <div className="mx-auto flex justify-center">
+                  <MascotAvatar state="success" size="xl" />
                 </div>
                 <div className="space-y-1.5">
-                  <h3 className="text-lg font-bold text-title">Cảm ơn bạn đã góp ý!</h3>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Phản hồi của bạn đã được ghi nhận an toàn vào hệ thống. Ban quản trị sẽ xem xét và cải tiến Chinese Notebook sớm nhất.
+                  <h3 className="text-lg font-bold text-title flex items-center justify-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-gold" />
+                    <span>Tiểu Bút đã nhận được tin nhắn!</span>
+                  </h3>
+                  <p className="text-xs text-muted leading-relaxed max-w-xs mx-auto">
+                    Cảm ơn bạn rất nhiều! Ý kiến đóng góp quý báu của bạn giúp Chinese Notebook ngày một hoàn thiện và thông minh hơn.
                   </p>
                 </div>
                 <div className="pt-2 flex flex-col gap-2">
                   <Button
                     type="button"
                     onClick={handleReset}
-                    className="font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl text-xs py-2.5"
+                    className="font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs py-2.5 shadow-xs"
                   >
                     Gửi thêm góp ý khác
                   </Button>
@@ -226,13 +258,21 @@ export function FeedbackWidget() {
                 </div>
               </div>
             ) : (
-              /* Input Form */
+              /* Input Form with Assistant Personality */
               <form onSubmit={handleSubmit} className="space-y-4">
                 
+                {/* Lời chào thân thiện từ Mascot */}
+                <div className="p-3 rounded-2xl bg-app-accent-soft/50 border border-app-accent/20 flex items-start gap-2.5">
+                  <span className="text-base leading-none mt-0.5">🎋</span>
+                  <p className="text-xs text-body leading-relaxed">
+                    Bạn gặp khó khăn khi học, phát hiện từ vựng bị lỗi hay muốn gợi ý tính năng mới? Hãy chia sẻ với Tiểu Bút ngay nhé!
+                  </p>
+                </div>
+
                 {/* 1. Category Selection Chips */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-title block">
-                    1. Loại phản hồi:
+                    1. Bạn muốn trao đổi về chủ đề gì?
                   </label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {CATEGORIES.map((cat) => {
@@ -246,13 +286,13 @@ export function FeedbackWidget() {
                             setCategory(cat.id)
                             setErrorMessage(null)
                           }}
-                          className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs transition-all border text-left ${
+                          className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs transition-all border text-left cursor-pointer ${
                             isSelected
-                              ? 'bg-app-accent-soft border-app-accent/40 text-app-accent font-bold shadow-2xs'
-                              : 'bg-page border-border text-body hover:border-title/30'
+                              ? 'bg-app-accent text-white font-medium border-app-accent shadow-2xs'
+                              : 'bg-page border-border text-title hover:border-app-accent/40'
                           }`}
                         >
-                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-app-accent' : 'text-muted'}`} />
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-muted'}`} />
                           <span className="truncate">{cat.label}</span>
                         </button>
                       )
@@ -260,105 +300,95 @@ export function FeedbackWidget() {
                   </div>
                 </div>
 
-                {/* 2. Title Input */}
-                <div className="space-y-1">
+                {/* 2. Tiêu đề phản hồi */}
+                <div className="space-y-1.5">
                   <label htmlFor="feedback-title" className="text-xs font-semibold text-title block">
-                    2. Tiêu đề tóm tắt:
+                    2. Tóm tắt nội dung:
                   </label>
                   <input
                     id="feedback-title"
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder={currentCategoryObj.placeholder}
-                    maxLength={150}
-                    className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-border bg-page text-title placeholder:text-muted/70 focus:outline-none focus:border-app-accent transition-colors"
+                    placeholder={CATEGORIES.find(c => c.id === category)?.placeholder || 'Tóm tắt ngắn gọn...'}
+                    maxLength={100}
+                    className="w-full px-3 py-2 rounded-xl text-xs bg-page border border-border text-title placeholder:text-muted focus:outline-none focus:border-app-accent transition-colors shadow-2xs"
                   />
                 </div>
 
-                {/* 3. Detailed Message */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="feedback-message" className="text-xs font-semibold text-title">
-                      3. Chi tiết góp ý <span className="text-app-accent">*</span>:
-                    </label>
-                    <span className="text-[10px] text-muted font-sans">
-                      {message.length}/3000
-                    </span>
-                  </div>
+                {/* 3. Chi tiết nội dung */}
+                <div className="space-y-1.5">
+                  <label htmlFor="feedback-message" className="text-xs font-semibold text-title block">
+                    3. Chi tiết chia sẻ:
+                  </label>
                   <textarea
                     id="feedback-message"
-                    rows={3}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Mô tả cụ thể vấn đề hoặc ý kiến đề xuất của bạn..."
-                    maxLength={3000}
-                    className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-border bg-page text-title placeholder:text-muted/70 focus:outline-none focus:border-app-accent transition-colors resize-none"
+                    rows={3}
+                    placeholder="Mô tả cụ thể để ban quản trị hỗ trợ bạn nhanh chóng nhất..."
+                    maxLength={1000}
+                    className="w-full px-3 py-2 rounded-xl text-xs bg-page border border-border text-title placeholder:text-muted focus:outline-none focus:border-app-accent transition-colors shadow-2xs resize-none"
                   />
                 </div>
 
-                {/* 4. Bug Steps To Reproduce (Optional, only for bugs) */}
+                {/* Các bước tái hiện nếu báo lỗi */}
                 {category === 'bug' && (
-                  <div className="space-y-1 animate-in fade-in duration-150">
+                  <div className="space-y-1.5">
                     <label htmlFor="feedback-steps" className="text-xs font-semibold text-title block">
-                      Các bước tái hiện lỗi (nếu có):
+                      Các bước dẫn đến lỗi (nếu có):
                     </label>
                     <textarea
                       id="feedback-steps"
-                      rows={2}
                       value={stepsToReproduce}
                       onChange={(e) => setStepsToReproduce(e.target.value)}
-                      placeholder="Bước 1: Bấm vào... Bước 2: Thấy lỗi..."
-                      maxLength={2000}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-page text-title placeholder:text-muted/70 focus:outline-none focus:border-app-accent transition-colors resize-none"
+                      rows={2}
+                      placeholder="Ví dụ: Bấm vào bài 3 -> Chọn thẻ từ vựng -> Bấm nút loa..."
+                      maxLength={500}
+                      className="w-full px-3 py-2 rounded-xl text-xs bg-page border border-border text-title placeholder:text-muted focus:outline-none focus:border-app-accent transition-colors shadow-2xs resize-none"
                     />
                   </div>
                 )}
 
-                {/* 5. Metadata Context & Anonymous option */}
-                <div className="p-2.5 rounded-xl bg-page/70 border border-border text-[11px] text-muted space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span>Đường dẫn hiện tại:</span>
-                    <span className="font-mono text-[10px] text-body truncate max-w-[180px]" title={pathname}>
-                      {pathname}
-                    </span>
-                  </div>
-                  <label className="flex items-center gap-2 cursor-pointer pt-0.5 text-body">
-                    <input
-                      type="checkbox"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="rounded border-border text-app-accent focus:ring-app-accent/30 w-3.5 h-3.5"
-                    />
-                    <span>Gửi ẩn danh (không đính kèm thông tin tài khoản)</span>
+                {/* Checkbox ẩn danh */}
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="anonymous-check"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                    className="rounded border-border text-app-accent focus:ring-app-accent cursor-pointer"
+                  />
+                  <label htmlFor="anonymous-check" className="text-[11px] text-muted cursor-pointer">
+                    Gửi ẩn danh (không đính kèm tài khoản của bạn)
                   </label>
                 </div>
 
-                {/* Error Banner */}
+                {/* Thông báo lỗi */}
                 {errorMessage && (
-                  <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2 animate-in fade-in">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+                  <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{errorMessage}</span>
                   </div>
                 )}
 
-                {/* Submit Button */}
+                {/* Nút gửi */}
                 <Button
                   type="submit"
                   disabled={isSubmitting || cooldown > 0}
-                  className="w-full font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl py-2.5 text-xs sm:text-sm font-medium shadow-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-2.5 bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs font-serif font-medium flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Đang gửi phản hồi...</span>
+                      <span>Tiểu Bút đang gửi tin nhắn...</span>
                     </>
                   ) : cooldown > 0 ? (
                     <span>Vui lòng chờ {cooldown}s để gửi tiếp</span>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Gửi góp ý ngay</span>
+                      <span>Gửi tin nhắn cho Tiểu Bút</span>
                     </>
                   )}
                 </Button>
@@ -368,23 +398,61 @@ export function FeedbackWidget() {
         </div>
       )}
 
-      {/* 2. FLOATING TRIGGER BUTTON */}
-      <div className="fixed bottom-20 right-4 md:bottom-6 md:right-6">
+      {/* 2. FLOATING MASCOT TRIGGER BUTTON */}
+      <div 
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 group"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble) */}
+        {!isOpen && showTooltip && (
+          <div className="absolute right-full mr-3 bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-60 text-xs text-title font-serif animate-in fade-in slide-in-from-right-2 duration-200 z-50">
+            <div className="flex items-start justify-between gap-1.5">
+              <p className="leading-relaxed">
+                Chào bạn! Mình là <strong>Tiểu Bút</strong> 🐼. Hôm nay bạn học bài nào rồi? Cần gì cứ gọi mình nhé!
+              </p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowTooltip(false)
+                  setHasDismissedTooltip(true)
+                }}
+                className="text-muted hover:text-title p-0.5 rounded-md -mr-1 -mt-1 cursor-pointer"
+                title="Đóng lời chào"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {/* Mũi tên trỏ vào nút mascot */}
+            <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-card border-t border-r border-border rotate-45" />
+          </div>
+        )}
+
+        {/* Nút bấm Mascot hình tròn cao cấp */}
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-12 h-12 md:w-14 md:h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
+          onClick={() => {
+            setIsOpen(!isOpen)
+            setShowTooltip(false)
+            setHasDismissedTooltip(true)
+          }}
+          className={`w-14 h-14 md:w-16 md:h-16 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
             isOpen
-              ? 'bg-title hover:bg-[#2A3250] text-white rotate-90 scale-95'
-              : 'bg-app-accent hover:bg-accent-hover text-white hover:scale-105 active:scale-95 shadow-app-accent/20'
+              ? 'bg-title text-white rotate-0 scale-95 ring-4 ring-title/15'
+              : 'bg-page hover:bg-card border-2 border-app-accent/40 hover:border-app-accent hover:scale-105 active:scale-95 shadow-app-accent/15 ring-4 ring-app-accent/10'
           }`}
-          title="Góp ý & Báo lỗi cho Chinese Notebook"
-          aria-label={isOpen ? 'Đóng góp ý' : 'Mở góp ý & Báo lỗi'}
+          title="Trò chuyện & Góp ý cùng Tiểu Bút"
+          aria-label={isOpen ? 'Đóng hộp thoại trợ lý' : 'Mở trợ lý Tiểu Bút'}
         >
           {isOpen ? (
-            <X className="w-5 h-5 md:w-6 md:h-6" />
+            <X className="w-6 h-6 text-white" />
           ) : (
-            <MessageSquareQuote className="w-5 h-5 md:w-6 md:h-6" />
+            <div className="relative">
+              <MascotAvatar state={buttonMascotState} size="lg" />
+              {/* Huy hiệu online nhỏ góc dưới */}
+              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
+            </div>
           )}
         </button>
       </div>
@@ -392,3 +460,5 @@ export function FeedbackWidget() {
     </div>
   )
 }
+
+export default FeedbackWidget

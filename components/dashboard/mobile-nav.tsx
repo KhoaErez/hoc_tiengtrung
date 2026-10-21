@@ -8,6 +8,7 @@ import { ProtectedLink } from '@/components/protected-link'
 
 import { useAuthModal } from '@/components/auth/auth-modal-context'
 import { LogIn } from 'lucide-react'
+import { BrandLogo } from '@/components/ui/brand-logo'
 
 export function MobileHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const router = useRouter()
@@ -19,27 +20,25 @@ export function MobileHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
   const isHome = pathname === '/'
 
   return (
-    <header className="md:hidden h-16 border-b border-border bg-page/90 backdrop-blur-xl flex items-center justify-between px-4 sticky top-0 z-30 shadow-sm">
+    <header className="md:hidden h-14 border-b border-border/60 bg-page/90 backdrop-blur-md flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-30">
       <div className="flex items-center">
         {!isHome && (
           <button 
             onClick={() => router.back()} 
-            className="mr-3 p-2 -ml-2 rounded-full hover:bg-border active:bg-border-strong transition-colors text-muted cursor-pointer"
+            className="mr-2 p-1.5 -ml-1 rounded-full hover:bg-black/5 active:bg-black/10 transition-colors text-muted hover:text-title cursor-pointer"
+            aria-label="Quay lại"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
         )}
-        <div className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5 text-app-accent" />
-          <span className="font-bold text-lg text-app-accent tracking-wide">漢字</span>
-        </div>
+        <BrandLogo variant="horizontal" size="xs" showSubtitle={false} />
       </div>
       
       {authenticated ? (
         <form action={logout}>
           <button 
             type="submit"
-            className="p-2 -mr-2 rounded-full hover:bg-accent-soft transition-colors text-muted hover:text-app-accent cursor-pointer"
+            className="p-1.5 -mr-1 rounded-full hover:bg-accent-soft transition-colors text-muted hover:text-app-accent cursor-pointer"
             title="Đăng xuất"
           >
             <LogOut className="h-5 w-5" />
@@ -49,9 +48,9 @@ export function MobileHeader({ isLoggedIn }: { isLoggedIn?: boolean }) {
         <button
           type="button"
           onClick={() => openLoginForm()}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-serif text-title hover:text-app-accent hover:bg-page transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/70 text-xs font-serif text-title hover:text-app-accent hover:border-app-accent/40 hover:bg-page transition-colors cursor-pointer shadow-2xs"
         >
-          <LogIn className="h-4 w-4 text-muted" />
+          <LogIn className="h-3.5 w-3.5 text-muted" />
           <span>Đăng nhập</span>
         </button>
       )}
@@ -72,7 +71,7 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-page/95 backdrop-blur-xl border-t border-border z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] box-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-page/95 backdrop-blur-md border-t border-border/60 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] box-border" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="grid grid-cols-6 h-[60px] items-center px-0.5">
         {navItems.map((item) => {
           const isActive =

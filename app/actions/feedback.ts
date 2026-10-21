@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedAuthUser, getCachedUserProfile } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -25,38 +25,16 @@ function sanitizeText(str: string): string {
 }
 
 /**
- * Check if current user has admin privileges
+ * Check if current user has admin privileges (Được cache theo vòng đời Server Request)
  */
 export async function checkIsAdmin() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedAuthUser()
 
   if (!user) {
     return { isAdmin: false, user: null, profile: null }
   }
 
-  let profile: any = null
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, display_name, is_admin')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (!error && data) {
-      profile = data
-    } else {
-      // Fallback if is_admin column doesn't exist yet
-      const { data: fallbackData } = await supabase
-        .from('profiles')
-        .select('id, email, display_name')
-        .eq('id', user.id)
-        .maybeSingle()
-      profile = fallbackData
-    }
-  } catch {
-    profile = null
-  }
+  const profile = await getCachedUserProfile(user.id)
 
   const configuredAdmins = process.env.ADMIN_EMAIL
     ? process.env.ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase())

@@ -113,25 +113,32 @@ export default function TypingAudioControls({
 
         {/* Bộ điều chỉnh Tốc độ & Giọng đọc */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Chọn tốc độ đọc (0.75x, 1x, 1.25x) */}
-          <div className="flex items-center bg-page border border-border rounded-xl p-0.5 text-xs font-serif">
+          {/* Chọn tốc độ đọc (0.5x, 0.75x, 1.0x, 1.25x, 1.5x, 2.0x) */}
+          <div className="flex items-center bg-page border border-border rounded-xl p-0.5 text-xs font-serif flex-wrap">
             <span className="px-2 py-1 text-[11px] text-muted flex items-center gap-1">
               <Gauge className="w-3 h-3 text-muted" />
               <span className="hidden xs:inline">Tốc độ:</span>
             </span>
-            {[0.75, 1, 1.25].map((rate) => (
+            {[
+              { rate: 0.5, label: '0.5x', desc: 'Rất chậm' },
+              { rate: 0.75, label: '0.75x', desc: 'Chậm' },
+              { rate: 1.0, label: '1.0x', desc: 'Bình thường' },
+              { rate: 1.25, label: '1.25x', desc: 'Nhanh' },
+              { rate: 1.5, label: '1.5x', desc: 'Rất nhanh' },
+              { rate: 2.0, label: '2.0x', desc: 'Tốc độ cao' },
+            ].map(({ rate, label, desc }) => (
               <button
                 key={rate}
                 type="button"
                 onClick={() => onRateChange(rate)}
-                className={`px-2 py-0.5 rounded-lg text-xs font-sans transition-all ${
+                className={`px-1.5 sm:px-2 py-0.5 rounded-lg text-xs font-sans transition-all ${
                   speechRate === rate
                     ? 'bg-title text-white font-bold shadow-2xs'
                     : 'text-muted hover:text-title hover:bg-card'
                 }`}
-                title={`Đặt tốc độ đọc ${rate}x`}
+                title={`Tốc độ ${label} — ${desc}`}
               >
-                {rate}x
+                {label}
               </button>
             ))}
           </div>

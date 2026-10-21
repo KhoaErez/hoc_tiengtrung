@@ -109,8 +109,8 @@ export default function RadicalGrid() {
       radicals: Radical[]
     }[] = []
 
-    // When showing all without search query, limit initial render to top 6 groups unless user requests all
-    const maxStrokes = strokeFilter === 'all' && !query && !showAllGroups ? 6 : 17
+    // When showing all without search query, limit initial render to top 3 groups (60 cards) to optimize initial DOM
+    const maxStrokes = strokeFilter === 'all' && !query && !showAllGroups ? 3 : 17
 
     const targetStrokes =
       strokeFilter === 'all'
@@ -360,7 +360,7 @@ export default function RadicalGrid() {
 
           {query && (
             <span className="text-xs font-serif text-muted">
-              • Kết quả tìm kiếm cho <strong className="text-title">"{query}"</strong>
+              • Kết quả tìm kiếm cho <strong className="text-title">&quot;{query}&quot;</strong>
             </span>
           )}
         </div>
@@ -432,7 +432,7 @@ export default function RadicalGrid() {
                 onClick={() => setShowAllGroups(!showAllGroups)}
                 className="flex items-center gap-2 px-6 py-3 bg-card border border-border hover:border-app-accent text-body hover:text-title rounded-xl font-serif text-sm transition-all shadow-xs hover:shadow-sm"
               >
-                <span>{showAllGroups ? 'Thu gọn về 6 nhóm nét đầu' : 'Xem tiếp 11 nhóm nét còn lại (7 - 17 nét)'}</span>
+                <span>{showAllGroups ? 'Thu gọn về 3 nhóm nét đầu' : 'Xem tiếp các nhóm nét còn lại (4 - 17 nét)'}</span>
                 {showAllGroups ? <ChevronUp className="w-4 h-4 text-app-accent" /> : <ChevronDown className="w-4 h-4 text-app-accent" />}
               </button>
             </div>

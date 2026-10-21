@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { GlobalLoader } from '@/components/global-loader';
 import { AudioLifecycleManager } from '@/components/audio/audio-lifecycle-manager';
 import { FeedbackWidget } from '@/components/feedback/feedback-widget';
+import { PresenceProvider } from '@/components/presence/presence-context';
 import { Suspense } from 'react';
 
 const lora = Lora({
@@ -46,7 +47,9 @@ export default function RootLayout({
           <AudioLifecycleManager />
           <FeedbackWidget />
         </Suspense>
-        {children}
+        <PresenceProvider>
+          {children}
+        </PresenceProvider>
         <Toaster richColors position="top-center" />
       </body>
     </html>

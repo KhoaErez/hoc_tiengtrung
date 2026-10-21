@@ -20,7 +20,9 @@ export async function correctWritingAction(text: string, level: string = "Chưa 
   const OpenAI = (await import('openai')).default
   const ai = new OpenAI({ 
     apiKey: process.env.KIE_API_KEY || process.env.GEMINI_API_KEY,
-    baseURL: process.env.KIE_BASE_URL || "https://api.kie.ai/v1" 
+    baseURL: process.env.KIE_BASE_URL || "https://api.kie.ai/v1",
+    timeout: 30000, // Tối đa 30s để tránh treo kết nối người dùng
+    maxRetries: 1,
   })
 
   const prompt = `Bạn là một giáo viên dạy tiếng Trung.
@@ -40,7 +42,7 @@ QUY TẮC PHÂN TÍCH LỖI VÀ CHẤM ĐIỂM (BẮT BUỘC):
 TRẢ VỀ DUY NHẤT một JSON theo cấu trúc sau, tuyệt đối không dùng markdown, không giải thích gì thêm:
 {
   "score": 85,
-  "level": "HSK1 | HSK2 | HSK3 | HSK4 | HSK5 | HSK6 (Hãy đánh giá năng lực của bài viết và trả về 1 level phù hợp nhất)",
+  "level": "HSK 1 | HSK 2 | HSK 3 | HSK 4 | HSK 5 | HSK 6 | HSK 7-9 (Đánh giá năng lực theo chuẩn HSK 3.0 GF 0025-2021 và trả về 1 level phù hợp nhất)",
   "summary": "Nhận xét tổng quan bằng tiếng Việt...",
   "correctedText": "Bài viết hoàn chỉnh sau khi sửa. NHẮC LẠI: Phải giữ nguyên thông tin gốc!",
   "errors": [
@@ -91,7 +93,10 @@ ${text}
         throw new Error(String(resAny.msg));
     }
   } catch (error: unknown) {
-    const err = error as { status?: number, message?: string };
+    const err = error as { status?: number, message?: string, name?: string };
+    if (err.name === 'APITimeoutError' || (err.message && err.message.toLowerCase().includes('timeout'))) {
+      return { error: "Yêu cầu xử lý AI quá thời gian chờ (30 giây). Vui lòng thử lại với bài viết ngắn hơn." };
+    }
     const status = err.status || (err.message && err.message.match(/(\d{3})/)?.[1]);
     let errorMessage = "Lỗi hệ thống AI. Vui lòng thử lại sau.";
     
