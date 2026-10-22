@@ -85,6 +85,17 @@ export function AuthModal() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, closeModal])
 
+  // Khóa cuộn màn hình nền khi modal mở trên điện thoại & desktop
+  useEffect(() => {
+    if (isOpen) {
+      const prevOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = prevOverflow
+      }
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   // 1. Handle Google OAuth 1-Click

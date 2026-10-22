@@ -54,8 +54,10 @@ export async function checkIsAdmin() {
 export async function submitFeedbackAction(input: SubmitFeedbackInput) {
   try {
     const validated = submitFeedbackSchema.parse(input)
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const [supabase, user] = await Promise.all([
+      createClient(),
+      getCachedAuthUser(),
+    ])
 
     // Determine user_id
     const userId = validated.is_anonymous || !user ? null : user.id

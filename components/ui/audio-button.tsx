@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Volume2, VolumeX, Loader2, Square } from 'lucide-react'
-import { useChineseTTS } from '@/hooks/use-chinese-tts'
+import { Volume2, VolumeX } from 'lucide-react'
+import { useIsItemSpeaking } from '@/hooks/use-chinese-tts'
+import { ttsEngine } from '@/lib/tts/tts-engine'
 import { toast } from 'sonner'
 
 export interface AudioButtonProps {
@@ -30,7 +31,7 @@ export interface AudioButtonProps {
   onPlayEnd?: () => void
 }
 
-export function AudioButton({
+export const AudioButton = React.memo(function AudioButton({
   text,
   id,
   size = 'sm',
@@ -43,20 +44,18 @@ export function AudioButton({
   onPlayStart,
   onPlayEnd,
 }: AudioButtonProps) {
-  const { speak, stop, isSpeakingItem, hasChineseVoice, voices, rate: globalRate } = useChineseTTS()
+  const itemId = id || text
+  const isPlayingThis = useIsItemSpeaking(itemId)
   const [hasVoiceError, setHasVoiceError] = useState(false)
 
-  const itemId = id || text
-  const isPlayingThis = isSpeakingItem(itemId)
-
-  // Tự động dừng phát khi component unmount nếu đang phát chính nút này
+  // Tự động dừng phát khi component unmount nếu đang phát chính nút này (chỉ phụ thuộc itemId)
   useEffect(() => {
     return () => {
-      if (isSpeakingItem(itemId)) {
-        stop()
+      if (ttsEngine.isSpeaking(itemId)) {
+        ttsEngine.stop()
       }
     }
-  }, [itemId, isSpeakingItem, stop])
+  }, [itemId])
 
   // Kích thước nút & Icon
   const sizeClasses = {
@@ -95,7 +94,7 @@ export function AudioButton({
     e.stopPropagation()
 
     if (isPlayingThis) {
-      stop()
+      ttsEngine.stop()
       return
     }
 
@@ -104,11 +103,11 @@ export function AudioButton({
     }
 
     // Kiểm tra xem thiết bị có giọng đọc tiếng Trung hay không
-    if (!hasChineseVoice && voices.length > 0) {
+    if (!ttsEngine.hasChineseVoices() && ttsEngine.getVoices().length > 0) {
       toast.info('Trình duyệt chưa tải xong giọng tiếng Trung hoặc thiết bị chưa cài gói giọng zh-CN.')
     }
 
-    speak(text, {
+    ttsEngine.speak(text, {
       id: itemId,
       // CHỈ truyền rate nếu có prop chỉ định riêng; nếu không, để ttsEngine tự động dùng globalRate
       ...(rate !== undefined ? { rate } : {}),
@@ -126,7 +125,7 @@ export function AudioButton({
     })
   }
 
-  const activeRate = rate !== undefined ? rate : globalRate
+  const activeRate = rate !== undefined ? rate : ttsEngine.getRate()
   const rateSuffix = activeRate !== 1.0 ? ` (${activeRate}x)` : ''
   const baseTooltip = tooltip || 'Nghe phát âm tiếng Trung'
 
@@ -164,6 +163,6 @@ export function AudioButton({
       )}
     </button>
   )
-}
+})
 
 export default AudioButton

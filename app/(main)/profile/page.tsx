@@ -1,23 +1,25 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedAuthUser, getCachedUserProfile } from '@/lib/supabase/server'
 import ProfileClient from './profile-client'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedAuthUser()
 
   if (!user) {
     redirect('/login?next=/profile')
   }
 
-  // 1. Fetch user profile
-  const { data: profile } = await supabase
+  const supabase = await createClient()
+
+  // 1. Fetch user profile (0ms từ React Request Cache nếu layout đã tải)
+  const cachedProfile = await getCachedUserProfile(user.id)
+  const profile = cachedProfile || (await supabase
     .from('profiles')
     .select('id, display_name, avatar_url, created_at')
     .eq('id', user.id)
-    .maybeSingle()
+    .maybeSingle()).data
 
   // 2. Fetch user learning counts from Supabase
   const now = new Date().toISOString()

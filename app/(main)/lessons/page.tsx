@@ -1,9 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedAuthUser } from '@/lib/supabase/server'
 import LessonListClient from './lesson-list-client'
 
 export default async function LessonsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const [supabase, user] = await Promise.all([
+    createClient(),
+    getCachedAuthUser(),
+  ])
 
   const { data: lessons } = await supabase
     .from('lessons')

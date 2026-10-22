@@ -521,20 +521,13 @@ export default function CustomParagraphMode({
       // Lấy danh sách từ của câu này để ánh xạ charIndex
       const sentenceWords = tokenizedBlocks[index]?.words || segmentChineseText(item.text)
 
-      // Đồng bộ từ ngữ theo thời gian thực qua sự kiện onboundary
+      // Đồng bộ từ ngữ theo thời gian thực qua sự kiện onboundary (Zero scroll-fighting)
       utterance.onboundary = (event) => {
         if (currentUtteranceId !== utteranceIdRef.current) return
         const charIndex = event.charIndex
         const wordIdx = findWordIndexByCharIndex(sentenceWords, charIndex)
         if (wordIdx !== -1) {
-          setSpeakingWordIndex(wordIdx)
-
-          // Tự động cuộn văn bản nếu từ sắp ra ngoài khung nhìn
-          const wordKey = `word-${index}-${wordIdx}`
-          const el = wordElementsRef.current.get(wordKey)
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
-          }
+          setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
         }
       }
 

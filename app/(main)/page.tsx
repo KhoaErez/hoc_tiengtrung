@@ -50,7 +50,8 @@ export default async function HomePage() {
       supabase
         .from('user_vocabularies')
         .select('vocabularies!inner(hsk_level)')
-        .eq('user_id', user.id),
+        .eq('user_id', user.id)
+        .limit(5000),
       supabase
         .from('typing_progress')
         .select('exercise_id, mode, completed_sentences, total_sentences, updated_at')

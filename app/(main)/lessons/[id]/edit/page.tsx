@@ -5,16 +5,18 @@ import { SubmitButton } from '@/components/ui/submit-button'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateLesson } from '../../actions'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedAuthUser } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 
-export default async function EditLessonPage({ params }: { params: { id: string } }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export default async function EditLessonPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params
+  const user = await getCachedAuthUser()
 
   if (!user) {
     redirect('/login')
   }
+
+  const supabase = await createClient()
 
   const { data: lesson } = await supabase
     .from('lessons')

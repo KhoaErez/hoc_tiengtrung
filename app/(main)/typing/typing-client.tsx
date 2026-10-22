@@ -478,20 +478,15 @@ export default function TypingClient() {
         voices.find((v) => v.voiceURI === selectedVoiceURIRef.current) || voices[0]
       if (voice) utterance.voice = voice
 
-      // Lắng nghe sự kiện boundary để tô sáng từng từ theo thời gian thực
+      // Lắng nghe sự kiện boundary để tô sáng từng từ theo thời gian thực (Zero scroll-fighting)
       utterance.onboundary = (event) => {
         if (currentUtteranceId !== utteranceIdRef.current) return
         if (thisEpoch !== currentCardEpochRef.current) return
         const globalCharIndex = item.startIndex + event.charIndex
         const wordIdx = findWordIndexByCharIndex(tokens, globalCharIndex)
         if (wordIdx !== -1) {
-          setSpeakingWordIndex(wordIdx)
-
-          // Tự động cuộn mượt mà đến từ đang đọc nếu cần
-          const el = wordElementsRef.current.get(`word-${wordIdx}`)
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
-          }
+          // Chỉ cập nhật state nếu từ thực sự thay đổi (tránh re-render thừa cho các ký tự trong cùng một từ)
+          setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
         }
       }
 
@@ -1287,34 +1282,53 @@ export default function TypingClient() {
     navigateToExercise(currentIndex - 1)
   }, [currentIndex, exercises.length, navigateToExercise])
 
-  // Phím tắt bàn phím tiện lợi
+  // Phím tắt bàn phím tiện lợi (Sử dụng ref để listener chỉ gắn 1 lần duy nhất, loại bỏ hoàn toàn listener churn)
+  const keyActionsRef = useRef({
+    showHistoryModal,
+    isCompleted,
+    isComposing,
+    handleNext,
+    resetExercise,
+    handlePlayCurrentSentence,
+  })
+  useEffect(() => {
+    keyActionsRef.current = {
+      showHistoryModal,
+      isCompleted,
+      isComposing,
+      handleNext,
+      resetExercise,
+      handlePlayCurrentSentence,
+    }
+  })
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Khi modal đang mở thì không bắt phím tắt bài tập
-      if (showHistoryModal) return
+      const actions = keyActionsRef.current
+      if (actions.showHistoryModal) return
 
       // Enter khi đã hoàn thành -> sang câu kế tiếp
-      if (e.key === 'Enter' && isCompleted && !isComposing) {
+      if (e.key === 'Enter' && actions.isCompleted && !actions.isComposing) {
         e.preventDefault()
-        handleNext()
+        actions.handleNext()
       }
       // Alt + R -> Làm lại bài
       if (e.altKey && (e.key === 'r' || e.key === 'R')) {
         e.preventDefault()
         lastAutoSpokenExerciseIdRef.current = null
         setExerciseEpoch((prev) => prev + 1)
-        resetExercise()
+        actions.resetExercise()
       }
       // Ctrl + Space hoặc Alt + S -> Phát lại âm thanh câu hiện tại (đặc biệt hữu ích khi ẩn chữ Hán)
       if ((e.ctrlKey && e.code === 'Space') || (e.altKey && (e.key === 's' || e.key === 'S'))) {
         e.preventDefault()
-        handlePlayCurrentSentence()
+        actions.handlePlayCurrentSentence()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isCompleted, isComposing, showHistoryModal, handleNext, resetExercise, handlePlayCurrentSentence])
+  }, [])
 
   // Cập nhật cài đặt
   const updatePref = (key: keyof TypingPreferences, val: boolean) => {

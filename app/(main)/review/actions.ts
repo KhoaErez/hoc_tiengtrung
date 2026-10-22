@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedAuthUser } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 /**
@@ -15,9 +15,10 @@ export async function updateReviewStatusAction(
   currentInterval?: number,
   currentEase?: number
 ) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
+  const [supabase, user] = await Promise.all([
+    createClient(),
+    getCachedAuthUser(),
+  ])
   if (!user) throw new Error('Unauthorized')
   
   let baseInterval: number
@@ -80,9 +81,10 @@ export async function updateReviewStatusAction(
  * - Không gọi revalidatePath trên từng thẻ đơn lẻ để phản hồi siêu tốc (< 200ms)
  */
 export async function markVocabLearnedAction(vocabularyId: string, isRemembered: boolean) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
+  const [supabase, user] = await Promise.all([
+    createClient(),
+    getCachedAuthUser(),
+  ])
   if (!user) throw new Error('Unauthorized')
   
   // Kiểm tra xem người dùng đã có từ vựng này trong kho chưa

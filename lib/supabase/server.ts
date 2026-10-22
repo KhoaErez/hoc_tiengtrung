@@ -44,6 +44,7 @@ export interface UserProfileCache {
   display_name?: string | null
   is_admin?: boolean | null
   avatar_url?: string | null
+  created_at?: string | null
 }
 
 /**
@@ -54,7 +55,7 @@ export const getCachedUserProfile = cache(async (userId: string): Promise<UserPr
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, email, display_name, is_admin, avatar_url')
+      .select('id, email, display_name, is_admin, avatar_url, created_at')
       .eq('id', userId)
       .maybeSingle()
     if (!error && data) return data

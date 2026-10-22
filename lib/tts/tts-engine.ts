@@ -225,6 +225,19 @@ class ChineseTTSEngine {
     return this.rate
   }
 
+  public isSpeaking(idOrText: string): boolean {
+    if (this.status !== 'playing' && this.status !== 'paused') return false
+    return this.currentId === idOrText || this.currentText === idOrText
+  }
+
+  public hasChineseVoices(): boolean {
+    return this.voices.length > 0
+  }
+
+  public getVoices(): SpeechSynthesisVoice[] {
+    return this.voices
+  }
+
   private updateSnapshot(): void {
     this.snapshot = {
       status: this.status,

@@ -47,13 +47,18 @@ export default function RadicalGrid() {
     }
   }, [])
 
-  // Tự động cuộn nút nét đang chọn vào tầm nhìn (trên thiết bị di động cuộn ngang)
+  // Tự động cuộn nút nét đang chọn vào tâm thanh ngang (chỉ cuộn container ngang, không giật trang dọc)
   useEffect(() => {
     if (activeChipRef.current && scrollContainerRef.current && !isMobileGridExpanded) {
-      activeChipRef.current.scrollIntoView({
+      const container = scrollContainerRef.current
+      const chip = activeChipRef.current
+      const chipLeft = chip.offsetLeft
+      const chipWidth = chip.offsetWidth
+      const containerWidth = container.clientWidth
+      const targetScrollLeft = chipLeft - (containerWidth / 2) + (chipWidth / 2)
+      container.scrollTo({
+        left: Math.max(0, targetScrollLeft),
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
       })
     }
   }, [strokeFilter, isMobileGridExpanded])

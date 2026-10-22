@@ -89,3 +89,41 @@ export function useChineseTTS() {
     isSpeakingItem,
   }
 }
+
+/**
+ * Hook nguyên tử: Chỉ kiểm tra và re-render khi trạng thái phát của một itemId cụ thể thay đổi.
+ * So sánh boolean nguyên thủy (Object.is) giúp loại bỏ 100% cascade re-render cho các nút lân cận.
+ */
+export function useIsItemSpeaking(idOrText: string): boolean {
+  return useSyncExternalStore(
+    (callback) => ttsEngine.subscribe(callback),
+    () => ttsEngine.isSpeaking(idOrText),
+    () => false
+  )
+}
+
+/**
+ * Hook nguyên tử: Chỉ subscribe tốc độ đọc (rate), không re-render khi âm thanh bắt đầu hoặc kết thúc.
+ */
+export function useTTSRate(): {
+  rate: number
+  setRate: (newRate: number, restartIfPlaying?: boolean) => void
+  cycleNextRate: () => number
+} {
+  const rate = useSyncExternalStore(
+    (callback) => ttsEngine.subscribe(callback),
+    () => ttsEngine.getRate(),
+    () => 1.0
+  )
+
+  const setRate = useCallback((newRate: number, restartIfPlaying = true) => {
+    ttsEngine.setRate(newRate, restartIfPlaying)
+  }, [])
+
+  const cycleNextRate = useCallback(() => {
+    return ttsEngine.cycleNextRate()
+  }, [])
+
+  return { rate, setRate, cycleNextRate }
+}
+

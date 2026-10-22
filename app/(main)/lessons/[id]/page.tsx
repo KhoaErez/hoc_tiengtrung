@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedAuthUser } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { analyzeLessonAction } from '../actions'
 import dynamic from 'next/dynamic'
@@ -35,9 +35,9 @@ export default async function LessonDetailPage(props: { params: Promise<{ id: st
 
   const supabase = await createClient()
 
-  // 1. Parallel initial fetch: User session + Lesson details
-  const [userResult, lessonResult] = await Promise.all([
-    supabase.auth.getUser(),
+  // 1. Parallel initial fetch: Cached User session (React cache) + Lesson details
+  const [user, lessonResult] = await Promise.all([
+    getCachedAuthUser(),
     supabase
       .from('lessons')
       .select('id, title, subtitle, hsk_level, lesson_number, is_system, original_text, pinyin')
@@ -45,7 +45,6 @@ export default async function LessonDetailPage(props: { params: Promise<{ id: st
       .maybeSingle(),
   ])
 
-  const user = userResult.data.user
   const lesson = lessonResult.data
 
   if (!lesson) {

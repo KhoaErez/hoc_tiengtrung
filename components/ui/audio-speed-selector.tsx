@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { Gauge, Check, ChevronDown } from 'lucide-react'
-import { useChineseTTS, TTS_SPEED_RATES, type TTSSpeedRate } from '@/hooks/use-chinese-tts'
+import { useTTSRate, TTS_SPEED_RATES, type TTSSpeedRate } from '@/hooks/use-chinese-tts'
 
 export interface AudioSpeedSelectorProps {
   /** Kiểu hiển thị:
@@ -37,7 +37,7 @@ export function AudioSpeedSelector({
   className = '',
   onRateChange,
 }: AudioSpeedSelectorProps) {
-  const { rate, setRate, cycleNextRate } = useChineseTTS()
+  const { rate, setRate, cycleNextRate } = useTTSRate()
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 

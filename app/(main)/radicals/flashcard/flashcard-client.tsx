@@ -169,7 +169,7 @@ export default function FlashcardClient() {
           aria-label={isFlipped ? 'Lật về mặt trước' : 'Lật xem đáp án'}
         >
           <div
-            className={`relative w-full transition-transform duration-500 preserve-3d ${
+            className={`relative w-full transition-transform duration-500 preserve-3d grid grid-cols-1 grid-rows-1 ${
               isFlipped ? 'rotate-y-180' : ''
             }`}
             style={{
@@ -179,8 +179,9 @@ export default function FlashcardClient() {
           >
             {/* Front */}
             <div
-              className="w-full bg-card border border-border rounded-xl p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px] md:min-h-[380px] shadow-sm"
-              style={{ backfaceVisibility: 'hidden' }}
+              className={`col-start-1 row-start-1 w-full bg-card border border-border rounded-2xl p-6 sm:p-8 md:p-12 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-sm [backface-visibility:hidden] ${
+                isFlipped ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
+              }`}
             >
               <span className="text-xs text-muted font-sans mb-4 uppercase tracking-wider">
                 Nhấn để lật thẻ
@@ -212,8 +213,9 @@ export default function FlashcardClient() {
 
             {/* Back */}
             <div
-              className="w-full absolute inset-0 bg-card border border-border rounded-xl p-6 md:p-10 flex flex-col items-center justify-center min-h-[300px] md:min-h-[380px] shadow-sm"
-              style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+              className={`col-start-1 row-start-1 w-full bg-card border border-border rounded-2xl p-6 sm:p-8 md:p-10 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-sm [backface-visibility:hidden] [transform:rotateY(180deg)] ${
+                !isFlipped ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
+              }`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <span

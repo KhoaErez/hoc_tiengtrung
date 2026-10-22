@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import {
   Volume2,
   VolumeX,
@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Gauge,
   Check,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ChineseSentenceItem } from '@/lib/typing-sound'
@@ -40,6 +41,22 @@ export interface TypingAudioControlsProps {
   onToggleAutoSpeakNext: () => void;
 }
 
+// Hàm chuẩn hóa tên và thông tin giọng đọc tiếng Trung
+function formatVoiceInfo(voice: SpeechSynthesisVoice) {
+  const cleanName =
+    voice.name
+      .replace(/Microsoft |Google |Apple |Chinese |\(China\)|\(PRC\)|\(Taiwan\)|\(Hong Kong\)/gi, '')
+      .trim() || voice.name
+  const isNatural =
+    voice.name.toLowerCase().includes('natural') || voice.name.toLowerCase().includes('online')
+  const region = voice.lang.includes('TW')
+    ? 'Đài Loan'
+    : voice.lang.includes('HK')
+    ? 'Hồng Kông'
+    : 'Phổ thông'
+  return { cleanName, isNatural, region }
+}
+
 export default function TypingAudioControls({
   sentences,
   currentSentenceIndex,
@@ -64,6 +81,7 @@ export default function TypingAudioControls({
 }: TypingAudioControlsProps) {
   const [showVoiceDropdown, setShowVoiceDropdown] = useState(false)
   const [showHelpGuide, setShowHelpGuide] = useState(false)
+  const voiceDropdownRef = useRef<HTMLDivElement>(null)
 
   const isPlayingAll = speechStatus === 'playing' && readingMode === 'all'
   const isPausedAll = speechStatus === 'paused' && readingMode === 'all'
@@ -75,9 +93,39 @@ export default function TypingAudioControls({
     availableVoices[0]
 
   const displayVoiceName = activeVoice
-    ? activeVoice.name.replace(/Microsoft |Google |Chinese |\(China\)|\(PRC\)/gi, '').trim() ||
+    ? activeVoice.name.replace(/Microsoft |Google |Apple |Chinese |\(China\)|\(PRC\)|\(Taiwan\)|\(Hong Kong\)/gi, '').trim() ||
       activeVoice.name
     : 'Mặc định (zh-CN)'
+
+  // Khóa cuộn màn hình khi mở Bottom Sheet chọn giọng trên Mobile
+  useEffect(() => {
+    if (showVoiceDropdown && typeof window !== 'undefined' && window.innerWidth < 768) {
+      const prevOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = prevOverflow
+      }
+    }
+  }, [showVoiceDropdown])
+
+  // Lắng nghe click bên ngoài và phím Escape để đóng dropdown trên Desktop
+  useEffect(() => {
+    if (!showVoiceDropdown) return
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (voiceDropdownRef.current && !voiceDropdownRef.current.contains(e.target as Node)) {
+        setShowVoiceDropdown(false)
+      }
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowVoiceDropdown(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [showVoiceDropdown])
 
   return (
     <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3.5 md:p-4 shadow-2xs space-y-3 transition-all">
@@ -145,25 +193,38 @@ export default function TypingAudioControls({
 
           {/* Chọn giọng đọc nếu thiết bị có nhiều giọng Trung */}
           {availableVoices.length > 1 && (
-            <div className="relative">
+            <div ref={voiceDropdownRef} className="relative">
               <button
                 type="button"
                 onClick={() => setShowVoiceDropdown(!showVoiceDropdown)}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-border bg-page text-xs font-serif text-title hover:border-app-accent/40 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-page text-xs font-serif text-title hover:border-app-accent/40 active:scale-[0.98] transition-all cursor-pointer min-h-[36px]"
                 title="Chọn giọng đọc tiếng Trung"
+                aria-expanded={showVoiceDropdown}
+                aria-haspopup="dialog"
               >
-                <span className="truncate max-w-[110px]">{displayVoiceName}</span>
-                <ChevronDown className="w-3 h-3 text-muted" />
+                <span className="truncate max-w-[120px] font-medium">{displayVoiceName}</span>
+                <ChevronDown className={`w-3.5 h-3.5 text-muted shrink-0 transition-transform duration-200 ${showVoiceDropdown ? 'rotate-180 text-app-accent' : ''}`} />
               </button>
 
+              {/* A. DESKTOP DROPDOWN (Chỉ hiện từ md: trở lên, không tràn lề) */}
               {showVoiceDropdown && (
-                <div className="absolute right-0 mt-1 w-52 bg-card border border-border rounded-xl shadow-lg z-50 p-1.5 space-y-1">
-                  <p className="text-[10px] font-serif text-muted px-2 py-1 border-b border-border">
-                    Chọn giọng đọc tiếng Trung ({availableVoices.length}):
-                  </p>
-                  <div className="max-h-48 overflow-y-auto no-scrollbar space-y-0.5">
+                <div className="hidden md:block absolute right-0 mt-1.5 w-80 bg-card border border-border/80 rounded-2xl shadow-xl z-50 p-2 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="flex items-center justify-between px-2.5 py-1.5 border-b border-border/70">
+                    <div className="flex items-center gap-1.5">
+                      <Volume2 className="w-3.5 h-3.5 text-app-accent" />
+                      <span className="text-xs font-serif font-bold text-title">
+                        Chọn giọng đọc tiếng Trung
+                      </span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-medium bg-app-accent-soft text-app-accent">
+                      {availableVoices.length} giọng
+                    </span>
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto no-scrollbar space-y-1 p-0.5">
                     {availableVoices.map((v) => {
                       const isSelected = v.voiceURI === activeVoice?.voiceURI
+                      const { cleanName, isNatural, region } = formatVoiceInfo(v)
                       return (
                         <button
                           key={v.voiceURI}
@@ -172,17 +233,118 @@ export default function TypingAudioControls({
                             onVoiceChange(v.voiceURI)
                             setShowVoiceDropdown(false)
                           }}
-                          className={`w-full flex items-center justify-between text-left px-2 py-1.5 rounded-lg text-xs font-serif transition-colors ${
+                          className={`w-full flex items-center justify-between text-left px-3 py-2 rounded-xl text-xs font-serif transition-colors cursor-pointer ${
                             isSelected
-                              ? 'bg-app-accent-soft/40 text-app-accent font-bold'
-                              : 'text-title hover:bg-page'
+                              ? 'bg-app-accent-soft/50 text-app-accent font-bold border border-app-accent/30'
+                              : 'text-title hover:bg-page border border-transparent'
                           }`}
                         >
-                          <span className="truncate">{v.name}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-app-accent ml-1 flex-shrink-0" />}
+                          <div className="flex flex-col min-w-0 pr-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate text-title font-medium">{cleanName}</span>
+                              {isNatural && (
+                                <span className="px-1.5 py-0.2 rounded text-[8px] font-sans bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold shrink-0">
+                                  Tự nhiên
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-muted/70 truncate">{region} • {v.lang}</span>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-app-accent shrink-0 ml-1" />}
                         </button>
                       )
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* B. MOBILE BOTTOM SHEET (Chỉ mở trên màn hình < md, chạm vuốt mượt mà, không cắt chữ) */}
+              {showVoiceDropdown && (
+                <div className="md:hidden">
+                  {/* Backdrop làm mờ */}
+                  <div 
+                    className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 animate-in fade-in duration-200"
+                    onClick={() => setShowVoiceDropdown(false)}
+                    aria-hidden="true"
+                  />
+
+                  {/* Bottom Sheet Modal */}
+                  <div 
+                    className="fixed bottom-0 left-0 right-0 max-h-[82vh] bg-card border-t border-border rounded-t-3xl shadow-2xl z-50 flex flex-col animate-in slide-in-from-bottom duration-200"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="mobile-voice-sheet-title"
+                  >
+                    {/* Drag handle */}
+                    <div className="w-10 h-1 bg-muted/40 rounded-full mx-auto my-2.5 shrink-0" />
+
+                    {/* Sheet Header */}
+                    <div className="flex items-center justify-between px-5 pb-3 border-b border-border/80 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Volume2 className="w-4 h-4 text-app-accent" />
+                        <h3 id="mobile-voice-sheet-title" className="text-sm font-serif font-bold text-title">
+                          Chọn giọng đọc tiếng Trung
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-app-accent-soft text-app-accent">
+                          {availableVoices.length} giọng
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowVoiceDropdown(false)}
+                        className="p-1.5 rounded-xl text-muted hover:text-title hover:bg-black/5 cursor-pointer touch-manipulation"
+                        aria-label="Đóng bảng chọn giọng"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Sheet Content List cuộn độc lập */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2.5 overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))] font-serif">
+                      {availableVoices.map((v) => {
+                        const isSelected = v.voiceURI === activeVoice?.voiceURI
+                        const { cleanName, isNatural, region } = formatVoiceInfo(v)
+                        return (
+                          <button
+                            key={v.voiceURI}
+                            type="button"
+                            onClick={() => {
+                              onVoiceChange(v.voiceURI)
+                              setShowVoiceDropdown(false)
+                            }}
+                            className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-all active:scale-[0.98] cursor-pointer touch-manipulation min-h-[52px] ${
+                              isSelected
+                                ? 'bg-app-accent-soft/40 border-app-accent text-title shadow-2xs font-semibold'
+                                : 'bg-page border-border/70 text-title hover:border-app-accent/40'
+                            }`}
+                          >
+                            <div className="flex flex-col min-w-0 pr-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-xs font-serif font-bold text-title">
+                                  {cleanName}
+                                </span>
+                                {isNatural && (
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-sans bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-medium">
+                                    Tự nhiên
+                                  </span>
+                                )}
+                                <span className="px-1.5 py-0.2 rounded text-[9px] font-sans bg-card border border-border/60 text-muted">
+                                  {region}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono text-muted/70 truncate mt-0.5">
+                                {v.name}
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <div className="w-6 h-6 rounded-full bg-app-accent text-white flex items-center justify-center shrink-0 shadow-2xs">
+                                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                              </div>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 </div>
               )}

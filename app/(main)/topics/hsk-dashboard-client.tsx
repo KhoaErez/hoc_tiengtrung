@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { 
   BookOpen, 
@@ -84,6 +84,7 @@ export default function HskDashboardClient({
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
   const [vocabSearchQuery, setVocabSearchQuery] = useState('')
   const [visibleLessonsCount, setVisibleLessonsCount] = useState(24)
+  const vocabTopRef = useRef<HTMLDivElement>(null)
 
   // Level info from curriculum (HSK 3.0: HSK 1 - 6, HSK 7-9)
   const levelNum = currentHsk === 'HSK 7-9' || currentHsk === 'HSK 7'
@@ -738,7 +739,7 @@ export default function HskDashboardClient({
           {activeTab === 'vocab' && (
             <div className="space-y-4">
               {/* Vocab Search Toolbar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div ref={vocabTopRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 scroll-mt-20">
                 <div className="relative max-w-md w-full">
                   <Search className="w-4 h-4 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
@@ -937,7 +938,7 @@ export default function HskDashboardClient({
                           disabled={vocabPage <= 1 || isLoadingVocabs}
                           onClick={() => {
                             setVocabPage((p) => Math.max(1, p - 1))
-                            window.scrollTo({ top: 350, behavior: 'smooth' })
+                            vocabTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                           }}
                           className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center justify-center gap-1 flex-1 sm:flex-initial min-h-[38px] px-3 active:scale-[0.98] touch-manipulation cursor-pointer"
                         >
@@ -951,7 +952,7 @@ export default function HskDashboardClient({
                           disabled={!hasMoreVocabs || vocabPage >= Math.ceil(vocabTotalCount / 30) || isLoadingVocabs}
                           onClick={() => {
                             setVocabPage((p) => p + 1)
-                            window.scrollTo({ top: 350, behavior: 'smooth' })
+                            vocabTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                           }}
                           className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center justify-center gap-1 flex-1 sm:flex-initial min-h-[38px] px-3 active:scale-[0.98] touch-manipulation cursor-pointer"
                         >
