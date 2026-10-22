@@ -37,15 +37,12 @@ export async function checkIsAdmin() {
   const profile = await getCachedUserProfile(user.id)
 
   const configuredAdmins = process.env.ADMIN_EMAIL
-    ? process.env.ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase())
+    ? process.env.ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
     : []
-
-  // Ensure khoadev27@gmail.com is always authorized even if env hasn't refreshed
-  const adminEmails = Array.from(new Set(['khoadev27@gmail.com', ...configuredAdmins]))
 
   const userEmail = (user.email || profile?.email || '').toLowerCase()
   const isAdmin = Boolean(
-    profile?.is_admin === true || (userEmail && adminEmails.includes(userEmail))
+    profile?.is_admin === true || (userEmail && configuredAdmins.includes(userEmail))
   )
 
   return { isAdmin, user, profile }

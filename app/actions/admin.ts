@@ -130,10 +130,9 @@ export async function getAdminUsersAction(
 
   const supabase = await createClient()
 
-  const adminEmails = [
-    ...(process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase()) : []),
-    'khoadev27@gmail.com',
-  ]
+  const adminEmails = process.env.ADMIN_EMAIL
+    ? process.env.ADMIN_EMAIL.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+    : []
 
   let hasIsAdminColumn = true
   let hasLastSeenAtColumn = true

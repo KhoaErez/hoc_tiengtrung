@@ -98,9 +98,14 @@ export async function analyzeLessonAction(lessonId: string) {
     throw new Error('Lesson not found')
   }
 
+  const apiKey = process.env.KIE_API_KEY || process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    throw new Error('Tính năng phân tích bài học AI tạm thời chưa khả dụng do hệ thống chưa cấu hình API Key.')
+  }
+
   const OpenAI = (await import('openai')).default
   const ai = new OpenAI({ 
-    apiKey: process.env.KIE_API_KEY || process.env.GEMINI_API_KEY,
+    apiKey,
     baseURL: process.env.KIE_BASE_URL || "https://api.kie.ai/v1" 
   })
 
