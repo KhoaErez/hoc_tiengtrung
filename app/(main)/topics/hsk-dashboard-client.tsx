@@ -237,24 +237,24 @@ export default function HskDashboardClient({
     <div className="min-h-full font-serif space-y-8 pb-12">
       
       {/* 1. LEVEL SELECTOR TAB BAR (Sticky, Glassmorphic on scroll below 56px fixed header) */}
-      <div className="bg-page/90 backdrop-blur-md sticky top-14 z-10 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 py-3 border-b border-border transition-all">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 scroll-smooth">
+      <div className="bg-page/90 backdrop-blur-md sticky top-14 z-10 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 py-2.5 sm:py-3 border-b border-border transition-all">
+        <div className="max-w-5xl mx-auto relative">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 scroll-smooth touch-pan-x">
             {levelTabs.map((level) => {
               const isActive = currentHsk === level
               return (
                 <Link 
                   key={level} 
                   href={`/topics?q=${encodeURIComponent(level)}`}
-                  className={`px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-serif rounded-xl border whitespace-nowrap transition-all duration-150 flex items-center shrink-0 select-none ${
+                  className={`px-3.5 sm:px-4 py-2 sm:py-2 text-xs sm:text-sm font-serif rounded-xl border whitespace-nowrap transition-all duration-150 flex items-center shrink-0 select-none active:scale-[0.98] touch-manipulation ${
                     isActive 
-                      ? 'border-app-accent bg-app-accent-soft text-app-accent font-bold shadow-2xs' 
-                      : 'border-border bg-card text-muted hover:text-title hover:bg-black/5 hover:border-title/30'
+                      ? 'border-[#B8322D] bg-[#B8322D] text-white font-bold shadow-2xs' 
+                      : 'border-[#E9DDD1] bg-card text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3] hover:border-[#D8C7B8]'
                   }`}
                 >
                   <span 
                     className={`w-1.5 h-1.5 rounded-full mr-1.5 transition-colors ${
-                      isActive ? 'bg-app-accent' : 'bg-border-strong'
+                      isActive ? 'bg-white' : 'bg-[#E9DDD1]'
                     }`} 
                   />
                   <span>{level}</span>
@@ -262,6 +262,8 @@ export default function HskDashboardClient({
               )
             })}
           </div>
+          {/* Subtle horizontal scroll fade cue for mobile */}
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-page/90 to-transparent sm:hidden" />
         </div>
       </div>
 
@@ -314,14 +316,14 @@ export default function HskDashboardClient({
           </section>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
         
         {/* 2. HERO OVERVIEW & ACTION CARD */}
-        <section className="bg-card border border-border p-6 sm:p-8 rounded-2xl shadow-2xs relative overflow-hidden transition-all">
+        <section className="bg-card border border-border p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xs relative overflow-hidden transition-all">
           {/* Top accent bar */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
 
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 sm:gap-6">
             <div className="space-y-3 max-w-2xl">
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
@@ -338,9 +340,13 @@ export default function HskDashboardClient({
                 )}
                 <span className="text-xs text-muted font-serif flex items-center gap-1.5 flex-wrap">
                   <span>•</span>
-                  <span>Từ hệ thống: <strong suppressHydrationWarning>{formatNumber(actualVocabCount)}</strong> từ</span>
-                  <span>•</span>
-                  <span>Mục tiêu HSK 3.0: <strong suppressHydrationWarning>{formatNumber(standardVocabTarget)}</strong> từ</span>
+                  <span>Từ mới riêng cấp: <strong suppressHydrationWarning>{formatNumber(actualVocabCount)}</strong>{levelInfo?.newVocab ? ` / ${formatNumber(levelInfo.newVocab)}` : ''} từ</span>
+                  {levelInfo?.vocabTarget && (
+                    <>
+                      <span>•</span>
+                      <span>Tích lũy chuẩn HSK 3.0: <strong suppressHydrationWarning>{formatNumber(levelInfo.vocabTarget)}</strong> từ</span>
+                    </>
+                  )}
                   {levelInfo?.charTarget && (
                     <>
                       <span>•</span>
@@ -359,7 +365,7 @@ export default function HskDashboardClient({
               </div>
 
               {/* Title & Description */}
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-title tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-title tracking-tight">
                 Lộ trình {currentHsk}
               </h1>
               <p className="text-xs sm:text-sm text-body font-serif leading-relaxed">
@@ -367,18 +373,18 @@ export default function HskDashboardClient({
               </p>
 
               {/* Thông báo phân loại trạng thái cấp độ HSK */}
-              {actualVocabCount >= standardVocabTarget && standardVocabTarget > 0 ? (
+              {(actualVocabCount >= (levelInfo?.newVocab || standardVocabTarget)) && (levelInfo?.newVocab || standardVocabTarget) > 0 ? (
                 <div className="flex items-center gap-2 text-xs font-serif text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
                   <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                   <span>
-                    Kho từ vựng <strong>{currentHsk}</strong> đã đạt chuẩn hoàn chỉnh <strong>{formatNumber(actualVocabCount)}/{formatNumber(standardVocabTarget)} mục từ</strong> theo Đề cương thi HSK 3.0 chính thức với đầy đủ phát âm, phân loại từ và câu ví dụ.
+                    Kho từ vựng <strong>{currentHsk}</strong> trong hệ thống đã đạt chuẩn hoàn chỉnh <strong>{formatNumber(actualVocabCount)}/{formatNumber(levelInfo?.newVocab || standardVocabTarget)} mục từ mới</strong> (mục tiêu tích lũy chuẩn HSK 1–{levelNum}: {formatNumber(standardVocabTarget)} từ) theo Đề cương thi HSK 3.0 chính thức với đầy đủ phát âm, phân loại từ và câu ví dụ.
                   </span>
                 </div>
               ) : auditData?.status === 'partial' ? (
                 <div className="flex items-center gap-2 text-xs font-serif text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
                   <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span>
-                    Hệ thống hiện có <strong>{formatNumber(actualVocabCount)}</strong> từ vựng và <strong>{lessons.length}</strong> bài học thực tế. Nội dung đang tiếp tục được bổ sung theo khung chuẩn HSK 3.0 (mục tiêu {formatNumber(standardVocabTarget)} từ).
+                    Hệ thống hiện có <strong>{formatNumber(actualVocabCount)}</strong> từ vựng mới và <strong>{lessons.length}</strong> bài học thực tế. Nội dung đang tiếp tục được bổ sung theo khung chuẩn HSK 3.0 (mục tiêu {formatNumber(levelInfo?.newVocab || standardVocabTarget)} từ mới, tích lũy {formatNumber(standardVocabTarget)} từ).
                   </span>
                 </div>
               ) : null}
@@ -389,7 +395,7 @@ export default function HskDashboardClient({
               {isLoggedIn ? (
                 reviewVocabCount > 0 ? (
                   <Link href="/review" className="block">
-                    <Button className="w-full sm:w-auto font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl py-5 px-6 shadow-xs text-sm group flex items-center justify-center gap-2">
+                    <Button variant="primary" className="w-full sm:w-auto font-serif min-h-[46px] py-3 sm:py-3.5 px-5 sm:px-6 shadow-2xs text-sm group flex items-center justify-center gap-2 cursor-pointer">
                       <Flame className="w-4 h-4 text-white animate-pulse" />
                       <span>Ôn tập {reviewVocabCount} từ vựng</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -397,7 +403,7 @@ export default function HskDashboardClient({
                   </Link>
                 ) : nextLesson ? (
                   <Link href={`/lessons/${nextLesson.id}`} className="block">
-                    <Button className="w-full sm:w-auto font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl py-5 px-6 shadow-xs text-sm group flex items-center justify-center gap-2">
+                    <Button variant="tertiary" className="w-full sm:w-auto font-serif min-h-[46px] py-3 sm:py-3.5 px-5 sm:px-6 shadow-2xs text-sm group flex items-center justify-center gap-2 cursor-pointer">
                       <PlayCircle className="w-4 h-4 text-white" />
                       <span>
                         {(nextLesson.learned_vocab_count || 0) > 0 ? 'Tiếp tục học:' : 'Bắt đầu:'} Bài {nextLesson.lesson_number || (nextLessonIndex + 1)}
@@ -406,7 +412,7 @@ export default function HskDashboardClient({
                     </Button>
                   </Link>
                 ) : (
-                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-jade-soft text-jade border border-jade/30 text-xs font-serif font-bold">
+                  <div className="inline-flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2.5 rounded-xl bg-jade-soft text-jade border border-jade/30 text-xs font-serif font-bold">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Đã hoàn thành toàn bộ bài học!</span>
                   </div>
@@ -414,8 +420,9 @@ export default function HskDashboardClient({
               ) : (
                 <Button 
                   type="button"
+                  variant="tertiary"
                   onClick={() => openLoginForm()}
-                  className="w-full sm:w-auto font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl py-5 px-6 shadow-xs text-sm flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto font-serif min-h-[46px] py-3 sm:py-3.5 px-5 sm:px-6 shadow-2xs text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Đăng nhập để theo dõi</span>
@@ -476,32 +483,32 @@ export default function HskDashboardClient({
         {/* 3. CONTENT TABS: LESSONS & VOCABULARY */}
         <section className="space-y-5">
           {/* Tab Selector Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-3">
-            <div className="inline-flex p-1 rounded-xl bg-card border border-border gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 border-b border-border pb-3">
+            <div className="grid grid-cols-2 sm:inline-flex w-full sm:w-auto p-1 rounded-2xl bg-card border border-[#E9DDD1] gap-1 shadow-2xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('lessons')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-serif font-medium transition-all ${
+                className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs sm:text-sm font-serif font-medium transition-all active:scale-[0.98] touch-manipulation cursor-pointer ${
                   activeTab === 'lessons'
-                    ? 'bg-title text-white shadow-2xs font-bold'
-                    : 'text-muted hover:text-title hover:bg-black/5'
+                    ? 'bg-[#B8322D] text-white shadow-2xs font-bold'
+                    : 'text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
                 }`}
               >
-                <Layers className="w-4 h-4" />
-                <span>Lộ trình bài học ({lessons.length})</span>
+                <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span className="truncate">Bài học ({lessons.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('vocab')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-serif font-medium transition-all ${
+                className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs sm:text-sm font-serif font-medium transition-all active:scale-[0.98] touch-manipulation cursor-pointer ${
                   activeTab === 'vocab'
-                    ? 'bg-title text-white shadow-2xs font-bold'
-                    : 'text-muted hover:text-title hover:bg-black/5'
+                    ? 'bg-[#B8322D] text-white shadow-2xs font-bold'
+                    : 'text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
                 }`}
               >
-                <WholeWord className="w-4 h-4" />
-                <span>Từ vựng cấp độ ({vocabTotalCount})</span>
+                <WholeWord className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span className="truncate">Từ vựng ({vocabTotalCount})</span>
               </button>
             </div>
 
@@ -551,10 +558,10 @@ export default function HskDashboardClient({
                     <button
                       type="button"
                       onClick={() => setStatusFilter('all')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-serif transition-colors whitespace-nowrap border ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-serif transition-colors whitespace-nowrap border cursor-pointer active:scale-[0.98] touch-manipulation ${
                         statusFilter === 'all'
-                          ? 'bg-title text-white border-title font-medium'
-                          : 'bg-card text-muted hover:text-title border-border'
+                          ? 'bg-[#243047] text-white border-[#243047] font-medium'
+                          : 'bg-card text-[#243047]/80 hover:text-[#243047] border-[#E9DDD1] hover:bg-[#FFF9F3]'
                       }`}
                     >
                       Tất cả ({lessons.length})
@@ -562,10 +569,10 @@ export default function HskDashboardClient({
                     <button
                       type="button"
                       onClick={() => setStatusFilter('in_progress')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-serif transition-colors whitespace-nowrap border ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-serif transition-colors whitespace-nowrap border cursor-pointer active:scale-[0.98] touch-manipulation ${
                         statusFilter === 'in_progress'
-                          ? 'bg-amber-600 text-white border-amber-600 font-medium'
-                          : 'bg-card text-muted hover:text-title border-border'
+                          ? 'bg-[#B8322D] text-white border-[#B8322D] font-medium'
+                          : 'bg-card text-[#243047]/80 hover:text-[#243047] border-[#E9DDD1] hover:bg-[#FFF9F3]'
                       }`}
                     >
                       Đang học ({inProgressLessonsCount})
@@ -573,10 +580,10 @@ export default function HskDashboardClient({
                     <button
                       type="button"
                       onClick={() => setStatusFilter('completed')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-serif transition-colors whitespace-nowrap border ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-serif transition-colors whitespace-nowrap border cursor-pointer active:scale-[0.98] touch-manipulation ${
                         statusFilter === 'completed'
-                          ? 'bg-jade text-white border-jade font-medium'
-                          : 'bg-card text-muted hover:text-title border-border'
+                          ? 'bg-[#24856A] text-white border-[#24856A] font-medium'
+                          : 'bg-card text-[#243047]/80 hover:text-[#243047] border-[#E9DDD1] hover:bg-[#FFF9F3]'
                       }`}
                     >
                       Đã xong ({completedLessonsCount})
@@ -620,13 +627,13 @@ export default function HskDashboardClient({
                       <Link
                         key={lesson.id}
                         href={`/lessons/${lesson.id}`}
-                        className="group block p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-app-accent/40 hover:shadow-xs hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden"
+                        className="group block p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:border-app-accent/40 hover:shadow-xs active:scale-[0.99] transition-all duration-200 relative overflow-hidden touch-manipulation"
                       >
-                        <div className="flex items-center gap-3.5 sm:gap-5 justify-between">
+                        <div className="flex items-center gap-3 sm:gap-5 justify-between">
                           
                           {/* Index Number Badge */}
                           <div 
-                            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-serif font-bold text-sm sm:text-base shrink-0 transition-colors border ${
+                            className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center font-serif font-bold text-xs sm:text-base shrink-0 transition-colors border ${
                               isCompleted
                                 ? 'bg-jade-soft text-jade border-jade/30'
                                 : isInProgress
@@ -634,12 +641,12 @@ export default function HskDashboardClient({
                                 : 'bg-page text-title border-border group-hover:border-app-accent/30 group-hover:text-app-accent'
                             }`}
                           >
-                            {isCompleted ? <CheckCircle2 className="w-5 h-5 text-jade" /> : formattedNum}
+                            {isCompleted ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-jade" /> : formattedNum}
                           </div>
 
                           {/* Lesson Info */}
                           <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
                               <h3 className="font-serif font-bold text-sm sm:text-base text-title group-hover:text-app-accent transition-colors truncate">
                                 {lesson.title}
                               </h3>
@@ -687,8 +694,8 @@ export default function HskDashboardClient({
                           </div>
 
                           {/* Arrow CTA */}
-                          <div className="shrink-0 w-8 h-8 rounded-full bg-page group-hover:bg-app-accent group-hover:text-white text-muted flex items-center justify-center transition-colors">
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                          <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-page group-hover:bg-app-accent group-hover:text-white text-muted flex items-center justify-center transition-colors">
+                            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
                           </div>
 
                         </div>
@@ -786,12 +793,12 @@ export default function HskDashboardClient({
                       return (
                         <div 
                           key={v.id} 
-                          className="p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-app-accent/30 transition-all shadow-2xs group"
+                          className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:border-app-accent/30 transition-all shadow-2xs group"
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
                             
                             {/* Left: Index & Hanzi & Audio */}
-                            <div className="flex items-center sm:items-start gap-3 sm:w-44 shrink-0">
+                            <div className="flex items-center sm:items-start gap-2.5 sm:gap-3 sm:w-44 shrink-0">
                               <span className="text-xs font-serif text-muted/60 w-6 text-right shrink-0">
                                 {itemIndex}
                               </span>
@@ -918,12 +925,12 @@ export default function HskDashboardClient({
 
                   {/* Thanh phân trang từ vựng (Pagination Bar) */}
                   {vocabTotalCount > 30 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-card border border-border mt-4 shadow-2xs">
-                      <span className="text-xs font-serif text-muted">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-card border border-border mt-4 shadow-2xs">
+                      <span className="text-xs font-serif text-muted text-center sm:text-left">
                         Trang <strong>{vocabPage}</strong> / <strong>{Math.ceil(vocabTotalCount / 30)}</strong> ({vocabTotalCount} từ)
                       </span>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
                         <Button
                           variant="outline"
                           size="sm"
@@ -932,7 +939,7 @@ export default function HskDashboardClient({
                             setVocabPage((p) => Math.max(1, p - 1))
                             window.scrollTo({ top: 350, behavior: 'smooth' })
                           }}
-                          className="font-serif text-xs border-border flex items-center gap-1"
+                          className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center justify-center gap-1 flex-1 sm:flex-initial min-h-[38px] px-3 active:scale-[0.98] touch-manipulation cursor-pointer"
                         >
                           <ChevronLeft className="w-3.5 h-3.5" />
                           <span>Trang trước</span>
@@ -946,7 +953,7 @@ export default function HskDashboardClient({
                             setVocabPage((p) => p + 1)
                             window.scrollTo({ top: 350, behavior: 'smooth' })
                           }}
-                          className="font-serif text-xs border-border flex items-center gap-1"
+                          className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center justify-center gap-1 flex-1 sm:flex-initial min-h-[38px] px-3 active:scale-[0.98] touch-manipulation cursor-pointer"
                         >
                           <span>Trang tiếp</span>
                           <ChevronRight className="w-3.5 h-3.5" />

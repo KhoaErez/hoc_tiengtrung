@@ -703,7 +703,10 @@ export default function TypingClient() {
     setIsCompleted(false)
     setElapsedSeconds(0)
     if (timerRef.current) clearInterval(timerRef.current)
-    setTimeout(() => inputRef.current?.focus(), 50)
+    // Chỉ tự động focus bàn phím trên desktop/tablet để tránh giật bàn phím ảo trên mobile
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      setTimeout(() => inputRef.current?.focus(), 50)
+    }
   }, [stopSpeech])
 
   // Chuyển bài khi đổi bộ lọc
@@ -1267,15 +1270,21 @@ export default function TypingClient() {
   // Chuyển sang câu kế tiếp
   const handleNext = useCallback(() => {
     if (exercises.length === 0) return
-    const nextIdx = currentIndex < exercises.length - 1 ? currentIndex + 1 : 0
-    navigateToExercise(nextIdx)
+    if (currentIndex >= exercises.length - 1) {
+      toast.success('Bạn đã hoàn thành câu cuối cùng của bài học!', {
+        description: 'Bạn có thể làm lại hoặc chuyển sang bài học tiếp theo.',
+        duration: 3500,
+      })
+      return
+    }
+    navigateToExercise(currentIndex + 1)
   }, [currentIndex, exercises.length, navigateToExercise])
 
   // Quay lại câu trước
   const handlePrev = useCallback(() => {
     if (exercises.length === 0) return
-    const prevIdx = currentIndex > 0 ? currentIndex - 1 : exercises.length - 1
-    navigateToExercise(prevIdx)
+    if (currentIndex <= 0) return
+    navigateToExercise(currentIndex - 1)
   }, [currentIndex, exercises.length, navigateToExercise])
 
   // Phím tắt bàn phím tiện lợi
@@ -1354,20 +1363,20 @@ export default function TypingClient() {
       </div>
 
       {/* 2. Thanh chọn chế độ luyện tập (4 chế độ bao gồm Ôn câu sai) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-card border border-border rounded-xl p-1.5 shadow-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 bg-card border border-[#E9DDD1] rounded-2xl p-1.5 shadow-2xs">
         <button
           onClick={() => {
             setActiveTab('practice')
             setMode('sentence')
           }}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
             activeTab === 'practice' && mode === 'sentence'
-              ? 'bg-app-accent text-white font-semibold shadow-xs'
-              : 'text-muted hover:text-title hover:bg-page'
+              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>Câu mẫu</span>
+          <FileText className="w-4 h-4 shrink-0" />
+          <span className="truncate">Câu mẫu</span>
         </button>
 
         <button
@@ -1375,14 +1384,14 @@ export default function TypingClient() {
             setActiveTab('practice')
             setMode('paragraph')
           }}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
             activeTab === 'practice' && mode === 'paragraph'
-              ? 'bg-app-accent text-white font-semibold shadow-xs'
-              : 'text-muted hover:text-title hover:bg-page'
+              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
           }`}
         >
-          <AlignLeft className="w-4 h-4" />
-          <span>Đoạn văn</span>
+          <AlignLeft className="w-4 h-4 shrink-0" />
+          <span className="truncate">Đoạn văn</span>
         </button>
 
         <button
@@ -1390,14 +1399,14 @@ export default function TypingClient() {
             setActiveTab('practice')
             setMode('hsk')
           }}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
+          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
             activeTab === 'practice' && mode === 'hsk'
-              ? 'bg-app-accent text-white font-semibold shadow-xs'
-              : 'text-muted hover:text-title hover:bg-page'
+              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
           }`}
         >
-          <GraduationCap className="w-4 h-4" />
-          <span>Theo HSK</span>
+          <GraduationCap className="w-4 h-4 shrink-0" />
+          <span className="truncate">Theo HSK</span>
         </button>
 
         <button
@@ -1405,17 +1414,17 @@ export default function TypingClient() {
             stopSpeech()
             setActiveTab('mistakes')
           }}
-          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg text-xs md:text-sm font-serif transition-all ${
+          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
             activeTab === 'mistakes'
-              ? 'bg-app-accent text-white font-semibold shadow-xs'
-              : 'text-muted hover:text-title hover:bg-page'
+              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
           }`}
         >
-          <Flame className="w-4 h-4 text-amber-500" />
-          <span>Ôn câu sai</span>
+          <Flame className="w-4 h-4 text-amber-500 shrink-0" />
+          <span className="truncate">Ôn câu sai</span>
           {mistakeCount > 0 && (
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold ${
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold shrink-0 ${
                 activeTab === 'mistakes'
                   ? 'bg-white/25 text-white'
                   : 'bg-red-500/15 text-red-600 dark:text-red-400'
@@ -1756,46 +1765,46 @@ export default function TypingClient() {
       </div>
 
       {/* 4. Khung chỉ số thời gian thực (Live Dashboard) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-page border border-border text-muted">
-            <Clock className="w-4 h-4" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
+          <span className="p-1.5 sm:p-2 rounded-lg bg-page border border-border text-muted shrink-0">
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </span>
-          <div>
-            <p className="text-[11px] text-muted font-sans">Thời gian</p>
-            <p className="text-lg font-serif font-bold text-title">{formatTime(elapsedSeconds)}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">Thời gian</p>
+            <p className="text-base sm:text-lg font-serif font-bold text-title">{formatTime(elapsedSeconds)}</p>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-accent-soft text-app-accent">
-            <Zap className="w-4 h-4" />
+        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
+          <span className="p-1.5 sm:p-2 rounded-lg bg-accent-soft text-app-accent shrink-0">
+            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </span>
-          <div>
-            <p className="text-[11px] text-muted font-sans">Tốc độ (CPM)</p>
-            <p className="text-lg font-serif font-bold text-title">{evaluation.cpm}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">Tốc độ (CPM)</p>
+            <p className="text-base sm:text-lg font-serif font-bold text-title">{evaluation.cpm}</p>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-jade-soft text-jade">
-            <Target className="w-4 h-4" />
+        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
+          <span className="p-1.5 sm:p-2 rounded-lg bg-jade-soft text-jade shrink-0">
+            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </span>
-          <div>
-            <p className="text-[11px] text-muted font-sans">Độ chính xác</p>
-            <p className="text-lg font-serif font-bold text-title">{evaluation.accuracy}%</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">Độ chính xác</p>
+            <p className="text-base sm:text-lg font-serif font-bold text-title">{evaluation.accuracy}%</p>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-3 shadow-xs flex items-center gap-3">
-          <span className="p-2 rounded-lg bg-gold-soft text-gold">
-            <Layers className="w-4 h-4" />
+        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
+          <span className="p-1.5 sm:p-2 rounded-lg bg-gold-soft text-gold shrink-0">
+            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </span>
-          <div>
-            <p className="text-[11px] text-muted font-sans">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">
               {mode === 'sentence' ? 'Tiến độ câu' : 'Tiến độ bài'}
             </p>
-            <p className="text-lg font-serif font-bold text-title">
+            <p className="text-base sm:text-lg font-serif font-bold text-title truncate">
               {mode === 'sentence'
                 ? `Câu ${exercises.length > 0 ? currentIndex + 1 : 0}/${exercises.length}`
                 : `${exercises.length > 0 ? currentIndex + 1 : 0} / ${exercises.length}`}
@@ -1831,7 +1840,7 @@ export default function TypingClient() {
             onToggleAutoSpeakNext={handleToggleAutoSpeakNext}
           />
 
-          <div className="bg-card border border-border rounded-2xl p-5 md:p-8 shadow-sm space-y-6">
+          <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-8 shadow-sm space-y-4 sm:space-y-6">
             {/* Huy hiệu thông tin câu & Nút nghe phát âm tiếng Trung */}
             <div className="flex items-center justify-between gap-3 text-xs text-muted font-serif flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
@@ -1848,7 +1857,7 @@ export default function TypingClient() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <AudioButton 
                   text={currentExercise.hanzi} 
                   id={`typing-ex-${currentExercise.id || currentIndex}`} 
@@ -1871,7 +1880,7 @@ export default function TypingClient() {
 
             {/* Tiêu đề bài tập: Ca dao tục ngữ Việt Nam trong chế độ câu mẫu */}
             {mode === 'sentence' ? (
-              <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/25 rounded-xl p-4 md:p-5 space-y-2.5 -mt-1 shadow-2xs">
+              <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/25 rounded-xl p-3.5 sm:p-4 md:p-5 space-y-2.5 -mt-1 shadow-2xs">
                 <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-app-accent text-white shadow-2xs">
@@ -1930,7 +1939,7 @@ export default function TypingClient() {
             ) : null}
 
             {/* Câu mục tiêu với từng ký tự hiển thị trực quan */}
-            <div className="space-y-3 bg-page/70 border border-border/70 rounded-xl p-4 md:p-6">
+            <div className="space-y-3 bg-page/70 border border-border/70 rounded-xl p-3.5 sm:p-4 md:p-6">
               {/* Pinyin hỗ trợ kèm đồng bộ highlight từng từ khi phát âm */}
               {preferences.showPinyin && (
                 <div className="flex items-center justify-between gap-2">
@@ -2240,19 +2249,20 @@ export default function TypingClient() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
                   <button
                     onClick={resetExercise}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border hover:border-app-accent rounded-xl text-xs md:text-sm font-serif text-body transition-all"
+                    className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#FFF9F3] border border-[#E9DDD1] hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-xs md:text-sm font-serif text-[#243047] transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4" />
                     <span>Làm lại</span>
                   </button>
                   <button
                     onClick={handleNext}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-xs"
+                    disabled={currentIndex >= exercises.length - 1}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#B8322D] hover:bg-[#982923] disabled:opacity-45 disabled:cursor-not-allowed text-white rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer"
                   >
-                    <span>Câu tiếp theo</span>
+                    <span>{currentIndex >= exercises.length - 1 ? 'Đã hết câu' : 'Câu tiếp theo'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -2288,22 +2298,23 @@ export default function TypingClient() {
           )}
 
           {/* Các nút hành động điều hướng */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between gap-2 pt-2 pb-6 md:pb-2">
             <button
               onClick={handlePrev}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs md:text-sm text-muted hover:text-title font-serif transition-colors"
+              disabled={currentIndex === 0}
+              className="flex items-center gap-1.5 px-3 py-2 text-xs md:text-sm text-[#243047] hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:text-[#243047] font-serif transition-colors active:scale-[0.98] touch-manipulation min-h-[44px] rounded-xl cursor-pointer"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 shrink-0" />
               <span>Câu trước</span>
             </button>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={resetExercise}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-page border border-border hover:border-app-accent/50 rounded-xl text-xs md:text-sm font-serif text-muted hover:text-title transition-all"
+                className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-[#FFF9F3] border border-[#E9DDD1] hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-xs md:text-sm font-serif text-[#243047] transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer"
                 title="Làm lại từ đầu"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 shrink-0" />
                 <span className="hidden sm:inline">Làm lại</span>
               </button>
 
@@ -2311,19 +2322,24 @@ export default function TypingClient() {
                 <button
                   onClick={handleFinish}
                   disabled={userInput.length === 0}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-title text-white hover:opacity-90 disabled:opacity-50 rounded-xl text-xs md:text-sm font-serif transition-all"
+                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>Kiểm tra</span>
                 </button>
               )}
 
               <button
                 onClick={handleNext}
-                className="flex items-center gap-1.5 px-4 py-2 bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs md:text-sm font-serif transition-all shadow-xs"
+                disabled={currentIndex >= exercises.length - 1 && isCompleted}
+                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#B8322D] hover:bg-[#982923] disabled:opacity-45 disabled:cursor-not-allowed text-white rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer"
               >
-                <span>{mode === 'sentence' ? 'Câu tiếp theo' : 'Chuyển câu'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="truncate">
+                  {currentIndex >= exercises.length - 1
+                    ? 'Hoàn thành'
+                    : mode === 'sentence' ? 'Câu tiếp' : 'Tiếp theo'}
+                </span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
               </button>
             </div>
           </div>

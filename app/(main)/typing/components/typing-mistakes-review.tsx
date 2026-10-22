@@ -580,7 +580,7 @@ export default function TypingMistakesReview({
             {onBackToPractice && (
               <button
                 onClick={onBackToPractice}
-                className="px-3.5 py-2 rounded-xl border border-border hover:bg-page text-xs font-serif text-muted hover:text-title transition-colors"
+                className="px-4 py-2 min-h-[44px] rounded-xl border border-[#E9DDD1] bg-[#FFF9F3] hover:bg-[#F6EDE3] hover:border-[#DDD0C2] text-xs font-serif text-[#243047] transition-all active:scale-[0.98] touch-manipulation shadow-2xs"
               >
                 Về bài luyện
               </button>
@@ -589,7 +589,7 @@ export default function TypingMistakesReview({
             <button
               onClick={startQueueReview}
               disabled={mistakes.length === 0}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-app-accent hover:bg-accent-hover disabled:opacity-50 text-white text-xs md:text-sm font-serif font-semibold shadow-xs transition-all"
+              className="flex items-center gap-2 px-4 py-2 min-h-[44px] rounded-xl bg-[#B8322D] hover:bg-[#9E2824] disabled:opacity-50 text-white text-xs md:text-sm font-serif font-semibold shadow-2xs transition-all active:scale-[0.98] touch-manipulation"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Ôn tập ngay ({filteredMistakes.length} câu)</span>
@@ -829,7 +829,7 @@ export default function TypingMistakesReview({
 
                   <button
                     onClick={(e) => handleToggleMastered(item, e)}
-                    className="p-2 rounded-lg border border-border hover:bg-page text-muted hover:text-title text-xs transition-colors"
+                    className="p-2 min-h-[38px] min-w-[38px] flex items-center justify-center rounded-xl border border-[#E9DDD1] bg-[#FFF9F3] hover:bg-[#F6EDE3] hover:border-[#DDD0C2] text-[#243047] hover:text-[#B8322D] text-xs transition-colors active:scale-[0.98] touch-manipulation shadow-2xs"
                     title={
                       item.reviewStatus === 'mastered'
                         ? 'Chuyển về Cần ôn tập'
@@ -837,15 +837,15 @@ export default function TypingMistakesReview({
                     }
                   >
                     {item.reviewStatus === 'mastered' ? (
-                      <RotateCcw className="w-4 h-4" />
+                      <RotateCcw className="w-4 h-4 text-[#243047]/70" />
                     ) : (
-                      <Check className="w-4 h-4 text-emerald-600" />
+                      <Check className="w-4 h-4 text-[#24856A]" />
                     )}
                   </button>
 
                   <button
                     onClick={() => startSingleReview(item)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-app-accent hover:bg-accent-hover text-white text-xs font-serif font-medium shadow-2xs transition-all"
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 min-h-[38px] rounded-xl bg-[#B8322D] hover:bg-[#9E2824] text-white text-xs font-serif font-medium shadow-2xs transition-all active:scale-[0.98] touch-manipulation"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>Luyện lại câu này</span>

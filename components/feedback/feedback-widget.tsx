@@ -81,6 +81,21 @@ export function FeedbackWidget() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [cooldown, setCooldown] = useState(0)
 
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false)
+
+  // Phát hiện bàn phím ảo mở trên thiết bị di động để tự động thu gọn/ẩn nút mascot
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return
+    const handleViewportChange = () => {
+      const vv = window.visualViewport
+      if (!vv) return
+      // Khi chiều cao visualViewport giảm hơn 25% so với window.innerHeight thì bàn phím ảo đang mở
+      setIsKeyboardOpen(vv.height < window.innerHeight * 0.75)
+    }
+    window.visualViewport.addEventListener('resize', handleViewportChange)
+    return () => window.visualViewport?.removeEventListener('resize', handleViewportChange)
+  }, [])
+
   const widgetRef = useRef<HTMLDivElement>(null)
 
   // Tooltip chào mừng xuất hiện sau 4 giây truy cập nếu chưa từng tắt
@@ -398,15 +413,25 @@ export function FeedbackWidget() {
         </div>
       )}
 
-      {/* 2. FLOATING MASCOT TRIGGER BUTTON */}
+      {/* 2. FLOATING MASCOT TRIGGER BUTTON (Tự ẩn khi bàn phím mở, đổi bên trên /typing để không che nút) */}
       <div 
-        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 group"
+        className={`fixed z-35 group transition-all duration-200 ${
+          isKeyboardOpen ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-100 translate-y-0'
+        } ${
+          pathname.startsWith('/typing')
+            ? 'bottom-20 left-3 md:bottom-6 md:left-auto md:right-6'
+            : 'bottom-20 right-3 md:bottom-6 md:right-6'
+        }`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble) */}
         {!isOpen && showTooltip && (
-          <div className="absolute right-full mr-3 bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-60 text-xs text-title font-serif animate-in fade-in slide-in-from-right-2 duration-200 z-50">
+          <div className={`absolute bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-56 sm:w-60 text-xs text-title font-serif animate-in fade-in duration-200 z-50 ${
+            pathname.startsWith('/typing')
+              ? 'left-full ml-3 slide-in-from-left-2'
+              : 'right-full mr-3 slide-in-from-right-2'
+          }`}>
             <div className="flex items-start justify-between gap-1.5">
               <p className="leading-relaxed">
                 Chào bạn! Mình là <strong>Tiểu Bút</strong> 🐼. Hôm nay bạn học bài nào rồi? Cần gì cứ gọi mình nhé!
@@ -425,11 +450,15 @@ export function FeedbackWidget() {
               </button>
             </div>
             {/* Mũi tên trỏ vào nút mascot */}
-            <div className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-card border-t border-r border-border rotate-45" />
+            <div className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-card border-border rotate-45 ${
+              pathname.startsWith('/typing')
+                ? '-left-1.5 border-b border-l'
+                : '-right-1.5 border-t border-r'
+            }`} />
           </div>
         )}
 
-        {/* Nút bấm Mascot hình tròn cao cấp */}
+        {/* Nút bấm Mascot hình tròn cao cấp (Tối ưu kích thước gọn trên mobile 48px) */}
         <button
           type="button"
           onClick={() => {
@@ -437,21 +466,22 @@ export function FeedbackWidget() {
             setShowTooltip(false)
             setHasDismissedTooltip(true)
           }}
-          className={`w-14 h-14 md:w-16 md:h-16 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
+          className={`w-12 h-12 md:w-16 md:h-16 rounded-full shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
             isOpen
               ? 'bg-title text-white rotate-0 scale-95 ring-4 ring-title/15'
-              : 'bg-page hover:bg-card border-2 border-app-accent/40 hover:border-app-accent hover:scale-105 active:scale-95 shadow-app-accent/15 ring-4 ring-app-accent/10'
+              : 'bg-page hover:bg-card border-2 border-app-accent/40 hover:border-app-accent hover:scale-105 active:scale-95 shadow-app-accent/15 ring-3 ring-app-accent/10'
           }`}
           title="Trò chuyện & Góp ý cùng Tiểu Bút"
           aria-label={isOpen ? 'Đóng hộp thoại trợ lý' : 'Mở trợ lý Tiểu Bút'}
         >
           {isOpen ? (
-            <X className="w-6 h-6 text-white" />
+            <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
           ) : (
-            <div className="relative">
-              <MascotAvatar state={buttonMascotState} size="lg" />
+            <div className="relative flex items-center justify-center">
+              <MascotAvatar state={buttonMascotState} size="md" className="hidden sm:inline-flex" />
+              <MascotAvatar state={buttonMascotState} size="sm" className="sm:hidden" />
               {/* Huy hiệu online nhỏ góc dưới */}
-              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
             </div>
           )}
         </button>

@@ -80,21 +80,21 @@ export default function TypingAudioControls({
     : 'Mặc định (zh-CN)'
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-3.5 md:p-4 shadow-2xs space-y-3 transition-all">
+    <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3.5 md:p-4 shadow-2xs space-y-3 transition-all">
       {/* 1. HÀNG TIÊU ĐỀ & TÙY CHỈNH TỐC ĐỘ, GIỌNG ĐỌC */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-border/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#E9DDD1]/80">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5">
-            <Volume2 className="w-4 h-4 text-app-accent flex-shrink-0" />
-            <span className="font-serif font-bold text-xs md:text-sm text-title">
+            <Volume2 className="w-4 h-4 text-[#B8322D] flex-shrink-0" />
+            <span className="font-serif font-bold text-xs md:text-sm text-[#243047]">
               Luyện nghe & Phát âm tiếng Trung
             </span>
           </div>
 
           {/* Huy hiệu trạng thái âm thanh */}
           {speechStatus === 'playing' ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-sans font-bold bg-emerald-500/15 text-jade border border-jade/30">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-sans font-bold bg-[#24856A]/15 text-[#24856A] border border-[#24856A]/30">
+              <span className="w-2 h-2 rounded-full bg-[#24856A] animate-ping" />
               <span>
                 Đang đọc{speakingSentenceIndex !== null ? ` câu ${speakingSentenceIndex + 1}/${sentences.length}` : '...'}
               </span>
@@ -105,7 +105,7 @@ export default function TypingAudioControls({
               <span>Tạm dừng</span>
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif text-muted bg-page border border-border">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif text-[#243047]/60 bg-[#FFF9F3] border border-[#E9DDD1]">
               <span>Sẵn sàng ({sentences.length} câu)</span>
             </span>
           )}
@@ -114,9 +114,9 @@ export default function TypingAudioControls({
         {/* Bộ điều chỉnh Tốc độ & Giọng đọc */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Chọn tốc độ đọc (0.5x, 0.75x, 1.0x, 1.25x, 1.5x, 2.0x) */}
-          <div className="flex items-center bg-page border border-border rounded-xl p-0.5 text-xs font-serif flex-wrap">
-            <span className="px-2 py-1 text-[11px] text-muted flex items-center gap-1">
-              <Gauge className="w-3 h-3 text-muted" />
+          <div className="flex items-center bg-[#FFF9F3] border border-[#E9DDD1] rounded-xl p-0.5 text-xs font-serif overflow-x-auto no-scrollbar scroll-smooth touch-pan-x max-w-full">
+            <span className="px-2 py-1 text-[11px] text-[#243047]/70 flex items-center gap-1 shrink-0">
+              <Gauge className="w-3 h-3 text-[#243047]/60" />
               <span className="hidden xs:inline">Tốc độ:</span>
             </span>
             {[
@@ -131,10 +131,10 @@ export default function TypingAudioControls({
                 key={rate}
                 type="button"
                 onClick={() => onRateChange(rate)}
-                className={`px-1.5 sm:px-2 py-0.5 rounded-lg text-xs font-sans transition-all ${
+                className={`px-2 py-1 rounded-lg text-xs font-sans transition-all shrink-0 active:scale-[0.98] touch-manipulation ${
                   speechRate === rate
-                    ? 'bg-title text-white font-bold shadow-2xs'
-                    : 'text-muted hover:text-title hover:bg-card'
+                    ? 'bg-[#243047] text-white font-bold shadow-2xs'
+                    : 'text-[#243047]/70 hover:text-[#243047] hover:bg-white'
                 }`}
                 title={`Tốc độ ${label} — ${desc}`}
               >
@@ -208,10 +208,10 @@ export default function TypingAudioControls({
                 onPlayAll()
               }
             }}
-            className={`font-serif text-xs rounded-xl shadow-2xs gap-1.5 h-8 px-3.5 transition-all ${
+            className={`font-serif text-xs rounded-xl shadow-2xs gap-1.5 h-9 px-3.5 transition-all active:scale-[0.98] touch-manipulation ${
               isPlayingAll
                 ? 'bg-amber-600 hover:bg-amber-700 text-white font-bold'
-                : 'bg-app-accent hover:bg-accent-hover text-white'
+                : 'bg-[#B8322D] hover:bg-[#9E2824] text-white'
             }`}
             title="Đọc lần lượt tất cả các câu từ đầu đến cuối đoạn văn"
           >
@@ -228,7 +228,7 @@ export default function TypingAudioControls({
             ) : (
               <>
                 <Play className="w-3.5 h-3.5" />
-                <span>Nghe toàn bộ đoạn</span>
+                <span>Nghe toàn bộ</span>
               </>
             )}
           </Button>
@@ -240,14 +240,14 @@ export default function TypingAudioControls({
             size="sm"
             onClick={onPlayCurrentSentence}
             disabled={sentences.length === 0}
-            className={`font-serif text-xs rounded-xl border-border h-8 px-3 gap-1.5 transition-colors ${
+            className={`font-serif text-xs rounded-xl border h-9 px-3 gap-1.5 transition-colors active:scale-[0.98] touch-manipulation ${
               isPlayingCurrent
-                ? 'bg-app-accent-soft/50 border-app-accent text-app-accent font-bold ring-1 ring-app-accent'
-                : 'text-title hover:border-app-accent/40 bg-page'
+                ? 'bg-[#FFF9F3] border-[#B8322D] text-[#B8322D] font-bold ring-1 ring-[#B8322D]'
+                : 'text-[#243047] border-[#E9DDD1] hover:border-[#B8322D]/40 hover:text-[#B8322D] bg-[#FFF9F3]'
             }`}
             title={`Nghe phát âm chuẩn của câu đang luyện (Câu ${currentSentenceIndex + 1})`}
           >
-            <Headphones className="w-3.5 h-3.5 text-app-accent" />
+            <Headphones className="w-3.5 h-3.5 text-[#B8322D]" />
             <span>Nghe câu hiện tại (Câu {currentSentenceIndex + 1})</span>
           </Button>
 
@@ -258,11 +258,11 @@ export default function TypingAudioControls({
             size="sm"
             onClick={onStop}
             disabled={speechStatus === 'idle'}
-            className="font-serif text-xs rounded-xl border-border text-muted hover:text-red-600 hover:border-red-500/40 h-8 px-2.5 gap-1 disabled:opacity-40"
+            className="font-serif text-xs rounded-xl border border-[#E9DDD1] text-[#243047]/70 hover:text-[#B91C1C] hover:border-[#FCA5A5] h-9 px-2.5 gap-1 disabled:opacity-40 active:scale-[0.98] touch-manipulation bg-card"
             title="Dừng đọc âm thanh"
           >
             <Square className="w-3 h-3" />
-            <span>Dừng phát</span>
+            <span>Dừng</span>
           </Button>
         </div>
 
@@ -272,17 +272,17 @@ export default function TypingAudioControls({
           <button
             type="button"
             onClick={onToggleTypingSound}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-serif transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-serif transition-colors active:scale-[0.98] touch-manipulation ${
               typingSoundEnabled
-                ? 'bg-app-accent-soft/40 border-app-accent/40 text-app-accent font-medium'
-                : 'bg-page border-border text-muted hover:text-title'
+                ? 'bg-[#FFF9F3] border-[#B8322D]/40 text-[#B8322D] font-medium'
+                : 'bg-card border-[#E9DDD1] text-[#243047]/70 hover:text-[#243047]'
             }`}
             title="Bật/Tắt âm báo nhẹ khi gõ đúng và sai ký tự"
           >
             {typingSoundEnabled ? (
-              <Volume2 className="w-3.5 h-3.5 text-app-accent" />
+              <Volume2 className="w-3.5 h-3.5 text-[#B8322D]" />
             ) : (
-              <VolumeX className="w-3.5 h-3.5 text-muted" />
+              <VolumeX className="w-3.5 h-3.5 text-[#243047]/50" />
             )}
             <span>{typingSoundEnabled ? 'Âm gõ: Bật' : 'Âm gõ: Tắt'}</span>
           </button>
@@ -291,10 +291,10 @@ export default function TypingAudioControls({
           <button
             type="button"
             onClick={onToggleAutoSpeakNext}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-serif transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-serif transition-colors active:scale-[0.98] touch-manipulation ${
               autoSpeakNext
-                ? 'bg-title text-white font-medium border-title shadow-2xs'
-                : 'bg-page border-border text-muted hover:text-title'
+                ? 'bg-[#243047] text-white font-medium border-[#243047] shadow-2xs'
+                : 'bg-card border-[#E9DDD1] text-[#243047]/70 hover:text-[#243047]'
             }`}
             title="Tự động phát âm thanh khi hiển thị câu mới hoặc chuyển câu"
           >

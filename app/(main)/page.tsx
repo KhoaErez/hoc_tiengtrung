@@ -120,13 +120,13 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 pb-16">
+    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 md:space-y-10 pb-16">
       
       {/* ======================================================== */}
       {/* 1. HERO BANNER CHO KHÁCH (CHƯA ĐĂNG NHẬP)                */}
       {/* ======================================================== */}
       {!user && (
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-page to-card p-6 md:p-10 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-page to-card p-5 sm:p-6 md:p-10 shadow-sm">
           {/* Watermark mây Á Đông trang nhã */}
           <div className="absolute top-0 right-0 w-80 h-80 opacity-5 pointer-events-none text-app-accent">
             <svg viewBox="0 0 200 200" fill="currentColor">
@@ -134,29 +134,29 @@ export default async function HomePage() {
             </svg>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
-            <div className="max-w-2xl space-y-4 text-left">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 relative z-10">
+            <div className="max-w-2xl space-y-3.5 sm:space-y-4 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-app-accent-soft text-app-accent text-xs font-serif font-medium border border-app-accent/30">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Không gian học tiếng Trung hiện đại & bản sắc</span>
               </div>
               
-              <h1 className="text-3xl md:text-4xl font-serif font-bold text-title tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-title tracking-tight leading-tight">
                 Chinh phục HSK & Hán tự từ cơ bản đến chuyên sâu
               </h1>
               
-              <p className="text-body font-serif text-sm md:text-base leading-relaxed">
+              <p className="text-body font-serif text-xs sm:text-sm md:text-base leading-relaxed">
                 Lộ trình 6 cấp độ HSK chuẩn hóa với hơn 350 bài học, luyện gõ phím Pinyin thực tế, tra cứu 214 bộ thủ Khang Hy và ôn tập ngắt quãng thông minh.
               </p>
               
-              <div className="pt-2 flex flex-wrap gap-3">
-                <Link href="/login">
-                  <Button className="font-serif bg-title hover:bg-[#2A3250] text-white px-6 rounded-xl shadow-xs cursor-pointer">
+              <div className="pt-2 flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto">
+                <Link href="/login" className="w-full sm:w-auto">
+                  <Button variant="tertiary" className="w-full sm:w-auto font-serif px-6 cursor-pointer min-h-[44px] text-xs sm:text-sm">
                     Đăng nhập để lưu tiến độ
                   </Button>
                 </Link>
-                <Link href="/register">
-                  <Button variant="outline" className="font-serif px-6 rounded-xl border-border hover:bg-black/5 text-title cursor-pointer">
+                <Link href="/register" className="w-full sm:w-auto">
+                  <Button variant="secondary" className="w-full sm:w-auto font-serif px-6 cursor-pointer min-h-[44px] text-xs sm:text-sm">
                     Tạo tài khoản miễn phí
                   </Button>
                 </Link>
@@ -176,32 +176,37 @@ export default async function HomePage() {
       {/* 2. KHU VỰC TIẾN ĐỘ & "TIẾP TỤC HỌC" (KHI ĐÃ ĐĂNG NHẬP)     */}
       {/* ======================================================== */}
       {user && (
-        <div className="space-y-6">
+        <div className="space-y-5 sm:space-y-6">
           {/* Header Chào Mừng & Thống kê nhanh */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/80 pb-5">
-            <div className="flex items-center gap-4">
-              <MascotAvatar state="idle" size="lg" />
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-serif text-muted">Xin chào,</span>
-                  <span className="text-xl md:text-2xl font-serif font-bold text-title">{displayName}</span>
+            <div className="flex items-center gap-3.5 sm:gap-4">
+              <div className="shrink-0 sm:hidden">
+                <MascotAvatar state="idle" size="md" />
+              </div>
+              <div className="shrink-0 hidden sm:block">
+                <MascotAvatar state="idle" size="lg" />
+              </div>
+              <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs sm:text-sm font-serif text-muted">Xin chào,</span>
+                  <span className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-title truncate">{displayName}</span>
                   <span className="inline-block text-amber-500">✨</span>
                 </div>
-                <p className="text-xs md:text-sm text-muted font-serif">
+                <p className="text-xs sm:text-sm text-muted font-serif">
                   Hôm nay bạn muốn tiếp tục lộ trình học tập nào?
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Link href="/profile">
-                <Button variant="outline" size="sm" className="font-serif rounded-xl border-border text-xs gap-1.5 hover:border-app-accent/40 cursor-pointer">
+            <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+              <Link href="/profile" className="flex-1 sm:flex-initial">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto font-serif text-xs gap-1.5 border-[#E9DDD1] hover:bg-[#FFF9F3] cursor-pointer min-h-[40px] sm:min-h-[36px]">
                   <Award className="w-4 h-4 text-gold" />
                   <span>Hồ sơ học viên</span>
                 </Button>
               </Link>
-              <Link href="/review">
-                <Button size="sm" className="font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs gap-1.5 shadow-2xs cursor-pointer">
+              <Link href="/review" className="flex-1 sm:flex-initial">
+                <Button variant="primary" size="sm" className="w-full sm:w-auto font-serif text-xs gap-1.5 cursor-pointer min-h-[40px] sm:min-h-[36px]">
                   <Flame className="w-4 h-4" />
                   <span>Ôn tập ngay</span>
                 </Button>
@@ -327,7 +332,7 @@ export default async function HomePage() {
         </div>
 
         {/* Grid Thẻ HSK 3.0 Chuẩn Hóa Chiều Cao & Mỹ Thuật Đông Phương */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
           {([1, 2, 3, 4, 5, 6, 7] as const).map((levelNum) => {
             const info = HSK_LEVELS[levelNum]
             const audit = getHskAuditData(levelNum)
@@ -361,7 +366,7 @@ export default async function HomePage() {
               <Link 
                 key={levelNum} 
                 href={`/topics?q=${encodeURIComponent(info.tag)}`}
-                className={`group relative flex flex-col justify-between p-5 rounded-2xl border border-border bg-card ${theme.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none`}
+                className={`group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-border bg-card ${theme.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none`}
               >
                 {/* Viền màu nhỏ phía trên thẻ */}
                 <div className={`absolute top-0 left-0 right-0 h-1 ${theme.progressBar}`} />
@@ -459,11 +464,11 @@ export default async function HomePage() {
           <p className="text-xs text-muted font-serif mt-0.5">Các công cụ hỗ trợ nâng cao toàn diện kỹ năng tiếng Trung</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
           {/* Luyện đánh máy */}
           <Link 
             href="/typing" 
-            className="group p-5 rounded-2xl border border-border bg-card hover:border-app-accent/60 hover:shadow-xs transition-all flex flex-col justify-between"
+            className="group p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-app-accent/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
           >
             <div className="space-y-3">
               <div className="w-10 h-10 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center">
@@ -487,7 +492,7 @@ export default async function HomePage() {
           {/* 214 Bộ thủ */}
           <Link 
             href="/radicals" 
-            className="group p-5 rounded-2xl border border-border bg-card hover:border-jade/60 hover:shadow-xs transition-all flex flex-col justify-between"
+            className="group p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-jade/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
           >
             <div className="space-y-3">
               <div className="w-10 h-10 rounded-xl bg-jade-soft text-jade flex items-center justify-center">
@@ -511,7 +516,7 @@ export default async function HomePage() {
           {/* Luyện viết AI */}
           <Link 
             href="/write" 
-            className="group p-5 rounded-2xl border border-border bg-card hover:border-title/60 hover:shadow-xs transition-all flex flex-col justify-between"
+            className="group p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-title/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation sm:col-span-2 md:col-span-1"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">

@@ -248,19 +248,22 @@ export function AuthModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={(e) => {
         if (e.target === e.currentTarget) closeModal()
       }}
     >
       <div 
         ref={modalContentRef}
-        className="relative w-full max-w-[420px] bg-card border border-border/80 rounded-2xl shadow-2xl p-6 sm:p-7 z-10 animate-in zoom-in-95 duration-150 select-none"
+        className="relative w-full max-w-[440px] bg-card border-t sm:border border-border/80 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 sm:p-7 z-10 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 select-none max-h-[92vh] overflow-y-auto no-scrollbar pb-safe"
       >
+        {/* Mobile bottom sheet drag handle */}
+        <div className="sm:hidden w-12 h-1 bg-border/80 rounded-full mx-auto mb-3" />
+
         {/* Nút đóng ở góc trên bên phải */}
         <button
           onClick={closeModal}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-muted hover:text-title hover:bg-page transition-colors cursor-pointer"
+          className="absolute top-4 right-4 p-2 rounded-xl text-muted hover:text-title hover:bg-page transition-colors cursor-pointer touch-manipulation active:scale-95"
           aria-label="Đóng"
           title="Đóng (Escape)"
         >
@@ -294,7 +297,7 @@ export function AuthModal() {
                 type="button"
                 autoFocus
                 onClick={() => switchView('login-form')}
-                className="w-full h-11 rounded-xl bg-app-accent hover:bg-accent-hover text-white font-serif text-sm font-semibold flex items-center justify-center gap-2 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40"
+                className="w-full h-11 rounded-xl bg-[#B8322D] hover:bg-[#9E2A25] text-white font-serif text-sm font-semibold flex items-center justify-center gap-2 shadow-2xs active:scale-[0.98] transition-all cursor-pointer touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8322D]/40"
               >
                 <span>Đăng nhập ngay</span>
                 <ArrowRight className="w-4 h-4" />
@@ -303,7 +306,7 @@ export function AuthModal() {
               <button
                 type="button"
                 onClick={closeModal}
-                className="w-full h-10 rounded-xl border border-border/80 hover:bg-page text-muted hover:text-title font-serif text-xs sm:text-sm transition-colors cursor-pointer"
+                className="w-full h-10 rounded-xl border border-[#E9DDD1] hover:bg-[#FFF9F3] text-[#243047]/80 hover:text-[#243047] font-serif text-xs sm:text-sm transition-colors cursor-pointer touch-manipulation active:scale-[0.98]"
               >
                 Để sau
               </button>
@@ -336,7 +339,7 @@ export function AuthModal() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
-              className="w-full h-11 rounded-xl border border-border/90 bg-card hover:bg-page text-title font-sans text-xs sm:text-sm font-medium flex items-center justify-center gap-3 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-11 rounded-xl border border-[#E9DDD1] bg-card hover:bg-[#FFF9F3] text-[#243047] font-sans text-xs sm:text-sm font-medium flex items-center justify-center gap-3 shadow-2xs active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation"
             >
               {isGoogleLoading ? (
                 <>
@@ -390,7 +393,7 @@ export function AuthModal() {
                     autoFocus
                     autoComplete="email"
                     placeholder="Email"
-                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
+                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-base sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
                   />
                 </div>
               </div>
@@ -406,13 +409,13 @@ export function AuthModal() {
                     required
                     autoComplete="current-password"
                     placeholder="Mật khẩu"
-                    className="w-full h-11 pl-10 pr-10 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
+                    className="w-full h-11 pl-10 pr-10 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-base sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-title p-1 transition-colors cursor-pointer"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-title p-1.5 transition-colors cursor-pointer touch-manipulation"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -423,7 +426,7 @@ export function AuthModal() {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-[11px] font-sans text-muted hover:text-app-accent transition-colors cursor-pointer"
+                    className="text-[11px] font-sans text-muted hover:text-app-accent transition-colors cursor-pointer py-1"
                   >
                     Quên mật khẩu?
                   </button>
@@ -442,7 +445,7 @@ export function AuthModal() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl bg-[#23272F] hover:bg-[#181B20] text-white font-sans text-sm font-semibold flex items-center justify-center gap-2 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                className="w-full h-11 rounded-xl bg-[#243047] hover:bg-[#1A2334] text-white font-sans text-sm font-semibold flex items-center justify-center gap-2 shadow-2xs active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2 touch-manipulation"
               >
                 {isLoading ? (
                   <>
@@ -462,7 +465,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => switchView('register-form')}
-                  className="text-app-accent hover:text-accent-hover font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+                  className="text-app-accent hover:text-accent-hover font-semibold underline underline-offset-2 transition-colors cursor-pointer py-1"
                 >
                   Tạo tài khoản mới
                 </button>
@@ -504,7 +507,7 @@ export function AuthModal() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading}
-              className="w-full h-11 rounded-xl border border-border/90 bg-card hover:bg-page text-title font-sans text-xs sm:text-sm font-medium flex items-center justify-center gap-3 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-11 rounded-xl border border-border/90 bg-card hover:bg-page text-title font-sans text-xs sm:text-sm font-medium flex items-center justify-center gap-3 shadow-xs hover:shadow-sm active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation"
             >
               {isGoogleLoading ? (
                 <>
@@ -544,50 +547,56 @@ export function AuthModal() {
             </div>
 
             <form onSubmit={handleSignUp} className="space-y-3 pt-1">
-              <div className="relative">
-                <User className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  autoFocus
-                  placeholder="Tên hiển thị của bạn"
-                  className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
-                />
+              <div className="space-y-1">
+                <div className="relative">
+                  <User className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    autoFocus
+                    placeholder="Tên hiển thị của bạn"
+                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-base sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
+                  />
+                </div>
               </div>
 
-              <div className="relative">
-                <Mail className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="Email"
-                  className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
-                />
+              <div className="space-y-1">
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="Email"
+                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-base sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
+                  />
+                </div>
               </div>
 
-              <div className="relative">
-                <Lock className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  placeholder="Mật khẩu (tối thiểu 6 ký tự)"
-                  className="w-full h-11 pl-10 pr-10 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-xs sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-title p-1 transition-colors cursor-pointer"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+              <div className="space-y-1">
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    placeholder="Mật khẩu (tối thiểu 6 ký tự)"
+                    className="w-full h-11 pl-10 pr-10 rounded-xl border border-border/80 bg-page/50 text-title placeholder:text-muted/70 text-base sm:text-sm font-sans focus:outline-none focus:border-app-accent focus:ring-2 focus:ring-app-accent/15 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-title p-1.5 transition-colors cursor-pointer touch-manipulation"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               {errorMessage && (
@@ -600,7 +609,7 @@ export function AuthModal() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 rounded-xl bg-app-accent hover:bg-accent-hover text-white font-sans text-sm font-semibold flex items-center justify-center gap-2 shadow-xs hover:shadow-sm active:scale-[0.99] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+                className="w-full h-11 rounded-xl bg-[#B8322D] hover:bg-[#9E2A25] text-white font-sans text-sm font-semibold flex items-center justify-center gap-2 shadow-2xs active:scale-[0.98] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed mt-2 touch-manipulation"
               >
                 {isLoading ? (
                   <>
@@ -619,7 +628,7 @@ export function AuthModal() {
                 <button
                   type="button"
                   onClick={() => switchView('login-form')}
-                  className="text-app-accent hover:text-accent-hover font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+                  className="text-app-accent hover:text-accent-hover font-semibold underline underline-offset-2 transition-colors cursor-pointer py-1"
                 >
                   Đăng nhập ngay
                 </button>

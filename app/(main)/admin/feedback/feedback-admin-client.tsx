@@ -287,7 +287,7 @@ export function FeedbackAdminClient({
         </div>
 
         {/* Filter dropdowns */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
           {/* Status select */}
           <select
             value={statusFilter}
@@ -295,7 +295,7 @@ export function FeedbackAdminClient({
               setStatusFilter(e.target.value)
               handleFilter(e.target.value, undefined, undefined)
             }}
-            className="px-3 py-2 text-xs rounded-xl border border-border bg-page text-title focus:outline-none focus:border-app-accent font-serif"
+            className="w-full sm:w-auto min-h-[38px] px-3 py-2 text-xs rounded-xl border border-border bg-page text-title focus:outline-none focus:border-app-accent font-serif touch-manipulation"
           >
             <option value="all">Mọi trạng thái</option>
             <option value="new">Mới ({stats.new})</option>
@@ -312,7 +312,7 @@ export function FeedbackAdminClient({
               setCategoryFilter(e.target.value)
               handleFilter(undefined, e.target.value, undefined)
             }}
-            className="px-3 py-2 text-xs rounded-xl border border-border bg-page text-title focus:outline-none focus:border-app-accent font-serif"
+            className="w-full sm:w-auto min-h-[38px] px-3 py-2 text-xs rounded-xl border border-border bg-page text-title focus:outline-none focus:border-app-accent font-serif touch-manipulation"
           >
             <option value="all">Mọi danh mục</option>
             <option value="bug">Báo lỗi ({stats.bug})</option>
@@ -372,13 +372,13 @@ export function FeedbackAdminClient({
                   </div>
 
                   {/* Status Dropdown */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto pt-1 sm:pt-0">
                     <span className="text-xs text-muted">Đổi trạng thái:</span>
                     <select
                       value={item.status}
                       disabled={isPending}
                       onChange={(e) => handleStatusChange(item.id, e.target.value as FeedbackStatus)}
-                      className="text-xs px-2.5 py-1 rounded-lg border border-border bg-page text-title font-serif focus:outline-none focus:border-app-accent"
+                      className="text-xs min-h-[36px] sm:min-h-0 px-2.5 py-1.5 sm:py-1 rounded-lg border border-border bg-page text-title font-serif focus:outline-none focus:border-app-accent touch-manipulation"
                     >
                       <option value="new">Mới</option>
                       <option value="under_review">Đang xem xét</option>
@@ -435,7 +435,7 @@ export function FeedbackAdminClient({
                 </div>
 
                 {/* Admin Note Section */}
-                <div className="pt-3 border-t border-dashed border-border flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                <div className="pt-3 border-t border-dashed border-border flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   <span className="text-xs font-semibold text-title shrink-0">Ghi chú nội bộ:</span>
                   <input
                     type="text"
@@ -444,7 +444,7 @@ export function FeedbackAdminClient({
                     onChange={(e) =>
                       setEditingNotes((prev) => ({ ...prev, [item.id]: e.target.value }))
                     }
-                    className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-border bg-page text-title focus:outline-none focus:border-app-accent"
+                    className="flex-1 px-3 py-2 text-sm sm:text-xs rounded-lg border border-border bg-page text-title focus:outline-none focus:border-app-accent min-h-[38px] sm:min-h-0"
                   />
                   <Button
                     type="button"
@@ -452,7 +452,7 @@ export function FeedbackAdminClient({
                     variant="outline"
                     disabled={savingNoteId === item.id}
                     onClick={() => handleSaveNote(item.id)}
-                    className="font-serif text-xs border-border shrink-0"
+                    className="font-serif text-xs border-border shrink-0 min-h-[38px] sm:min-h-0 active:scale-95 touch-manipulation"
                   >
                     {savingNoteId === item.id ? 'Đang lưu...' : 'Lưu ghi chú'}
                   </Button>

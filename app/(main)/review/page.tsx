@@ -11,7 +11,83 @@ export default async function ReviewPage() {
   const supabase = await createClient()
   const user = await getCachedAuthUser()
 
-  if (!user) return null
+  if (!user) {
+    // Chế độ xem thử mẫu từ vựng HSK 1 cho khách chưa đăng nhập
+    const { data: sampleVocabs } = await supabase
+      .from('vocabularies')
+      .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
+      .eq('hsk_level', 'HSK 1')
+      .limit(6)
+
+    const formattedSample = (sampleVocabs || []).map((v) => ({
+      id: v.id,
+      hanzi: v.hanzi || '',
+      pinyin: v.pinyin || '',
+      meaning_vi: v.meaning_vi || '',
+      hsk_level: v.hsk_level || 'HSK 1',
+      example_hanzi: v.example_hanzi || '',
+      example_pinyin: v.example_pinyin || '',
+      example_vi: v.example_vi || '',
+      review_interval_days: 1,
+      ease_factor: 2.5,
+    }))
+
+    return (
+      <div className="max-w-4xl mx-auto pb-20 font-serif space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/80 pb-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <span className="p-1.5 rounded-xl bg-app-accent-soft text-app-accent flex-shrink-0">
+                <BrainCircuit className="w-5 h-5" />
+              </span>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl md:text-3xl font-serif text-title font-bold tracking-tight">
+                  Phòng Ôn Tập
+                </h1>
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-sans font-medium bg-app-accent-soft text-app-accent border border-app-accent/20">
+                  Spaced Repetition
+                </span>
+              </div>
+            </div>
+            <p className="text-muted font-serif text-xs md:text-sm pl-0.5 max-w-xl leading-relaxed">
+              Trải nghiệm cơ chế Flashcard thông minh. Đăng nhập để thuật toán tự động theo dõi lịch ôn tập ngắt quãng theo từng ngày cho bạn.
+            </p>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-2">
+            <Link href="/login">
+              <Button variant="primary" className="font-serif text-xs min-h-[40px] px-4 rounded-xl shadow-xs">
+                Đăng nhập để lưu tiến độ
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Guest Banner */}
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 text-xs font-serif text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>
+              Bạn đang ở chế độ xem thử mẫu Flashcard HSK 1. <strong>Đăng nhập</strong> để lưu kho từ vựng cá nhân.
+            </span>
+          </div>
+          <Link href="/login" className="shrink-0 font-bold underline hover:text-amber-700">
+            Đăng nhập ngay
+          </Link>
+        </div>
+
+        {/* Flashcard Reviewer với danh sách mẫu */}
+        {formattedSample.length > 0 ? (
+          <FlashcardReviewer vocabs={formattedSample} totalLearnedCount={formattedSample.length} isGuestMode={true} />
+        ) : (
+          <div className="text-center py-12 px-4 rounded-3xl border border-border bg-card">
+            <p className="text-sm text-muted font-serif">Đang tải thẻ mẫu...</p>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   // Tải danh sách từ vựng đến hạn ôn tập (next_review_at <= now) và tổng số từ đã lưu
   const now = new Date().toISOString()

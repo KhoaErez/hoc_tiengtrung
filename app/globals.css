@@ -74,6 +74,17 @@
   --shadow-sm: 0 1px 2px rgba(60, 40, 20, 0.06), 0 1px 3px rgba(60, 40, 20, 0.04);
   --shadow-md: 0 4px 12px rgba(60, 40, 20, 0.08);
   
+  --color-primary-red: #B8322D;
+  --color-primary-red-hover: #9E2824;
+  --color-cream-bg: #FFF9F3;
+  --color-cream-hover: #F6EDE3;
+  --color-dark-navy: #243047;
+  --color-dark-navy-hover: #1A2436;
+  --color-soft-border: #E9DDD1;
+  --color-soft-border-hover: #DDD0C2;
+  --color-success-green: #24856A;
+  --color-success-green-hover: #1B6A54;
+
   --color-hsk-12: var(--hsk-12);
   --color-hsk-12-text: var(--hsk-12-text);
   --color-hsk-34: var(--hsk-34);
@@ -83,6 +94,18 @@
 }
 
 :root {
+  /* Modern Minimal - Soft Rounded Button Tokens */
+  --primary-red: #B8322D;
+  --primary-red-hover: #9E2824;
+  --cream-bg: #FFF9F3;
+  --cream-hover: #F6EDE3;
+  --dark-navy: #243047;
+  --dark-navy-hover: #1A2436;
+  --soft-border: #E9DDD1;
+  --soft-border-hover: #DDD0C2;
+  --success-green: #24856A;
+  --success-green-hover: #1B6A54;
+
   /* Core Design Tokens */
   --bg-page: #FAF7F2;
   --bg-card: #FFFFFF;
@@ -225,7 +248,19 @@
   }
   html {
     @apply font-serif; /* Mặc định dùng serif cho toàn bộ web */
+    -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* Tối ưu vùng an toàn và cảm ứng di động (Mobile Safe-Area & Touch Target) */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+@utility touch-manipulation {
+  touch-action: manipulation;
 }
 
 /* Ẩn thanh cuộn xấu nhưng vẫn cuộn mượt mà */

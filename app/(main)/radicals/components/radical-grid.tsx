@@ -401,7 +401,7 @@ export default function RadicalGrid() {
               {/* Lưới hiển thị các thẻ bộ thủ thuộc nhóm số nét này */}
               {viewMode === 'detailed' ? (
                 /* Dạng thẻ ngang chi tiết (chuẩn 3 cột như ảnh mẫu) */
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-3.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-3.5">
                   {section.radicals.map((radical) => (
                     <RadicalCard
                       key={radical.id}

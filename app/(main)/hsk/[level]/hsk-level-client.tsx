@@ -110,7 +110,7 @@ export default function HskLevelClient({
       </nav>
 
       {/* 2. Thanh chuyển đổi nhanh giữa các cấp độ HSK 3.0 */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar border-b border-border">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth touch-pan-x border-b border-border">
         {([1, 2, 3, 4, 5, 6, 7] as const).map((num) => {
           const isActive = num === levelInfo.level
           const item = HSK_LEVELS[num]
@@ -119,10 +119,10 @@ export default function HskLevelClient({
             <Link
               key={num}
               href={`/hsk/${num}`}
-              className={`px-4 py-2 rounded-xl text-xs md:text-sm font-serif font-medium whitespace-nowrap transition-all flex items-center gap-2 border ${
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs md:text-sm font-serif font-medium whitespace-nowrap transition-all flex items-center gap-2 border active:scale-[0.98] touch-manipulation cursor-pointer ${
                 isActive
-                  ? 'bg-title text-white border-title shadow-2xs font-bold'
-                  : 'bg-card text-muted hover:text-title hover:bg-page border-border'
+                  ? 'bg-[#B8322D] text-white border-[#B8322D] shadow-2xs font-bold'
+                  : 'bg-card text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3] border-[#E9DDD1]'
               }`}
             >
               <span>{item.name}</span>
@@ -137,26 +137,26 @@ export default function HskLevelClient({
       </div>
 
       {/* 3. Hero Header giới thiệu cấp độ */}
-      <div className="relative rounded-2xl border border-border bg-card p-6 md:p-8 overflow-hidden shadow-2xs">
+      <div className="relative rounded-2xl border border-border bg-card p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xs">
         {/* Viền màu trên cùng */}
         <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${levelInfo.color.progressFrom} ${levelInfo.color.progressTo}`} />
 
-        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="flex items-center gap-3">
-              <span className={`px-3 py-1 rounded-xl text-sm font-serif font-bold ${levelInfo.color.badgeBg}`}>
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 sm:gap-6">
+          <div className="space-y-2.5 sm:space-y-3 max-w-2xl">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className={`px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-xl text-xs sm:text-sm font-serif font-bold ${levelInfo.color.badgeBg}`}>
                 {levelInfo.name}
               </span>
-              <span className="text-xs font-serif text-muted px-2.5 py-0.5 rounded-md bg-page border border-border">
+              <span className="text-xs font-serif text-muted px-2 py-0.5 rounded-md bg-page border border-border">
                 {levelInfo.stage}
               </span>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-title">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-title">
               {levelInfo.title}
             </h1>
 
-            <p className="text-sm font-serif text-body leading-relaxed">
+            <p className="text-xs sm:text-sm font-serif text-body leading-relaxed">
               {levelInfo.description}
             </p>
             <p className="text-xs font-serif text-muted italic">
@@ -165,41 +165,41 @@ export default function HskLevelClient({
           </div>
 
           {/* Hộp hành động nhanh (Luyện gõ / Ôn tập) */}
-          <div className="flex sm:flex-col gap-2.5 flex-shrink-0">
-            <Link href="/typing">
-              <Button variant="outline" size="sm" className="w-full font-serif text-xs gap-2 rounded-xl border-border hover:border-jade/50 hover:bg-jade/5 text-title">
-                <Keyboard className="w-4 h-4 text-jade" />
-                <span>Luyện gõ Pinyin</span>
+          <div className="grid grid-cols-2 sm:flex sm:flex-col gap-2 sm:gap-2.5 shrink-0 w-full sm:w-auto">
+            <Link href="/typing" className="w-full">
+              <Button variant="outline" size="sm" className="w-full font-serif text-xs gap-1.5 sm:gap-2 border-[#E9DDD1] hover:bg-[#FFF9F3] text-title min-h-[44px] sm:min-h-[38px] cursor-pointer">
+                <Keyboard className="w-4 h-4 text-jade shrink-0" />
+                <span className="truncate">Luyện gõ</span>
               </Button>
             </Link>
-            <Link href="/review">
-              <Button size="sm" className="w-full font-serif text-xs gap-2 rounded-xl bg-app-accent hover:bg-accent-hover text-white shadow-2xs">
-                <BrainCircuit className="w-4 h-4" />
-                <span>Ôn tập từ vựng</span>
+            <Link href="/review" className="w-full">
+              <Button variant="primary" size="sm" className="w-full font-serif text-xs gap-1.5 sm:gap-2 shadow-2xs min-h-[44px] sm:min-h-[38px] cursor-pointer">
+                <BrainCircuit className="w-4 h-4 shrink-0" />
+                <span className="truncate">Ôn tập từ</span>
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Thống kê tiến độ */}
-        <div className="mt-6 pt-6 border-t border-border/80 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-3 rounded-xl bg-page/70 border border-border/60">
+        <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-border/80 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-page/70 border border-border/60">
             <p className="text-xs text-muted font-serif">Tổng bài học</p>
-            <p className="text-xl font-serif font-bold text-title mt-0.5">{stats.totalLessons} bài</p>
+            <p className="text-base sm:text-xl font-serif font-bold text-title mt-0.5">{stats.totalLessons} bài</p>
           </div>
-          <div className="p-3 rounded-xl bg-page/70 border border-border/60">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-page/70 border border-border/60">
             <p className="text-xs text-muted font-serif">Mục tiêu từ vựng</p>
-            <p className="text-xl font-serif font-bold text-app-accent mt-0.5">{stats.targetVocab} từ</p>
+            <p className="text-base sm:text-xl font-serif font-bold text-app-accent mt-0.5">{stats.targetVocab} từ</p>
           </div>
-          <div className="p-3 rounded-xl bg-page/70 border border-border/60">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-page/70 border border-border/60">
             <p className="text-xs text-muted font-serif">Từ vựng đã học</p>
-            <p className="text-xl font-serif font-bold text-jade mt-0.5">
+            <p className="text-base sm:text-xl font-serif font-bold text-jade mt-0.5">
               {isLoggedIn ? `${stats.totalLearnedVocabs} (${vocabPercent}%)` : '---'}
             </p>
           </div>
-          <div className="p-3 rounded-xl bg-page/70 border border-border/60">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-page/70 border border-border/60">
             <p className="text-xs text-muted font-serif">Bài hoàn thành</p>
-            <p className="text-xl font-serif font-bold text-gold mt-0.5">
+            <p className="text-base sm:text-xl font-serif font-bold text-gold mt-0.5">
               {isLoggedIn ? `${stats.completedLessons}/${stats.totalLessons}` : '---'}
             </p>
           </div>
@@ -255,27 +255,27 @@ export default function HskLevelClient({
         {/* Lọc trạng thái & Sắp xếp */}
         <div className="flex flex-wrap items-center gap-2">
           {isLoggedIn && (
-            <div className="flex items-center bg-card border border-border rounded-xl p-1 text-xs font-serif">
+            <div className="flex items-center bg-card border border-[#E9DDD1] rounded-2xl p-1 text-xs font-serif shadow-2xs">
               <button
                 onClick={() => setStatusFilter('all')}
-                className={`px-3 py-1 rounded-lg transition-colors ${
-                  statusFilter === 'all' ? 'bg-title text-white font-bold' : 'text-muted hover:text-title'
+                className={`px-3 py-1.5 rounded-xl transition-colors cursor-pointer active:scale-[0.98] touch-manipulation ${
+                  statusFilter === 'all' ? 'bg-[#243047] text-white font-bold' : 'text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
                 }`}
               >
                 Tất cả ({lessons.length})
               </button>
               <button
                 onClick={() => setStatusFilter('completed')}
-                className={`px-3 py-1 rounded-lg transition-colors ${
-                  statusFilter === 'completed' ? 'bg-title text-white font-bold' : 'text-muted hover:text-title'
+                className={`px-3 py-1.5 rounded-xl transition-colors cursor-pointer active:scale-[0.98] touch-manipulation ${
+                  statusFilter === 'completed' ? 'bg-[#24856A] text-white font-bold' : 'text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
                 }`}
               >
                 Đã học ({stats.completedLessons})
               </button>
               <button
                 onClick={() => setStatusFilter('not_started')}
-                className={`px-3 py-1 rounded-lg transition-colors ${
-                  statusFilter === 'not_started' ? 'bg-title text-white font-bold' : 'text-muted hover:text-title'
+                className={`px-3 py-1.5 rounded-xl transition-colors cursor-pointer active:scale-[0.98] touch-manipulation ${
+                  statusFilter === 'not_started' ? 'bg-[#B8322D] text-white font-bold' : 'text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
                 }`}
               >
                 Chưa học ({lessons.length - stats.completedLessons})
@@ -314,7 +314,7 @@ export default function HskLevelClient({
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
           {filteredLessons.map((lesson) => {
             const isFinished = lesson.is_completed
             const inProgress = lesson.learned_vocab_count > 0 && !isFinished
@@ -323,9 +323,9 @@ export default function HskLevelClient({
               <Link
                 key={lesson.id}
                 href={`/lessons/${lesson.id}`}
-                className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-app-accent/50 hover:shadow-md transition-all duration-200"
+                className="group flex flex-col justify-between p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:border-app-accent/50 hover:shadow-md active:scale-[0.99] transition-all duration-200 touch-manipulation"
               >
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   {/* Badge số bài & Trạng thái */}
                   <div className="flex items-center justify-between">
                     <span className="px-2.5 py-1 rounded-lg bg-page border border-border text-xs font-serif font-bold text-title">
@@ -354,7 +354,7 @@ export default function HskLevelClient({
 
                   {/* Tiêu đề bài học */}
                   <div>
-                    <h3 className="font-serif font-bold text-lg text-title group-hover:text-app-accent transition-colors line-clamp-1">
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-title group-hover:text-app-accent transition-colors line-clamp-1">
                       {lesson.title}
                     </h3>
                     {lesson.subtitle && (
@@ -366,7 +366,7 @@ export default function HskLevelClient({
                 </div>
 
                 {/* Footer thẻ bài học */}
-                <div className="pt-4 mt-4 border-t border-border/70 flex items-center justify-between">
+                <div className="pt-3.5 sm:pt-4 mt-3.5 sm:mt-4 border-t border-border/70 flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs text-muted font-serif">
                     <BookOpen className="w-3.5 h-3.5 text-app-accent" />
                     <span><strong>{lesson.vocab_count}</strong> từ vựng</span>

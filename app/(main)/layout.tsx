@@ -1,7 +1,7 @@
 import { ReactNode, Suspense } from 'react'
 import Link from 'next/link'
 import { LogOut, ShieldCheck } from 'lucide-react'
-import { MobileHeader, MobileNav } from '@/components/dashboard/mobile-nav'
+import { MobileHeader, MobileNav, MobileNavProvider } from '@/components/dashboard/mobile-nav'
 import { UserNav } from '@/components/dashboard/user-nav'
 import { logout } from '@/app/auth/actions'
 import { SidebarNav } from '@/components/dashboard/sidebar-nav'
@@ -23,7 +23,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <AuthModalProvider initialUser={user}>
       <AdminNotificationProvider adminId={isAdmin ? user?.id : null}>
-        <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-clip">
+        <MobileNavProvider>
+          <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-clip">
         {/* Notebook Background Pattern - Self-hosted for 0ms network latency */}
         <div className="fixed inset-0 bg-[url('/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply z-0" />
         
@@ -98,7 +99,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         {/* Main Content Area - Cách lề md:ml-64 để vừa vặn với Fixed Sidebar */}
         <div className="flex-1 md:ml-64 flex flex-col min-h-screen min-w-0 z-10">
           {/* Mobile Header */}
-          <MobileHeader isLoggedIn={!!user} isAdmin={isAdmin} adminId={user?.id} />
+          <MobileHeader 
+            isLoggedIn={!!user} 
+            isAdmin={isAdmin} 
+            adminId={user?.id}
+            user={user}
+            profile={profile}
+          />
 
           {/* Desktop Header - Cố định ở đầu trang (Fixed Header), đồng bộ với fixed sidebar */}
           <header className="hidden md:flex h-14 border-b border-border/60 bg-page/85 backdrop-blur-md items-center justify-between px-6 sm:px-8 fixed top-0 right-0 left-0 md:left-64 z-20">
@@ -137,18 +144,25 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           {/* Spacer bù đắp chiều cao h-14 (56px) cho Fixed Header trên Desktop & Mobile */}
           <div className="h-14 flex-shrink-0" aria-hidden="true" />
 
-          {/* Page Content */}
-          <main className="flex-1 p-4 md:p-8 lg:p-10 min-w-0 pb-20 md:pb-12">
+          {/* Page Content: Tăng pb-28 trên mobile để đảm bảo nội dung không bị che khuất bởi Bottom Bar */}
+          <main className="flex-1 p-4 md:p-8 lg:p-10 min-w-0 pb-28 md:pb-12">
             {children}
           </main>
         </div>
         
-        {/* Mobile Bottom Navigation */}
-        <MobileNav isLoggedIn={!!user} />
+        {/* Mobile Bottom Navigation & Drawer */}
+        <MobileNav 
+          isLoggedIn={!!user} 
+          isAdmin={isAdmin}
+          user={user}
+          profile={profile}
+          initialVocabCounts={vocabCountsRes.counts}
+        />
 
         {/* Global Authentication Modal (Luồng 1 & Luồng 2) */}
         <AuthModal />
       </div>
+      </MobileNavProvider>
       </AdminNotificationProvider>
     </AuthModalProvider>
   )

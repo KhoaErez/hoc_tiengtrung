@@ -309,7 +309,7 @@ export default function SystemLessonReader({
                 setShowAnswer(false)
                 setUnlearnedInSession([])
               }}
-              className="w-full sm:w-auto font-serif text-xs h-10 px-5 rounded-xl gap-2 border-border hover:bg-black/5 cursor-pointer"
+              className="w-full sm:w-auto font-serif text-xs min-h-[44px] px-5 gap-2 border-[#E9DDD1] hover:bg-[#FFF9F3] cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Học lại bài này</span>
@@ -320,8 +320,8 @@ export default function SystemLessonReader({
               className="w-full sm:w-auto"
             >
               <Button
-                variant="outline"
-                className="w-full sm:w-auto font-serif text-xs h-10 px-4 rounded-xl gap-2 border-border hover:bg-page cursor-pointer"
+                variant="secondary"
+                className="w-full sm:w-auto font-serif text-xs min-h-[44px] px-4 gap-2 cursor-pointer"
               >
                 <Keyboard className="w-3.5 h-3.5 text-app-accent" />
                 <span>Luyện gõ câu ví dụ vừa học</span>
@@ -330,15 +330,16 @@ export default function SystemLessonReader({
 
             {nextLesson ? (
               <Link href={`/lessons/${nextLesson.id}`} className="w-full sm:w-auto">
-                <Button className="w-full font-serif bg-title hover:bg-[#2A3250] text-white text-xs h-10 px-5 rounded-xl gap-2 shadow-2xs cursor-pointer">
+                <Button variant="tertiary" className="w-full sm:w-auto font-serif text-xs min-h-[44px] px-5 gap-2 cursor-pointer">
                   <span>Sang {nextLesson.title}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </Link>
             ) : (
               <Button
+                variant="primary"
                 onClick={() => setIsLearning(false)}
-                className="w-full sm:w-auto font-serif bg-app-accent hover:bg-accent-hover text-white text-xs h-10 px-5 rounded-xl gap-2 shadow-2xs cursor-pointer"
+                className="w-full sm:w-auto font-serif text-xs min-h-[44px] px-5 gap-2 cursor-pointer"
               >
                 <span>Xem danh sách từ</span>
               </Button>
@@ -395,7 +396,7 @@ export default function SystemLessonReader({
                 speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
               }
             }}
-            className={`transform-style-3d transition-transform duration-300 ease-out relative w-full min-h-[380px] sm:min-h-[420px] cursor-pointer ${
+            className={`transform-style-3d transition-transform duration-300 ease-out relative w-full min-h-[340px] sm:min-h-[420px] cursor-pointer touch-pan-y ${
               showAnswer ? 'rotate-y-180' : ''
             }`}
             role="button"
@@ -403,7 +404,7 @@ export default function SystemLessonReader({
             aria-label={showAnswer ? 'Mặt sau thẻ từ vựng' : 'Mặt trước thẻ từ vựng, chạm để lật thẻ'}
           >
             {/* MẶT TRƯỚC FLASHCARD */}
-            <div className="backface-hidden absolute inset-0 w-full h-full rounded-3xl bg-card border border-border/80 p-6 sm:p-8 flex flex-col justify-between items-center shadow-xs hover:border-app-accent/40 transition-colors overflow-hidden">
+            <div className="backface-hidden absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl bg-card border border-border/80 p-4 sm:p-6 md:p-8 flex flex-col justify-between items-center shadow-xs hover:border-app-accent/40 transition-colors overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-border/60" />
 
               <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
@@ -435,7 +436,7 @@ export default function SystemLessonReader({
               <div className="pt-2 text-center">
                 <p className="text-xs text-muted/80 font-serif flex items-center justify-center gap-1.5">
                   <span>Chạm vào thẻ hoặc nhấn</span>
-                  <kbd className="px-1.5 py-0.5 bg-page border border-border rounded text-[10px] font-mono shadow-2xs">
+                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-page border border-border rounded text-[10px] font-mono shadow-2xs">
                     Space
                   </kbd>
                   <span>để lật thẻ</span>
@@ -444,7 +445,7 @@ export default function SystemLessonReader({
             </div>
 
             {/* MẶT SAU FLASHCARD */}
-            <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-3xl bg-card border border-border/80 p-6 sm:p-8 flex flex-col justify-between items-center shadow-xs overflow-y-auto no-scrollbar">
+            <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-2xl sm:rounded-3xl bg-card border border-border/80 p-4 sm:p-6 md:p-8 flex flex-col justify-between items-center shadow-xs overflow-y-auto no-scrollbar">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
 
               <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
@@ -519,7 +520,8 @@ export default function SystemLessonReader({
         <div className="pt-2">
           {!showAnswer ? (
             <Button
-              className="w-full h-12 sm:h-13 text-sm sm:text-base font-serif bg-app-accent hover:bg-accent-hover text-white rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+              variant="primary"
+              className="w-full min-h-[50px] text-sm sm:text-base font-serif rounded-2xl shadow-2xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
               onClick={() => {
                 setShowAnswer(true)
                 speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
@@ -535,7 +537,7 @@ export default function SystemLessonReader({
               <Button
                 variant="outline"
                 disabled={isLearnPending}
-                className="flex-1 h-12 sm:h-13 text-xs sm:text-sm font-serif border-red-200 bg-red-50/70 hover:bg-red-100/80 text-red-700 rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.99] disabled:opacity-60"
+                className="flex-1 min-h-[50px] text-xs sm:text-sm font-serif border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none disabled:opacity-60"
                 onClick={() => handleLearnAnswer(false)}
               >
                 {pendingLearnAction === 'unlearned' ? (
@@ -555,8 +557,9 @@ export default function SystemLessonReader({
               </Button>
 
               <Button
+                variant="success"
                 disabled={isLearnPending}
-                className="flex-1 h-12 sm:h-13 text-xs sm:text-sm font-serif bg-jade hover:bg-jade/90 text-white rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.99] disabled:opacity-60"
+                className="flex-1 min-h-[50px] text-xs sm:text-sm font-serif rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none disabled:opacity-60"
                 onClick={() => handleLearnAnswer(true)}
               >
                 {pendingLearnAction === 'learned' ? (
@@ -587,7 +590,7 @@ export default function SystemLessonReader({
   return (
     <div className="max-w-4xl mx-auto space-y-6 font-serif px-4 pb-20">
       {/* 1. Header Card */}
-      <div className="bg-card border border-border/80 rounded-2xl p-6 md:p-8 shadow-2xs space-y-6">
+      <div className="bg-card border border-border/80 rounded-2xl p-4 sm:p-6 md:p-8 shadow-2xs space-y-5 sm:space-y-6">
         {/* Top Breadcrumb & Next/Prev Switcher */}
         <div className="flex items-center justify-between pb-4 border-b border-border/60 text-xs">
           <Link
@@ -603,7 +606,7 @@ export default function SystemLessonReader({
             {prevLesson ? (
               <Link
                 href={`/lessons/${prevLesson.id}`}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border hover:border-app-accent/40 text-body hover:text-app-accent transition-all text-xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 sm:py-1 rounded-lg border border-border hover:border-app-accent/40 text-body hover:text-app-accent transition-all text-xs active:scale-95 touch-manipulation"
                 title={prevLesson.title}
               >
                 <ArrowLeft className="w-3 h-3" />
@@ -612,14 +615,14 @@ export default function SystemLessonReader({
               </Link>
             ) : (
               <span className="px-2.5 py-1 text-muted/40 text-xs select-none">
-                Bài đầu tiên
+                Bài đầu
               </span>
             )}
 
             {nextLesson ? (
               <Link
                 href={`/lessons/${nextLesson.id}`}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-title hover:bg-[#2A3250] text-white transition-all text-xs shadow-2xs"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 sm:py-1 rounded-lg bg-title hover:bg-[#2A3250] text-white transition-all text-xs shadow-2xs active:scale-95 touch-manipulation"
                 title={nextLesson.title}
               >
                 <span className="hidden sm:inline">Bài {nextLesson.lesson_number}</span>
@@ -628,7 +631,7 @@ export default function SystemLessonReader({
               </Link>
             ) : (
               <span className="px-2.5 py-1 text-muted/40 text-xs select-none">
-                Bài cuối cùng
+                Bài cuối
               </span>
             )}
           </div>
@@ -673,12 +676,12 @@ export default function SystemLessonReader({
             )}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-title tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-title tracking-tight">
             {lesson.title}
           </h1>
 
           {lesson.subtitle && (
-            <p className="text-sm md:text-base text-muted font-sans leading-relaxed">
+            <p className="text-xs sm:text-sm md:text-base text-muted font-sans leading-relaxed">
               {lesson.subtitle}
             </p>
           )}
@@ -686,7 +689,7 @@ export default function SystemLessonReader({
 
         {/* Dual Progress Matrix & CTA */}
         <div className="pt-4 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1.5 flex-1 max-w-sm">
+          <div className="space-y-1.5 flex-1 max-w-sm w-full">
             <div className="flex justify-between items-baseline text-xs">
               <span className="font-semibold text-muted uppercase tracking-wider text-[11px]">
                 Tiến độ bài học
@@ -705,13 +708,14 @@ export default function SystemLessonReader({
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap self-start sm:self-auto">
+          <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
             <Link
               href={`/typing?mode=hsk&hskLevel=${lesson.hsk_level ? lesson.hsk_level.replace('HSK', '').trim() : 1}&lessonId=${lesson.id}`}
+              className="w-full sm:w-auto"
             >
               <Button
                 variant="outline"
-                className="font-serif border-border hover:bg-page text-title rounded-xl px-4 h-10 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer"
+                className="w-full sm:w-auto font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] text-title min-h-[44px] px-4 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer active:scale-[0.98] touch-manipulation"
                 title="Luyện đánh máy IME các câu ví dụ của bài học này"
               >
                 <Keyboard className="w-4 h-4 text-app-accent" />
@@ -720,13 +724,14 @@ export default function SystemLessonReader({
             </Link>
 
             <Button
+              variant="primary"
               onClick={() => {
                 setLearningIndex(0)
                 setShowAnswer(false)
                 setUnlearnedInSession([])
                 setIsLearning(true)
               }}
-              className="font-serif bg-app-accent hover:bg-app-accent/90 text-white rounded-xl px-5 h-10 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer"
+              className="w-full sm:w-auto font-serif min-h-[44px] px-5 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer active:scale-[0.98] touch-manipulation"
             >
               <PlayCircle className="w-4 h-4" />
               <span>Học bài này (Flashcard)</span>
@@ -881,26 +886,26 @@ export default function SystemLessonReader({
                   </div>
 
                   {/* Right Column: Interactive Learned Status Toggle */}
-                  <div className="flex items-center gap-2 self-end md:self-start flex-shrink-0 pt-1">
+                  <div className="flex items-center gap-2 self-stretch sm:self-start justify-end sm:justify-start shrink-0 pt-1">
                     <button
                       type="button"
                       onClick={() => handleToggleLearned(vocab.id)}
                       disabled={isPendingToggle}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-sans font-medium transition-all cursor-pointer select-none active:scale-95 ${
+                      className={`inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-sans font-medium transition-all cursor-pointer select-none min-h-[40px] sm:min-h-[38px] active:scale-[0.98] touch-manipulation ${
                         isLearned
                           ? 'bg-emerald-50 text-jade border border-jade/40 hover:bg-emerald-100/60 shadow-2xs'
-                          : 'bg-page text-muted border border-border hover:border-app-accent/40 hover:text-title'
+                          : 'bg-page text-muted border border-[#E9DDD1] hover:border-[#D8C7B8] hover:text-title hover:bg-[#FFF9F3]'
                       }`}
                       title={isLearned ? 'Nhấn để chuyển sang Chưa thuộc' : 'Nhấn để đánh dấu Đã thuộc'}
                     >
                       {isLearned ? (
                         <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-jade" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-jade shrink-0" />
                           <span>Đã thuộc</span>
                         </>
                       ) : (
                         <>
-                          <span className="w-2 h-2 rounded-full border border-muted" />
+                          <span className="w-2 h-2 rounded-full border border-muted shrink-0" />
                           <span>Chưa thuộc</span>
                         </>
                       )}

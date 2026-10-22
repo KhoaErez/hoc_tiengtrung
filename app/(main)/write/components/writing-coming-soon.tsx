@@ -77,13 +77,13 @@ export function WritingComingSoon() {
         {/* Cụm nút hành động điều hướng */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
           <Link href="/" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl py-2.5 px-6 shadow-xs text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
+            <Button variant="tertiary" className="w-full sm:w-auto font-serif min-h-[44px] px-6 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
               <ArrowLeft className="w-4 h-4" />
               <span>Quay về trang chủ</span>
             </Button>
           </Link>
           <Link href="/typing" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto font-serif border-border hover:bg-black/5 text-title rounded-xl py-2.5 px-5 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
+            <Button variant="outline" className="w-full sm:w-auto font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] text-title min-h-[44px] px-5 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
               <Keyboard className="w-4 h-4 text-app-accent" />
               <span>Luyện đánh máy Pinyin</span>
             </Button>

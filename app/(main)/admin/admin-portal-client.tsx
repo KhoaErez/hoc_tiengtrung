@@ -421,9 +421,9 @@ export function AdminPortalClient({
             <Link href="/admin/feedback">
               <Button
                 variant="outline"
-                className="font-serif text-xs h-9 gap-1.5 border-border hover:border-app-accent hover:text-app-accent"
+                className="font-serif text-xs min-h-[40px] gap-1.5 border-[#E9DDD1] hover:bg-[#FFF9F3] text-title cursor-pointer"
               >
-                <MessageSquareWarning className="w-3.5 h-3.5" />
+                <MessageSquareWarning className="w-3.5 h-3.5 text-app-accent" />
                 <span>Hộp thư góp ý & Báo lỗi</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
@@ -711,8 +711,150 @@ export function AdminPortalClient({
           </div>
         </div>
 
-        {/* Table Content */}
-        <div className="overflow-x-auto relative">
+        {/* Mobile Card List (md:hidden) */}
+        <div className={`md:hidden divide-y divide-border transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+          {displayedUsers.length === 0 ? (
+            <div className="py-12 px-4 text-center text-muted">
+              <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="font-semibold text-title">Không tìm thấy tài khoản nào phù hợp.</p>
+              {debouncedSearch ? (
+                <p className="text-xs text-muted mt-1 font-sans">
+                  Không có kết quả nào khớp với từ khóa &ldquo;{debouncedSearch}&rdquo;.
+                </p>
+              ) : roleFilter !== 'all' ? (
+                <p className="text-xs text-muted mt-1 font-sans">
+                  Không có tài khoản nào thuộc bộ lọc đang chọn trên trang này.
+                </p>
+              ) : null}
+            </div>
+          ) : (
+            displayedUsers.map((u) => {
+              const isCurrent = u.id === currentUserId || (currentUserEmail && u.email.toLowerCase() === currentUserEmail.toLowerCase())
+              const initial = (u.display_name || u.email)?.[0]?.toUpperCase() || 'U'
+              const isOnline = onlineUserIds.has(u.id)
+
+              return (
+                <div
+                  key={u.id}
+                  className={`p-4 space-y-3 transition-colors ${
+                    isCurrent ? 'bg-app-accent-soft/20' : 'bg-card'
+                  }`}
+                >
+                  {/* Top: Avatar, Name, Email, Role badge */}
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="relative flex-shrink-0">
+                        {u.avatar_url ? (
+                          <img
+                            src={u.avatar_url}
+                            alt={u.display_name || u.email}
+                            className="w-9 h-9 rounded-full object-cover border border-border"
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full bg-title text-white flex items-center justify-center font-bold text-xs">
+                            {initial}
+                          </div>
+                        )}
+                        {isOnline && (
+                          <span
+                            className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-card rounded-full"
+                            title="Đang online"
+                          />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-bold text-title text-sm truncate">
+                            {u.display_name || 'Chưa đặt tên'}
+                          </p>
+                          {isCurrent && (
+                            <span className="text-[10px] text-app-accent font-sans font-medium bg-app-accent-soft px-1.5 py-0.5 rounded">
+                              Bạn
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted font-sans truncate">
+                          {u.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0">
+                      {u.is_admin ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-app-accent-soft text-app-accent border border-app-accent/30">
+                          <ShieldCheck className="w-3 h-3" />
+                          Admin
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-sans text-muted bg-page border border-border">
+                          <Users className="w-3 h-3" />
+                          Học viên
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mid: Online Status & Created Date */}
+                  <div className="flex items-center justify-between text-xs font-sans text-muted pt-1">
+                    <div>
+                      {isOnline ? (
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span>Đang online</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-muted text-xs">
+                          <Clock className="w-3 h-3 text-muted/60" />
+                          <span>{formatRelativeTime(u.last_seen_at)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-muted">
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : '—'}
+                    </span>
+                  </div>
+
+                  {/* Bottom: Action */}
+                  <div className="pt-2 border-t border-border/50">
+                    {isCurrent ? (
+                      <span className="text-[11px] text-muted italic block text-center py-1">
+                        Không thể tự hạ quyền của chính mình
+                      </span>
+                    ) : u.is_admin ? (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={isPending}
+                        onClick={() => handleToggleRole(u)}
+                        className="w-full font-serif text-xs min-h-[44px] gap-1.5 cursor-pointer"
+                      >
+                        <UserX className="w-3.5 h-3.5" />
+                        <span>Hạ xuống Học viên</span>
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        disabled={isPending}
+                        onClick={() => handleToggleRole(u)}
+                        className="w-full font-serif text-xs min-h-[44px] gap-1.5 cursor-pointer"
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Cấp quyền Admin</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+
+        {/* Desktop Table Content (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto relative">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-border bg-page/40 text-muted uppercase tracking-wider font-semibold font-sans">
@@ -841,10 +983,10 @@ export function AdminPortalClient({
                         ) : u.is_admin ? (
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="destructive"
                             disabled={isPending}
                             onClick={() => handleToggleRole(u)}
-                            className="font-serif text-xs h-7 px-2.5 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 gap-1"
+                            className="font-serif text-xs min-h-[34px] px-3 gap-1 cursor-pointer"
                           >
                             <UserX className="w-3 h-3" />
                             <span>Hạ xuống Học viên</span>
@@ -852,9 +994,10 @@ export function AdminPortalClient({
                         ) : (
                           <Button
                             size="sm"
+                            variant="primary"
                             disabled={isPending}
                             onClick={() => handleToggleRole(u)}
-                            className="font-serif text-xs h-7 px-2.5 bg-title hover:bg-app-accent text-white gap-1"
+                            className="font-serif text-xs min-h-[34px] px-3 gap-1 cursor-pointer"
                           >
                             <UserCheck className="w-3 h-3" />
                             <span>Cấp quyền Admin</span>
@@ -908,7 +1051,7 @@ export function AdminPortalClient({
                 size="sm"
                 disabled={page <= 1 || isPending}
                 onClick={() => handlePageChange(page - 1)}
-                className="h-8 px-2.5 font-serif text-xs gap-1 border-border text-title hover:border-app-accent disabled:opacity-40"
+                className="h-8 min-h-[36px] sm:min-h-0 px-2.5 font-serif text-xs gap-1 border-border text-title hover:border-app-accent disabled:opacity-40 active:scale-95 touch-manipulation"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Trang trước</span>
@@ -931,7 +1074,7 @@ export function AdminPortalClient({
                       type="button"
                       disabled={isPending}
                       onClick={() => handlePageChange(p as number)}
-                      className={`h-8 min-w-[32px] px-2 rounded-lg font-serif text-xs transition-colors ${
+                      className={`h-8 min-h-[36px] sm:min-h-0 min-w-[34px] px-2 rounded-lg font-serif text-xs transition-colors active:scale-95 touch-manipulation ${
                         isActive
                           ? 'bg-app-accent text-white font-bold shadow-2xs'
                           : 'bg-card hover:bg-page text-title border border-border hover:border-app-accent'
@@ -950,7 +1093,7 @@ export function AdminPortalClient({
                 size="sm"
                 disabled={page >= totalPages || isPending}
                 onClick={() => handlePageChange(page + 1)}
-                className="h-8 px-2.5 font-serif text-xs gap-1 border-border text-title hover:border-app-accent disabled:opacity-40"
+                className="h-8 min-h-[36px] sm:min-h-0 px-2.5 font-serif text-xs gap-1 border-border text-title hover:border-app-accent disabled:opacity-40 active:scale-95 touch-manipulation"
               >
                 <span className="hidden sm:inline">Trang sau</span>
                 <ChevronRight className="w-3.5 h-3.5" />

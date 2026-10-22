@@ -139,16 +139,17 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
         </Link>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button 
-            variant={isEditMode ? "default" : "outline"} 
-            className={`font-serif rounded-sm cursor-pointer flex-auto sm:flex-none min-w-[80px] ${isEditMode ? 'bg-red-700 hover:bg-red-800 text-white border-red-700' : 'border-slate-300'}`}
+            variant={isEditMode ? "primary" : "outline"} 
+            className={`font-serif cursor-pointer flex-auto sm:flex-none min-w-[80px] min-h-[44px] ${isEditMode ? '' : 'border-[#E9DDD1] hover:bg-[#FFF9F3]'}`}
             onClick={() => setIsEditMode(!isEditMode)}
           >
             <Edit className="h-4 w-4 mr-2 shrink-0" /> {isEditMode ? "Xong" : "Sửa"}
           </Button>
           <Button 
+            variant="primary"
             disabled={isAnalyzing} 
             onClick={handleAiAnalysis} 
-            className="font-serif group cursor-pointer flex-auto sm:flex-none min-w-[140px] sm:min-w-[170px]"
+            className="font-serif group cursor-pointer flex-auto sm:flex-none min-w-[140px] sm:min-w-[170px] min-h-[44px]"
           >
             {isAnalyzing ? (
               <>
@@ -372,11 +373,11 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
               </div>
             </div>
           )}
-          <DialogFooter className="flex-col sm:flex-row sm:justify-between border-t-2 border-slate-100 pt-4 mt-2 gap-2">
-            <Button variant="outline" onClick={() => setSelectedWord(null)} className="font-serif rounded-sm border-slate-300 w-full sm:w-auto">
+          <DialogFooter className="flex-col sm:flex-row sm:justify-between border-t border-[#E9DDD1] pt-4 mt-2 gap-2">
+            <Button variant="outline" onClick={() => setSelectedWord(null)} className="font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] w-full sm:w-auto min-h-[44px] cursor-pointer">
               Đóng
             </Button>
-            <Button onClick={handleSaveSelected} disabled={isSaving || !selectedWord?.vi} className="font-serif w-full sm:w-auto">
+            <Button variant="primary" onClick={handleSaveSelected} disabled={isSaving || !selectedWord?.vi} className="font-serif w-full sm:w-auto min-h-[44px] cursor-pointer">
               {isSaving ? "Đang lưu..." : "Lưu vào Sổ tay"}
             </Button>
           </DialogFooter>
@@ -392,11 +393,11 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
               Bạn có chắc chắn muốn xóa từ vựng này khỏi danh sách ôn tập không?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row mt-4 gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setWordToDeleteIndex(null)} disabled={isUpdatingVocab} className="font-serif rounded-sm cursor-pointer w-full sm:w-auto">
+          <DialogFooter className="flex-col sm:flex-row mt-4 gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setWordToDeleteIndex(null)} disabled={isUpdatingVocab} className="font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] cursor-pointer w-full sm:w-auto min-h-[44px]">
               Hủy bỏ
             </Button>
-            <Button onClick={handleRemoveWord} disabled={isUpdatingVocab} className="font-serif cursor-pointer w-full sm:w-auto">
+            <Button variant="destructive" onClick={handleRemoveWord} disabled={isUpdatingVocab} className="font-serif cursor-pointer w-full sm:w-auto min-h-[44px]">
               {isUpdatingVocab ? "Đang xử lý..." : "Có, xóa ngay"}
             </Button>
           </DialogFooter>

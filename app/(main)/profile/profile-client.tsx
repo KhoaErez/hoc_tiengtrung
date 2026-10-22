@@ -214,7 +214,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
                 type="submit"
                 variant="outline"
                 size="sm"
-                className="font-serif text-xs rounded-xl border-border hover:text-red-600 hover:border-red-300 gap-1.5"
+                className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] hover:text-red-600 hover:border-red-300 gap-1.5 min-h-[38px] cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Đăng xuất</span>
@@ -363,7 +363,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
               </div>
             </div>
             <Link href="/typing">
-              <Button size="sm" variant="outline" className="text-xs font-serif rounded-xl border-border">
+              <Button size="sm" variant="outline" className="text-xs font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] min-h-[36px] cursor-pointer">
                 Luyện ngay
               </Button>
             </Link>
@@ -410,7 +410,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
               </div>
             </div>
             <Link href="/radicals">
-              <Button size="sm" variant="outline" className="text-xs font-serif rounded-xl border-border">
+              <Button size="sm" variant="outline" className="text-xs font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] min-h-[36px] cursor-pointer">
                 Tra cứu
               </Button>
             </Link>

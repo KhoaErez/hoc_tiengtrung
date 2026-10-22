@@ -41,22 +41,29 @@ type Vocab = {
 interface FlashcardReviewerProps {
   vocabs: Vocab[]
   totalLearnedCount?: number
+  isGuestMode?: boolean
 }
 
 // Hàm tính kích thước chữ Hán linh hoạt theo độ dài ký tự
 function getHanziSizeClass(hanzi: string) {
   const len = hanzi ? hanzi.trim().length : 0
-  if (len <= 2) return 'text-6xl sm:text-7xl md:text-8xl'
-  if (len <= 4) return 'text-5xl sm:text-6xl md:text-7xl'
-  return 'text-4xl sm:text-5xl'
+  if (len <= 2) return 'text-5xl sm:text-7xl md:text-8xl'
+  if (len <= 4) return 'text-4xl sm:text-5xl md:text-6xl'
+  return 'text-2xl sm:text-3xl md:text-4xl'
 }
 
-export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: FlashcardReviewerProps) {
+export default function FlashcardReviewer({ 
+  vocabs, 
+  totalLearnedCount = 0,
+  isGuestMode = false 
+}: FlashcardReviewerProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [rememberedCount, setRememberedCount] = useState(0)
   const [forgotCount, setForgotCount] = useState(0)
   const cardRef = useRef<HTMLDivElement>(null)
+  const touchStartXRef = useRef<number | null>(null)
+  const touchStartYRef = useRef<number | null>(null)
 
   const currentVocab = vocabs[currentIndex]
   const isFinished = currentIndex >= vocabs.length
@@ -86,6 +93,11 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
     setShowAnswer(false)
     setCurrentIndex(nextIndex)
 
+    // Nếu ở chế độ xem thử khách, không gọi server action
+    if (isGuestMode) {
+      return
+    }
+
     // 2. Chạy Server Action đồng bộ ngầm phía sau (Background Sync)
     updateReviewStatusAction(
       targetVocab.id,
@@ -108,7 +120,7 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
           toast.error('Mã nguồn vừa được cập nhật. Nhấn F5 để tải lại.', { duration: 4000 })
         }
       })
-  }, [currentVocab, currentIndex, vocabs.length])
+  }, [currentVocab, currentIndex, vocabs.length, isGuestMode])
 
   // Lắng nghe phím tắt: Space để lật, 1: Quên rồi, 2: Đã nhớ
   useEffect(() => {
@@ -140,6 +152,33 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isFinished, showAnswer, handleFlip, handleAnswer])
+
+  // Touch Swipe Gesture (Trượt trái: Chưa nhớ, Trượt phải: Đã nhớ)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX
+    touchStartYRef.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null || touchStartYRef.current === null) return
+    const diffX = e.changedTouches[0].clientX - touchStartXRef.current
+    const diffY = e.changedTouches[0].clientY - touchStartYRef.current
+    touchStartXRef.current = null
+    touchStartYRef.current = null
+
+    // Nếu khoảng cách vuốt ngang > 50px và lớn hơn vuốt dọc
+    if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+      if (showAnswer) {
+        if (diffX > 0) {
+          handleAnswer(true) // Vuốt sang phải -> Đã nhớ
+        } else {
+          handleAnswer(false) // Vuốt sang trái -> Chưa nhớ
+        }
+      } else {
+        handleFlip() // Vuốt để lật thẻ
+      }
+    }
+  }
 
   // ========================================================
   // 1. TRẠNG THÁI HOÀN THÀNH PHIÊN ÔN TẬP
@@ -183,13 +222,13 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
         {/* Các nút hành động tiếp theo */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link href="/topics?q=HSK 1" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto font-serif bg-title hover:bg-[#2A3250] text-white rounded-xl text-xs h-10 px-5 gap-2 shadow-xs cursor-pointer">
+            <Button variant="tertiary" className="w-full sm:w-auto font-serif min-h-[44px] px-5 gap-2 cursor-pointer text-xs">
               <GraduationCap className="w-4 h-4" />
               <span>Học tiếp lộ trình HSK</span>
             </Button>
           </Link>
           <Link href="/" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto font-serif border-border rounded-xl text-xs h-10 px-5 hover:bg-black/5 cursor-pointer">
+            <Button variant="outline" className="w-full sm:w-auto font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] min-h-[44px] px-5 cursor-pointer text-xs">
               <span>Về Trang chủ</span>
             </Button>
           </Link>
@@ -231,13 +270,15 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
       </div>
 
       {/* ======================================================== */}
-      {/* 3. KHỐI FLASHCARD CHÍNH (HIỆU ỨNG 3D FLIP TỰ NHIÊN)       */}
+      {/* 3. KHỐI FLASHCARD CHÍNH (HIỆU ỨNG 3D FLIP TỰ NHIÊN, CSS GRID STACKING) */}
       {/* ======================================================== */}
       <div className="perspective-1000 w-full">
         <div 
           ref={cardRef}
           onClick={handleFlip}
-          className={`transform-style-3d transition-transform duration-300 ease-out relative w-full min-h-[380px] sm:min-h-[420px] cursor-pointer ${
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className={`transform-style-3d transition-transform duration-300 ease-out relative w-full grid grid-cols-1 grid-rows-1 min-h-[380px] sm:min-h-[420px] cursor-pointer touch-pan-y ${
             showAnswer ? 'rotate-y-180' : ''
           }`}
           role="button"
@@ -247,10 +288,12 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
           {/* ---------------------------------------------------- */}
           {/* MẶT TRƯỚC FLASHCARD (CHỮ HÁN NỔI BẬT)                */}
           {/* ---------------------------------------------------- */}
-          <div className="backface-hidden absolute inset-0 w-full h-full rounded-3xl bg-card border border-border/80 p-6 sm:p-8 flex flex-col justify-between items-center shadow-xs hover:border-app-accent/40 transition-colors overflow-hidden">
+          <div className={`col-start-1 row-start-1 w-full rounded-2xl sm:rounded-3xl bg-card border border-border/80 p-5 sm:p-7 md:p-8 flex flex-col justify-between items-center shadow-xs hover:border-app-accent/40 transition-colors [backface-visibility:hidden] relative ${
+            showAnswer ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
+          }`}>
             
             {/* Thanh accent trên cùng */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-border/60" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-border/60 rounded-t-2xl sm:rounded-t-3xl" />
 
             {/* Header thẻ: Huy hiệu thứ tự & Cấp HSK */}
             <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
@@ -269,9 +312,9 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
               </span>
             </div>
 
-            {/* Trọng tâm chữ Hán & Nút phát âm */}
-            <div className="flex-1 flex flex-col items-center justify-center py-4 space-y-4">
-              <div className="flex items-center justify-center gap-3 sm:gap-4">
+            {/* Trọng tâm chữ Hán & Nút phát âm: Căn giữa hoàn hảo cả chiều ngang & dọc */}
+            <div className="flex-1 w-full flex flex-col items-center justify-center py-6 space-y-4">
+              <div className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap text-center">
                 <span className={`font-hanzi font-serif font-bold text-title tracking-wide leading-none ${getHanziSizeClass(currentVocab.hanzi)}`}>
                   {currentVocab.hanzi}
                 </span>
@@ -287,14 +330,10 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
               </div>
             </div>
 
-            {/* Footer thẻ: Gợi ý lật thẻ */}
+            {/* Footer thẻ: Gợi ý thao tác nhẹ nhàng */}
             <div className="pt-2 text-center">
-              <p className="text-xs text-muted/80 font-serif flex items-center justify-center gap-1.5">
-                <span>Chạm vào thẻ hoặc nhấn</span>
-                <kbd className="px-1.5 py-0.5 bg-page border border-border rounded text-[10px] font-mono shadow-2xs">
-                  Space
-                </kbd>
-                <span>để lật thẻ</span>
+              <p className="text-xs text-muted/70 font-serif flex items-center justify-center gap-1.5">
+                <span>Chạm vào thẻ hoặc bấm nút bên dưới để xem đáp án</span>
               </p>
             </div>
           </div>
@@ -302,10 +341,12 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
           {/* ---------------------------------------------------- */}
           {/* MẶT SAU FLASHCARD (PINYIN + NGHĨA + CÂU VÍ DỤ)       */}
           {/* ---------------------------------------------------- */}
-          <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-3xl bg-card border border-border/80 p-6 sm:p-8 flex flex-col justify-between items-center shadow-xs overflow-y-auto no-scrollbar">
+          <div className={`col-start-1 row-start-1 w-full rounded-2xl sm:rounded-3xl bg-card border border-border/80 p-5 sm:p-7 md:p-8 flex flex-col justify-between items-center shadow-xs [backface-visibility:hidden] [transform:rotateY(180deg)] relative ${
+            !showAnswer ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
+          }`}>
             
             {/* Thanh accent màu son trên cùng */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold rounded-t-2xl sm:rounded-t-3xl" />
 
             {/* Header thẻ mặt sau */}
             <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
@@ -325,7 +366,7 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
             </div>
 
             {/* Nội dung chi tiết: Pinyin, Chữ Hán, Nghĩa & Ví dụ */}
-            <div className="flex-1 w-full flex flex-col items-center justify-center py-3 space-y-4 text-center">
+            <div className="flex-1 w-full flex flex-col items-center justify-center py-4 space-y-3.5 text-center">
               
               {/* Pinyin thanh thoát */}
               <p className="text-xl sm:text-2xl font-sans tracking-widest text-app-accent font-semibold">
@@ -334,7 +375,7 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
 
               {/* Chữ Hán to bản kèm nút nghe */}
               <div className="flex items-center justify-center gap-3">
-                <span className="text-4xl sm:text-5xl font-hanzi font-serif font-bold text-title leading-tight">
+                <span className="text-3xl sm:text-4xl font-hanzi font-serif font-bold text-title leading-tight">
                   {currentVocab.hanzi}
                 </span>
                 <div onClick={(e) => e.stopPropagation()}>
@@ -349,15 +390,15 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
               </div>
 
               {/* Nghĩa tiếng Việt đóng khung như triện ấn */}
-              <div className="bg-app-accent-soft/40 border border-app-accent/20 px-6 py-2 rounded-2xl max-w-md mx-auto shadow-2xs">
-                <span className="text-lg sm:text-xl font-serif text-title font-bold">
+              <div className="bg-app-accent-soft/40 border border-app-accent/20 px-5 py-2 rounded-2xl max-w-md mx-auto shadow-2xs">
+                <span className="text-base sm:text-lg font-serif text-title font-bold break-words">
                   {currentVocab.meaning_vi}
                 </span>
               </div>
 
               {/* Câu ví dụ minh họa nếu có */}
               {currentVocab.example_hanzi && (
-                <div className="w-full bg-page border border-border/70 rounded-2xl p-3.5 sm:p-4 max-w-md mx-auto text-center space-y-1">
+                <div className="w-full bg-page/80 border border-border/70 rounded-2xl p-3 sm:p-4 max-w-md mx-auto text-center space-y-1">
                   <p className="text-[11px] font-sans text-muted tracking-wide">
                     {currentVocab.example_pinyin}
                   </p>
@@ -383,7 +424,7 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
             {/* Gợi ý phím tắt đánh giá */}
             <div className="pt-1 text-center">
               <p className="text-[11px] text-muted/70 font-serif">
-                Nhấn phím 1 (Chưa nhớ) hoặc 2 (Đã nhớ) để qua thẻ tiếp theo
+                Chọn mức độ nhớ bên dưới để chuyển sang từ tiếp theo
               </p>
             </div>
           </div>
@@ -393,12 +434,13 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
       {/* ======================================================== */}
       {/* 4. CỤM NÚT ĐIỀU HƯỚNG VÀ ĐÁNH GIÁ MỨC ĐỘ GHI NHỚ          */}
       {/* ======================================================== */}
-      <div className="pt-2">
+      <div className="pt-3 sm:pt-4">
         {!showAnswer ? (
           /* Nút lật thẻ khi đang ở mặt trước */
           <Button 
+            variant="primary"
             onClick={handleFlip}
-            className="w-full h-12 sm:h-13 text-sm sm:text-base font-serif bg-app-accent hover:bg-accent-hover text-white rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+            className="w-full min-h-[50px] text-sm sm:text-base font-serif rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
           >
             <span>Lật thẻ xem đáp án</span>
             <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
@@ -407,13 +449,13 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
           </Button>
         ) : (
           /* Hai nút đánh giá khi đã xem mặt sau */
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3 w-full">
             <Button 
               variant="outline"
               onClick={() => handleAnswer(false)}
-              className="flex-1 h-12 sm:h-13 text-xs sm:text-sm font-serif border-red-200 bg-red-50/70 hover:bg-red-100/80 text-red-700 rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.99]"
+              className="w-full min-h-[50px] text-xs sm:text-sm font-serif border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
             >
-              <RotateCcw className="w-4 h-4 text-red-500" />
+              <RotateCcw className="w-4 h-4 text-[#EF4444] shrink-0" />
               <span>Chưa nhớ</span>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-red-200/60 rounded text-[10px] font-mono">
                 1
@@ -421,10 +463,11 @@ export default function FlashcardReviewer({ vocabs, totalLearnedCount = 0 }: Fla
             </Button>
 
             <Button 
+              variant="success"
               onClick={() => handleAnswer(true)}
-              className="flex-1 h-12 sm:h-13 text-xs sm:text-sm font-serif bg-jade hover:bg-jade/90 text-white rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.99]"
+              className="w-full min-h-[50px] text-xs sm:text-sm font-serif rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
             >
-              <Check className="w-4 h-4" />
+              <Check className="w-4 h-4 shrink-0" />
               <span>Đã nhớ</span>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
                 2

@@ -11,18 +11,21 @@ export function ProtectedLink({
   className,
   isLoggedIn,
   actionName,
+  onClick,
 }: {
   href: string
   children: React.ReactNode
   className?: string
   isLoggedIn?: boolean
   actionName?: string
+  onClick?: (e: React.MouseEvent) => void
 }) {
   const router = useRouter()
   const { isLoggedIn: contextLoggedIn, openLoginRequired } = useAuthModal()
   const authenticated = typeof isLoggedIn === 'boolean' ? isLoggedIn : contextLoggedIn
 
   const handleClick = (e: React.MouseEvent) => {
+    if (onClick) onClick(e)
     if (!authenticated) {
       e.preventDefault()
       openLoginRequired({
