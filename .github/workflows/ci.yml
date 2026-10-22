@@ -1,4 +1,4 @@
-name: CI
+name: CI - Kiểm thử & Đóng gói chất lượng
 
 on:
   push:
@@ -7,45 +7,68 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch: # Cho phép kích hoạt thủ công từ giao diện GitHub Actions
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  verify:
-    name: Lint, Type Check & Build
+  code-quality:
+    name: 🔍 Lint & Kiểm tra Kiểu dữ liệu (TypeScript)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
+      - name: 📥 Tải mã nguồn (Checkout)
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 24
+      - name: ⚙️ Cài đặt Node.js 24
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
 
-      - name: Cache Next.js build cache
+      - name: 📦 Cài đặt thư viện (npm ci)
+        run: npm ci
+
+      - name: 📝 Kiểm tra TypeScript (Type Check)
+        run: npm run type-check
+
+      - name: 🧹 Kiểm tra mã nguồn (ESLint)
+        run: npm run lint
+
+  build-production:
+    name: 🏗️ Đóng gói ứng dụng (Next.js Build)
+    needs: [code-quality]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Tải mã nguồn (Checkout)
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Cài đặt Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: ⚡ Khôi phục Next.js Cache
         uses: actions/cache@v4
         with:
-          path: ${{ github.workspace }}/.next/cache
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
 
-      - name: Install dependencies
+      - name: 📦 Cài đặt thư viện
         run: npm ci
 
-      - name: Run TypeScript check
-        run: npm run type-check
-
-      - name: Run lint
-        run: npm run lint
-
-      - name: Run Next.js build
+      - name: 🚀 Thử nghiệm Build Production
         env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: '1'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co' }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder' }}
-          NEXT_PUBLIC_FEATURE_AI_WRITING: "false"
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy_gemini_key_for_ci_build' }}
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY || 'dummy_kie_key_for_ci_build' }}
         run: npm run build

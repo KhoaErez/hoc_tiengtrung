@@ -1,6 +1,9 @@
 {
-  "name": "temp-app",
-  "version": "0.1.0",
+  "name": "chinese-notebook",
+  "version": "1.0.0",
+  "description": "Nền tảng hỗ trợ học tiếng Trung, luyện thi HSK, học từ vựng, ngữ pháp và luyện tập tương tác",
+  "author": "Trần Doãn Khoa",
+  "license": "UNLICENSED",
   "private": true,
   "engines": {
     "node": "24.x"

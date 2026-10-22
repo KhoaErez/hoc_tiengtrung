@@ -838,7 +838,13 @@ function MobileDrawer({
           className="p-3 border-t border-border/50 text-[11px] font-sans text-muted/80 text-center bg-page/95 shrink-0"
           style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
         >
-          Chinese Notebook • Hán ngữ hiện đại
+          <Link
+            href="/about"
+            onClick={onClose}
+            className="hover:text-app-accent hover:underline transition-colors"
+          >
+            © 2026 Chinese Notebook • Về tác giả & Dự án
+          </Link>
         </div>
       </aside>
     </div>

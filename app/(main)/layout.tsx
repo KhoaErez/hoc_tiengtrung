@@ -13,6 +13,7 @@ import { BrandLogo } from '@/components/ui/brand-logo'
 import { getCachedAllVocabCounts } from '@/lib/curriculum-cache'
 import { AdminNotificationBell } from '@/components/dashboard/admin-notification-bell'
 import { AdminNotificationProvider } from '@/components/dashboard/admin-notification-context'
+import { SiteFooter } from '@/components/layout/site-footer'
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const [{ isAdmin, user, profile }, vocabCountsRes] = await Promise.all([
@@ -144,10 +145,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           {/* Spacer bù đắp chiều cao h-14 (56px) cho Fixed Header trên Desktop & Mobile */}
           <div className="h-14 flex-shrink-0" aria-hidden="true" />
 
-          {/* Page Content: Tăng pb-28 trên mobile để đảm bảo nội dung không bị che khuất bởi Bottom Bar */}
-          <main className="flex-1 p-4 md:p-8 lg:p-10 min-w-0 pb-28 md:pb-12">
+          {/* Page Content */}
+          <main className="flex-1 p-4 md:p-8 lg:p-10 min-w-0 pb-6 md:pb-10">
             {children}
           </main>
+
+          {/* Footer Bản quyền & Ghi nhận tác giả */}
+          <SiteFooter />
         </div>
         
         {/* Mobile Bottom Navigation & Drawer */}

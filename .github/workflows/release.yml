@@ -1,0 +1,68 @@
+name: Release - Tạo Phiên bản Chính thức (GitHub Release)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tên phiên bản phát hành (Ví dụ: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: 🏷️ Xuất bản GitHub Release & Ghi nhận Tác quyền
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Tải mã nguồn
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📝 Tạo Release Notes & Bản quyền
+        id: release_notes
+        run: |
+          VERSION="${{ github.event.inputs.tag_name || github.ref_name }}"
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          cat << 'EOF' > release_body.md
+          ## 🏮 Chinese Notebook (中文笔记本)
+          
+          > **Phiên bản phát hành chính thức:** ${{ github.event.inputs.tag_name || github.ref_name }}
+          
+          ---
+          
+          ### 👨‍💻 Thông tin Tác quyền & Nhà phát triển
+          * **Người phát triển:** Trần Doãn Khoa
+          * **Dự án:** Chinese Notebook
+          * **Bản quyền:** © 2026 Trần Doãn Khoa. All rights reserved.
+          * **Giấy phép phần mềm:** Proprietary / All Rights Reserved
+          
+          ---
+          
+          ### 🚀 Điểm nhấn trong phiên bản này
+          * Hệ thống lộ trình học từ vựng chuẩn HSK 1 đến HSK 6.
+          * Công cụ luyện gõ chữ Hán Pinyin IME thời gian thực.
+          * Thuật toán ôn tập thẻ nhớ thông minh SRS (Spaced Repetition System).
+          * 214 Bộ thủ Khang Hy và mô phỏng thứ tự nét bút thuận.
+          * Giao diện trắng kem - đỏ trầm tối ưu hóa cho Desktop và Thiết bị di động.
+          * Tài liệu pháp lý và phân định sở hữu trí tuệ rõ ràng ([LEGAL.md](./LEGAL.md)).
+          
+          ---
+          *Được tạo tự động bởi hệ thống CI/CD của Chinese Notebook.*
+          EOF
+
+      - name: 🚀 Xuất bản GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Chinese Notebook ${{ steps.release_notes.outputs.tag }}
+          body_path: release_body.md
+          draft: false
+          prerelease: false
+          tag_name: ${{ steps.release_notes.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

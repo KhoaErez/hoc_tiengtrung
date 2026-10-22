@@ -43,3 +43,9 @@ next-env.d.ts
 agentic-awesome-skills/
 scratch/
 supabase/.temp/
+
+# local dumps and test scripts
+codebase.txt
+tree.txt
+test-*.js
+test_*.mjs
