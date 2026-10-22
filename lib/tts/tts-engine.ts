@@ -77,6 +77,48 @@ export function hasChinese(text: string): boolean {
 }
 
 /**
+ * BỘ LƯU TRỮ THAM CHIẾU MẠNH (STRONG REFERENCE SET) CHO SPEECHSYNTHESISUTTERANCE
+ * Khắc phục triệt để lỗi kinh điển của Chromium/WebKit (Issue #338372 / #940733):
+ * Garbage Collector của V8/WebKit dọn dẹp biến utterance khi hàm hoàn tất hoặc khi
+ * component re-render, dẫn đến âm thanh bị ngắt đột ngột sau chữ đầu tiên.
+ */
+const activeUtterances = new Set<SpeechSynthesisUtterance>()
+
+export function retainUtterance(u: SpeechSynthesisUtterance): void {
+  activeUtterances.add(u)
+  if (typeof window !== 'undefined') {
+    try {
+      ;(window as unknown as { __activeTTSUtterances?: Set<SpeechSynthesisUtterance> }).__activeTTSUtterances = activeUtterances
+    } catch {}
+  }
+}
+
+export function releaseUtterance(u: SpeechSynthesisUtterance | null): void {
+  if (u) {
+    activeUtterances.delete(u)
+  }
+}
+
+export function releaseAllUtterances(): void {
+  activeUtterances.clear()
+}
+
+/**
+ * CỜ THEO DÕI PHÁT ÂM CÂU TOÀN CỤC (GLOBAL SENTENCE TTS TRACKER)
+ * Ngăn chặn âm gõ phím của từng ký tự (speakChineseCharacter) vô tình gọi
+ * speechSynthesis.cancel() làm ngắt quãng câu/đoạn văn đang được phát âm.
+ */
+let isSentenceTTSPlayingFlag = false
+
+export function setSentenceTTSActive(active: boolean): void {
+  isSentenceTTSPlayingFlag = active
+}
+
+export function isSentenceTTSActive(): boolean {
+  return isSentenceTTSPlayingFlag
+}
+
+/**
  * 2. SINGLETON TTS ENGINE
  */
 class ChineseTTSEngine {
@@ -135,6 +177,8 @@ class ChineseTTSEngine {
    * Dừng toàn bộ âm thanh trên toàn hệ thống (Web Speech API, TTS Engine, và gửi tín hiệu cho các component)
    */
   public static stopAllAudio(): void {
+    releaseAllUtterances()
+    setSentenceTTSActive(false)
     if (ChineseTTSEngine.instance) {
       ChineseTTSEngine.instance.stop()
     }
@@ -202,8 +246,12 @@ class ChineseTTSEngine {
     }
 
     update()
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = update
+    try {
+      window.speechSynthesis.addEventListener('voiceschanged', update)
+    } catch {
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = update
+      }
     }
   }
 
@@ -267,6 +315,8 @@ class ChineseTTSEngine {
   public stop(): void {
     this.sessionEpoch++
     this.clearKeepAlive()
+    releaseUtterance(this.currentUtterance)
+    this.currentUtterance = null
 
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       try {
@@ -279,7 +329,6 @@ class ChineseTTSEngine {
     this.status = 'idle'
     this.currentId = null
     this.currentText = null
-    this.currentUtterance = null
     this.activeOnEndCallback = null
     this.activeOnErrorCallback = null
 
@@ -413,6 +462,7 @@ class ChineseTTSEngine {
         const utterance = new SpeechSynthesisUtterance(text)
         utterance.lang = 'zh-CN'
         utterance.rate = rate
+        retainUtterance(utterance)
 
         // Tìm giọng đọc phù hợp
         if (this.voices.length === 0) {
@@ -441,6 +491,7 @@ class ChineseTTSEngine {
         }
 
         utterance.onend = () => {
+          releaseUtterance(utterance)
           if (currentEpoch !== this.sessionEpoch) return
           this.clearKeepAlive()
           this.status = 'idle'
@@ -453,6 +504,7 @@ class ChineseTTSEngine {
         }
 
         utterance.onerror = (event) => {
+          releaseUtterance(utterance)
           if (currentEpoch !== this.sessionEpoch) return
           this.clearKeepAlive()
           // Nếu bị ngắt do người dùng bấm nút mới (canceled/interrupted), không coi là lỗi nghiêm trọng

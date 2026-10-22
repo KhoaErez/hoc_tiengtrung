@@ -30,7 +30,12 @@ import {
   segmentAndAlignChinese,
   findWordIndexByCharIndex,
 } from '@/lib/tts/chinese-word-segmenter'
-import { ttsEngine } from '@/lib/tts/tts-engine'
+import {
+  ttsEngine,
+  retainUtterance,
+  releaseUtterance,
+  setSentenceTTSActive,
+} from '@/lib/tts/tts-engine'
 import TypingGeminiModal from './typing-gemini-modal'
 import TypingAudioControls from './typing-audio-controls'
 import { toast } from 'sonner'
@@ -212,9 +217,32 @@ export default function CustomParagraphMode({
   const sentencesRef = useRef<ChineseSentenceItem[]>([])
   const autoSpeakNextRef = useRef<boolean>(false)
   const utteranceIdRef = useRef<number>(0)
+  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const wordElementsRef = useRef<Map<string, HTMLElement>>(new Map())
   const committedLengthRef = useRef<number>(0)
   const isComposingRef = useRef<boolean>(false)
+
+  // Cơ chế KeepAlive cho trình duyệt Chromium trong Custom Paragraph Mode
+  const clearKeepAlive = useCallback(() => {
+    if (keepAliveIntervalRef.current) {
+      clearInterval(keepAliveIntervalRef.current)
+      keepAliveIntervalRef.current = null
+    }
+  }, [])
+
+  const startKeepAlive = useCallback(() => {
+    clearKeepAlive()
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    keepAliveIntervalRef.current = setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause()
+        window.speechSynthesis.resume()
+      } else {
+        clearKeepAlive()
+      }
+    }, 10000)
+  }, [clearKeepAlive])
 
   // Load danh sách bài tập đã lưu và tùy chọn âm thanh
   useEffect(() => {
@@ -253,15 +281,20 @@ export default function CustomParagraphMode({
       }
 
       updateVoices()
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = updateVoices
+      try {
+        window.speechSynthesis.addEventListener('voiceschanged', updateVoices)
+      } catch {
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+          window.speechSynthesis.onvoiceschanged = updateVoices
+        }
       }
-    }
 
-    return () => {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel()
-        window.speechSynthesis.onvoiceschanged = null
+      return () => {
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+          try {
+            window.speechSynthesis.removeEventListener('voiceschanged', updateVoices)
+          } catch {}
+        }
       }
     }
   }, [])
@@ -464,15 +497,25 @@ export default function CustomParagraphMode({
   // Dừng phát âm thanh ngay lập tức
   const stopSpeech = useCallback(() => {
     utteranceIdRef.current++
+    clearKeepAlive()
+    setSentenceTTSActive(false)
+
+    if (activeUtteranceRef.current) {
+      releaseUtterance(activeUtteranceRef.current)
+      activeUtteranceRef.current = null
+    }
+
     if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel()
+      try {
+        window.speechSynthesis.cancel()
+      } catch {}
     }
     readingModeRef.current = null
     setReadingMode(null)
     setSpeechStatus('idle')
     setSpeakingSentenceIndex(null)
     setSpeakingWordIndex(null)
-  }, [])
+  }, [clearKeepAlive])
 
   // Dọn dẹp âm thanh khi component unmount hoặc khi nhận tín hiệu dừng âm thanh toàn cục (chuyển trang)
   useEffect(() => {
@@ -490,7 +533,7 @@ export default function CustomParagraphMode({
     }
   }, [stopSpeech])
 
-  // Phát âm một câu cụ thể kèm Word-Level Highlighting
+  // Phát âm một câu cụ thể kèm cơ chế đồng bộ thích ứng 2 tầng (Two-Tier Adaptive Synchronization)
   const speakSentence = useCallback(
     (index: number, isSequential: boolean = false) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) return
@@ -500,64 +543,117 @@ export default function CustomParagraphMode({
         return
       }
 
-      window.speechSynthesis.cancel()
+      setSentenceTTSActive(true)
+      clearKeepAlive()
+
+      if (activeUtteranceRef.current) {
+        releaseUtterance(activeUtteranceRef.current)
+        activeUtteranceRef.current = null
+      }
+
+      try {
+        window.speechSynthesis.cancel()
+      } catch {}
 
       const currentUtteranceId = ++utteranceIdRef.current
       const item = list[index]
+
+      // Đặt câu đang đọc nhưng giữ speakingWordIndex = null ban đầu để hiển thị Sentence Fallback
       setSpeakingSentenceIndex(index)
-      setSpeakingWordIndex(0)
+      setSpeakingWordIndex(null)
       setSpeechStatus('playing')
 
-      const utterance = new SpeechSynthesisUtterance(item.text)
-      utterance.lang = 'zh-CN'
-      utterance.rate = speechRateRef.current
-
-      const voices = getChineseVoices()
-      const voice =
-        voices.find((v) => v.voiceURI === selectedVoiceURIRef.current) ||
-        voices[0]
-      if (voice) utterance.voice = voice
-
-      // Lấy danh sách từ của câu này để ánh xạ charIndex
-      const sentenceWords = tokenizedBlocks[index]?.words || segmentChineseText(item.text)
-
-      // Đồng bộ từ ngữ theo thời gian thực qua sự kiện onboundary (Zero scroll-fighting)
-      utterance.onboundary = (event) => {
+      // Độ trễ vi mô (25ms) sau cancel() để triệt tiêu Race Condition
+      setTimeout(() => {
         if (currentUtteranceId !== utteranceIdRef.current) return
-        const charIndex = event.charIndex
-        const wordIdx = findWordIndexByCharIndex(sentenceWords, charIndex)
-        if (wordIdx !== -1) {
-          setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
-        }
-      }
 
-      utterance.onend = () => {
-        if (currentUtteranceId !== utteranceIdRef.current) return
-        setSpeakingWordIndex(null)
-        if (readingModeRef.current === 'all' && isSequential) {
-          if (index + 1 < list.length) {
-            speakSentence(index + 1, true)
-          } else {
-            stopSpeech()
+        try {
+          const utterance = new SpeechSynthesisUtterance(item.text)
+          utterance.lang = 'zh-CN'
+          utterance.rate = Math.max(0.5, Math.min(2.0, speechRateRef.current || 1.0))
+
+          const voices = getChineseVoices()
+          const voice =
+            voices.find((v) => v.voiceURI === selectedVoiceURIRef.current) ||
+            voices[0]
+          if (voice) utterance.voice = voice
+
+          activeUtteranceRef.current = utterance
+          retainUtterance(utterance)
+
+          // Lấy danh sách từ của câu này để ánh xạ charIndex
+          const sentenceWords = tokenizedBlocks[index]?.words || segmentChineseText(item.text)
+
+          utterance.onstart = () => {
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            setSpeechStatus('playing')
+            startKeepAlive()
           }
-        } else {
-          setSpeechStatus('idle')
-          setSpeakingSentenceIndex(null)
-          setReadingMode(null)
-          readingModeRef.current = null
-        }
-      }
 
-      utterance.onerror = (e) => {
-        if (currentUtteranceId !== utteranceIdRef.current) return
-        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+          // Đồng bộ từ ngữ theo thời gian thực qua sự kiện onboundary nếu hỗ trợ
+          utterance.onboundary = (event) => {
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            if (event.name === 'sentence') return
+
+            const charIndex = typeof event.charIndex === 'number' ? event.charIndex : 0
+            const wordIdx = findWordIndexByCharIndex(sentenceWords, charIndex)
+            if (wordIdx !== -1) {
+              setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
+            }
+          }
+
+          utterance.onend = () => {
+            releaseUtterance(utterance)
+            if (activeUtteranceRef.current === utterance) {
+              activeUtteranceRef.current = null
+            }
+            clearKeepAlive()
+
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            setSpeakingWordIndex(null)
+
+            if (readingModeRef.current === 'all' && isSequential) {
+              if (index + 1 < list.length) {
+                speakSentence(index + 1, true)
+              } else {
+                stopSpeech()
+              }
+            } else {
+              setSpeechStatus('idle')
+              setSpeakingSentenceIndex(null)
+              setReadingMode(null)
+              readingModeRef.current = null
+              setSentenceTTSActive(false)
+            }
+          }
+
+          utterance.onerror = (e) => {
+            releaseUtterance(utterance)
+            if (activeUtteranceRef.current === utterance) {
+              activeUtteranceRef.current = null
+            }
+            clearKeepAlive()
+
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            if (e.error !== 'interrupted' && e.error !== 'canceled') {
+              stopSpeech()
+            }
+          }
+
+          if (window.speechSynthesis.paused) {
+            try {
+              window.speechSynthesis.resume()
+            } catch {}
+          }
+
+          window.speechSynthesis.speak(utterance)
+        } catch (err) {
+          console.error('Lỗi khi kích hoạt speakSentence custom mode:', err)
           stopSpeech()
         }
-      }
-
-      window.speechSynthesis.speak(utterance)
+      }, 25)
     },
-    [tokenizedBlocks, stopSpeech]
+    [tokenizedBlocks, stopSpeech, clearKeepAlive, startKeepAlive]
   )
 
   const handlePlayAll = useCallback(() => {
@@ -583,16 +679,18 @@ export default function CustomParagraphMode({
   }, [chineseSentences, currentTypingSentenceIndex, speakSentence])
 
   const handlePauseSpeech = useCallback(() => {
+    clearKeepAlive()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.pause()
       setSpeechStatus('paused')
     }
-  }, [])
+  }, [clearKeepAlive])
 
   const handleResumeSpeech = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.resume()
       setSpeechStatus('playing')
+      startKeepAlive()
 
       setTimeout(() => {
         if (window.speechSynthesis.paused && speakingSentenceIndex !== null) {
@@ -600,7 +698,7 @@ export default function CustomParagraphMode({
         }
       }, 150)
     }
-  }, [speakingSentenceIndex, speakSentence])
+  }, [speakingSentenceIndex, speakSentence, startKeepAlive])
 
   const handleRateChange = (rate: number) => {
     setSpeechRate(rate)
@@ -618,6 +716,11 @@ export default function CustomParagraphMode({
     setSelectedVoiceURI(uri)
     selectedVoiceURIRef.current = uri
     saveTypingPreferences({ preferredVoiceURI: uri })
+
+    // Nếu đang phát âm, phát lại ngay với giọng mới
+    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
+      speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
+    }
   }
 
   const handleToggleTypingSound = () => {
@@ -962,9 +1065,9 @@ export default function CustomParagraphMode({
         playTypingSfx(allCorrect ? 'correct' : 'error')
       }
 
-      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức
+      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức (chỉ khi không đang đọc câu)
       const newlyTypedText = newVal.slice(startIdx, endIdx)
-      if (soundEnabled && newlyTypedText.trim()) {
+      if (soundEnabled && newlyTypedText.trim() && speechStatus !== 'playing') {
         speakChineseCharacter(newlyTypedText, selectedVoiceURIRef.current, speechRateRef.current)
       }
 
@@ -1708,6 +1811,7 @@ export default function CustomParagraphMode({
                         {block.words.map((w, wIdx) => {
                           const isWordActive = isSpeaking && speakingWordIndex === wIdx && w.isWord
                           const isWordPast = isSpeaking && speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
+                          const isSentenceFallback = isSpeaking && speakingWordIndex === null && w.isWord
 
                           if (!w.pinyin) return null
 
@@ -1717,6 +1821,8 @@ export default function CustomParagraphMode({
                               className={`transition-colors duration-150 rounded px-1 text-xs md:text-sm font-sans ${
                                 isWordActive
                                   ? 'text-amber-950 dark:text-amber-100 font-bold bg-amber-200/80 dark:bg-amber-900/60 ring-1 ring-amber-400/80 shadow-2xs'
+                                  : isSentenceFallback
+                                  ? 'text-amber-900 dark:text-amber-200 font-semibold bg-amber-100/70 dark:bg-amber-950/40 ring-1 ring-amber-300/50 dark:ring-amber-800/40'
                                   : isWordPast
                                   ? 'text-app-accent/60'
                                   : 'text-app-accent font-medium'
@@ -1737,6 +1843,7 @@ export default function CustomParagraphMode({
                       {block.words.map((w, wIdx) => {
                         const isWordActive = isSpeaking && speakingWordIndex === wIdx && w.isWord
                         const isWordPast = isSpeaking && speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
+                        const isSentenceFallback = isSpeaking && speakingWordIndex === null && w.isWord
                         const wordKey = `word-${bIdx}-${wIdx}`
 
                         return (
@@ -1749,6 +1856,8 @@ export default function CustomParagraphMode({
                             className={`inline-block transition-all duration-150 rounded px-0.5 py-0.25 ${
                               isWordActive
                                 ? 'bg-amber-100 dark:bg-amber-950/70 ring-2 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
+                                : isSentenceFallback
+                                ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
                                 : isWordPast
                                 ? 'opacity-85'
                                 : ''
@@ -1800,10 +1909,19 @@ export default function CustomParagraphMode({
               style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
             >
               {rawWords.map((w, wIdx) => {
+                const activeSentence =
+                  speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
+                    ? chineseSentences[speakingSentenceIndex]
+                    : null
+                const isTokenInSpeakingSentence = activeSentence
+                  ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
+                  : false
+
                 const isWordActive =
                   speakingSentenceIndex !== null && speakingWordIndex === wIdx && w.isWord
                 const isWordPast =
-                  speakingSentenceIndex !== null && speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
+                  speakingSentenceIndex !== null && speakingWordIndex !== null && wIdx < speakingWordIndex && isTokenInSpeakingSentence && w.isWord
+                const isSentenceFallback = isTokenInSpeakingSentence && speakingWordIndex === null && w.isWord
 
                 return (
                   <span
@@ -1811,6 +1929,8 @@ export default function CustomParagraphMode({
                     className={`inline-block transition-all duration-150 rounded px-0.5 py-0.25 ${
                       isWordActive
                         ? 'bg-amber-100 dark:bg-amber-950/70 ring-2 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
+                        : isSentenceFallback
+                        ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
                         : isWordPast
                         ? 'opacity-85'
                         : ''

@@ -327,35 +327,62 @@ export function segmentAndAlignChinese(
 
 /**
  * 4. TÌM CHỈ SỐ TỪ TƯƠNG ỨNG TỪ EVENT.CHARINDEX CỦA WEB SPEECH API
- * Dựa vào charIndex do sự kiện onboundary trả về, tìm xem từ nào đang được phát âm
+ * Dựa vào charIndex do sự kiện onboundary trả về, tìm xem từ nào đang được phát âm.
+ * Hỗ trợ tham số sentenceRange để khoanh vùng chính xác trong câu hiện tại,
+ * loại trừ 100% tình trạng nhảy nhầm sang câu khác trong văn bản nhiều câu.
  */
 export function findWordIndexByCharIndex(
   words: ChineseWordToken[],
-  charIndex: number
+  charIndex: number,
+  sentenceRange?: { startIndex: number; endIndex: number }
 ): number {
   if (!words || words.length === 0 || charIndex < 0) return -1;
 
-  // 1. Tìm từ chữ Hán chứa charIndex
+  // 1. Tìm từ chữ Hán chứa charIndex (ưu tiên trong phạm vi câu nếu có)
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
+    if (sentenceRange) {
+      if (w.startIndex < sentenceRange.startIndex || w.endIndex > sentenceRange.endIndex) {
+        continue;
+      }
+    }
     if (w.isWord && charIndex >= w.startIndex && charIndex < w.endIndex) {
       return i;
     }
   }
 
-  // 2. Nếu charIndex rơi vào dấu câu, tìm từ liền trước hoặc liền sau gần nhất
+  // 2. Nếu charIndex rơi vào dấu câu, tìm từ liền trước hoặc liền sau gần nhất trong câu
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
+    if (sentenceRange) {
+      if (w.startIndex < sentenceRange.startIndex || w.endIndex > sentenceRange.endIndex) {
+        continue;
+      }
+    }
     if (charIndex >= w.startIndex && charIndex < w.endIndex) {
       if (w.isWord) return i;
-      if (i + 1 < words.length && words[i + 1].isWord) return i + 1;
-      if (i > 0 && words[i - 1].isWord) return i - 1;
+      if (i + 1 < words.length && words[i + 1].isWord) {
+        if (!sentenceRange || words[i + 1].endIndex <= sentenceRange.endIndex) {
+          return i + 1;
+        }
+      }
+      if (i > 0 && words[i - 1].isWord) {
+        if (!sentenceRange || words[i - 1].startIndex >= sentenceRange.startIndex) {
+          return i - 1;
+        }
+      }
     }
   }
 
-  // 3. Fallback: Nếu charIndex vượt quá hoặc ở cuối, trả về từ isWord cuối cùng
+  // 3. Fallback: Nếu charIndex ở cuối câu hoặc vượt quá nhẹ do dấu câu, trả về từ isWord cuối cùng của câu
   for (let i = words.length - 1; i >= 0; i--) {
-    if (words[i].isWord && charIndex >= words[i].startIndex) {
+    const w = words[i];
+    if (sentenceRange) {
+      if (w.startIndex < sentenceRange.startIndex || w.endIndex > sentenceRange.endIndex) {
+        continue;
+      }
+    }
+    if (w.isWord && charIndex >= w.startIndex) {
       return i;
     }
   }

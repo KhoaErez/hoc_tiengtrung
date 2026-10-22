@@ -13,7 +13,12 @@ import CustomParagraphMode from './components/custom-paragraph-mode'
 import TypingAudioControls from './components/typing-audio-controls'
 import { AudioButton } from '@/components/ui/audio-button'
 import { PassageAudioPlayer } from '@/components/ui/passage-audio-player'
-import { ttsEngine } from '@/lib/tts/tts-engine'
+import {
+  ttsEngine,
+  retainUtterance,
+  releaseUtterance,
+  setSentenceTTSActive,
+} from '@/lib/tts/tts-engine'
 import {
   ChineseSentenceItem,
   extractChineseSentences,
@@ -304,6 +309,8 @@ export default function TypingClient() {
   const [speakingSentenceIndex, setSpeakingSentenceIndex] = useState<number | null>(null)
   const [speakingWordIndex, setSpeakingWordIndex] = useState<number | null>(null)
   const utteranceIdRef = useRef<number>(0)
+  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const wordElementsRef = useRef<Map<string, HTMLElement>>(new Map())
   const committedLengthRef = useRef<number>(0)
   const isComposingRef = useRef<boolean>(false)
@@ -317,6 +324,27 @@ export default function TypingClient() {
   const [hasVoiceWarning, setHasVoiceWarning] = useState<boolean>(false)
   const autoSpeakNextRef = useRef<boolean>(true)
   const lastAutoSpokenExerciseIdRef = useRef<string | null>(null)
+
+  // Cơ chế KeepAlive cho trình duyệt Chromium (ngăn ngắt âm thanh sau 15 giây)
+  const clearKeepAlive = useCallback(() => {
+    if (keepAliveIntervalRef.current) {
+      clearInterval(keepAliveIntervalRef.current)
+      keepAliveIntervalRef.current = null
+    }
+  }, [])
+
+  const startKeepAlive = useCallback(() => {
+    clearKeepAlive()
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    keepAliveIntervalRef.current = setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause()
+        window.speechSynthesis.resume()
+      } else {
+        clearKeepAlive()
+      }
+    }, 10000)
+  }, [clearKeepAlive])
 
   // Tải cài đặt & thống kê từ localStorage
   useEffect(() => {
@@ -336,7 +364,7 @@ export default function TypingClient() {
     setHistoryList(getTypingHistory())
   }, [])
 
-  // Khởi tạo giọng đọc tiếng Trung
+  // Khởi tạo danh sách giọng đọc tiếng Trung an toàn
   useEffect(() => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return
     const updateVoices = () => {
@@ -349,10 +377,18 @@ export default function TypingClient() {
       }
     }
     updateVoices()
-    window.speechSynthesis.onvoiceschanged = updateVoices
+    try {
+      window.speechSynthesis.addEventListener('voiceschanged', updateVoices)
+    } catch {
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = updateVoices
+      }
+    }
     return () => {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = null
+        try {
+          window.speechSynthesis.removeEventListener('voiceschanged', updateVoices)
+        } catch {}
       }
     }
   }, [])
@@ -394,11 +430,19 @@ export default function TypingClient() {
     return findCurrentSentenceIndex(chineseSentences, userInput.length)
   }, [chineseSentences, userInput.length])
 
-  // Dừng phát âm thanh ngay lập tức
+  // Dừng phát âm thanh ngay lập tức và giải phóng toàn bộ tài nguyên
   const stopSpeech = useCallback(() => {
     currentCardEpochRef.current++
     clearAutoSpeakTimer()
+    clearKeepAlive()
+    setSentenceTTSActive(false)
     utteranceIdRef.current++
+
+    if (activeUtteranceRef.current) {
+      releaseUtterance(activeUtteranceRef.current)
+      activeUtteranceRef.current = null
+    }
+
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       try {
         window.speechSynthesis.cancel()
@@ -410,7 +454,7 @@ export default function TypingClient() {
     setSpeakingWordIndex(null)
     setReadingMode(null)
     readingModeRef.current = null
-  }, [clearAutoSpeakTimer])
+  }, [clearAutoSpeakTimer, clearKeepAlive])
 
   // Dọn dẹp âm thanh khi component unmount hoặc nhận tín hiệu dừng âm thanh toàn cục (chuyển trang)
   useEffect(() => {
@@ -428,8 +472,9 @@ export default function TypingClient() {
     }
   }, [stopSpeech])
 
-  // Phát âm câu tiếng Trung kèm Word-Level Highlighting
-  // Hỗ trợ truyền trực tiếp customSentences và customWordTokens của thẻ đích để triệt tiêu 100% lỗi đọc nhầm thẻ cũ do stale closure
+  // Phát âm câu tiếng Trung kèm cơ chế đồng bộ thích ứng 2 tầng (Two-Tier Adaptive Synchronization):
+  // Tầng 1: Nếu browser/voice hỗ trợ word boundary -> Đồng bộ từng từ thời gian thực
+  // Tầng 2: Nếu browser/voice không hỗ trợ word boundary -> Fallback tô sáng cả câu, đọc đầy đủ trọn vẹn, không đứng ở chữ đầu
   const speakSentence = useCallback(
     (
       index: number,
@@ -454,6 +499,16 @@ export default function TypingClient() {
 
       const tokens = customWordTokens || exerciseWordTokensRef.current
 
+      // Bật cờ phiên đọc câu để bảo vệ luồng âm thanh không bị âm gõ phím hủy ngang
+      setSentenceTTSActive(true)
+      clearKeepAlive()
+
+      // Giải phóng tham chiếu cũ
+      if (activeUtteranceRef.current) {
+        releaseUtterance(activeUtteranceRef.current)
+        activeUtteranceRef.current = null
+      }
+
       // Hủy mọi âm thanh cũ trong hàng đợi trước khi phát câu mới
       try {
         window.speechSynthesis.cancel()
@@ -462,62 +517,120 @@ export default function TypingClient() {
       const currentUtteranceId = ++utteranceIdRef.current
       const thisEpoch = expectedEpoch ?? currentCardEpochRef.current
       const item = list[index]
-      setSpeakingSentenceIndex(index)
 
-      // Tìm từ đầu tiên của câu trong tokens
-      const firstWordIdx = findWordIndexByCharIndex(tokens, item.startIndex)
-      setSpeakingWordIndex(firstWordIdx !== -1 ? firstWordIdx : 0)
+      // Đặt trạng thái câu đang phát.
+      // QUAN TRỌNG: KHÔNG gán cứng speakingWordIndex = 0! Giữ null ban đầu để hiển thị
+      // Sentence-Level Highlight Fallback thanh lịch, chỉ nâng cấp lên Word-Level khi
+      // sự kiện boundary thực sự phát sinh từ engine.
+      setSpeakingSentenceIndex(index)
+      setSpeakingWordIndex(null)
       setSpeechStatus('playing')
 
-      const utterance = new SpeechSynthesisUtterance(item.text)
-      utterance.lang = 'zh-CN'
-      utterance.rate = speechRateRef.current
-
-      const voices = getChineseVoices()
-      const voice =
-        voices.find((v) => v.voiceURI === selectedVoiceURIRef.current) || voices[0]
-      if (voice) utterance.voice = voice
-
-      // Lắng nghe sự kiện boundary để tô sáng từng từ theo thời gian thực (Zero scroll-fighting)
-      utterance.onboundary = (event) => {
+      // Áp dụng độ trễ vi mô (25ms) sau cancel() để triệt tiêu Race Condition trong audio driver
+      setTimeout(() => {
         if (currentUtteranceId !== utteranceIdRef.current) return
         if (thisEpoch !== currentCardEpochRef.current) return
-        const globalCharIndex = item.startIndex + event.charIndex
-        const wordIdx = findWordIndexByCharIndex(tokens, globalCharIndex)
-        if (wordIdx !== -1) {
-          // Chỉ cập nhật state nếu từ thực sự thay đổi (tránh re-render thừa cho các ký tự trong cùng một từ)
-          setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
-        }
-      }
 
-      utterance.onend = () => {
-        if (currentUtteranceId !== utteranceIdRef.current) return
-        if (thisEpoch !== currentCardEpochRef.current) return
-        if (readingModeRef.current === 'all' && isSequential) {
-          if (index + 1 < list.length) {
-            speakSentence(index + 1, true, list, tokens, thisEpoch)
-          } else {
-            stopSpeech()
+        try {
+          const utterance = new SpeechSynthesisUtterance(item.text)
+          utterance.lang = 'zh-CN'
+          utterance.rate = Math.max(0.5, Math.min(2.0, speechRateRef.current || 1.0))
+
+          const voices = getChineseVoices()
+          const voice =
+            voices.find((v) => v.voiceURI === selectedVoiceURIRef.current) || voices[0]
+          if (voice) utterance.voice = voice
+
+          // Lưu giữ tham chiếu mạnh chống V8/WebKit Garbage Collector thu hồi giữa chừng
+          activeUtteranceRef.current = utterance
+          retainUtterance(utterance)
+
+          utterance.onstart = () => {
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            if (thisEpoch !== currentCardEpochRef.current) return
+            setSpeechStatus('playing')
+            startKeepAlive()
           }
-        } else {
-          setSpeechStatus('idle')
-          setSpeakingSentenceIndex(null)
-          setSpeakingWordIndex(null)
-          setReadingMode(null)
-          readingModeRef.current = null
-        }
-      }
 
-      utterance.onerror = (e) => {
-        if (currentUtteranceId !== utteranceIdRef.current) return
-        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+          // Lắng nghe sự kiện boundary để tô sáng từng từ nếu trình duyệt/giọng đọc hỗ trợ
+          utterance.onboundary = (event) => {
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            if (thisEpoch !== currentCardEpochRef.current) return
+
+            // Bỏ qua boundary cấp độ sentence (chỉ nhận diện word boundary thực tế)
+            if (event.name === 'sentence') return
+
+            const charIndex = typeof event.charIndex === 'number' ? event.charIndex : 0
+            const globalCharIndex = item.startIndex + charIndex
+
+            // Khoanh vùng tìm từ nghiêm ngặt trong phạm vi câu hiện tại
+            const wordIdx = findWordIndexByCharIndex(tokens, globalCharIndex, {
+              startIndex: item.startIndex,
+              endIndex: item.endIndex,
+            })
+            if (wordIdx !== -1) {
+              setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
+            }
+          }
+
+          utterance.onend = () => {
+            releaseUtterance(utterance)
+            if (activeUtteranceRef.current === utterance) {
+              activeUtteranceRef.current = null
+            }
+            clearKeepAlive()
+
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            if (thisEpoch !== currentCardEpochRef.current) return
+
+            setSpeakingWordIndex(null)
+
+            if (readingModeRef.current === 'all' && isSequential) {
+              if (index + 1 < list.length) {
+                speakSentence(index + 1, true, list, tokens, thisEpoch)
+              } else {
+                stopSpeech()
+              }
+            } else {
+              setSpeechStatus('idle')
+              setSpeakingSentenceIndex(null)
+              setSpeakingWordIndex(null)
+              setReadingMode(null)
+              readingModeRef.current = null
+              setSentenceTTSActive(false)
+            }
+          }
+
+          utterance.onerror = (e) => {
+            releaseUtterance(utterance)
+            if (activeUtteranceRef.current === utterance) {
+              activeUtteranceRef.current = null
+            }
+            clearKeepAlive()
+
+            if (currentUtteranceId !== utteranceIdRef.current) return
+            if (thisEpoch !== currentCardEpochRef.current) return
+
+            if (e.error !== 'interrupted' && e.error !== 'canceled') {
+              console.warn('SpeechSynthesis error:', e.error)
+              stopSpeech()
+            }
+          }
+
+          if (window.speechSynthesis.paused) {
+            try {
+              window.speechSynthesis.resume()
+            } catch {}
+          }
+
+          window.speechSynthesis.speak(utterance)
+        } catch (err) {
+          console.error('Lỗi khi kích hoạt speakSentence:', err)
           stopSpeech()
         }
-      }
-
-      window.speechSynthesis.speak(utterance)
+      }, 25)
     },
-    [stopSpeech]
+    [stopSpeech, clearKeepAlive, startKeepAlive]
   )
 
   // Mở khóa âm thanh nếu trình duyệt yêu cầu tương tác đầu tiên của người dùng (Autoplay Policy)
@@ -621,23 +734,25 @@ export default function TypingClient() {
   }, [currentTypingSentenceIndex, speakSentence, clearAutoSpeakTimer])
 
   const handlePauseSpeech = useCallback(() => {
+    clearKeepAlive()
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.pause()
       setSpeechStatus('paused')
     }
-  }, [])
+  }, [clearKeepAlive])
 
   const handleResumeSpeech = useCallback(() => {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.resume()
       setSpeechStatus('playing')
+      startKeepAlive()
       setTimeout(() => {
         if (window.speechSynthesis.paused && speakingSentenceIndex !== null) {
           speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
         }
       }, 150)
     }
-  }, [speakingSentenceIndex, speakSentence])
+  }, [speakingSentenceIndex, speakSentence, startKeepAlive])
 
   const handleRateChange = (rate: number) => {
     setSpeechRate(rate)
@@ -665,6 +780,17 @@ export default function TypingClient() {
     const updated = { ...preferences, preferredVoiceURI: uri }
     setPreferences(updated)
     saveTypingPreferences(updated)
+
+    // Nếu đang phát âm thanh, phát lại ngay câu hiện tại với giọng mới
+    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
+      speakSentence(
+        speakingSentenceIndex,
+        readingModeRef.current === 'all',
+        chineseSentencesRef.current,
+        exerciseWordTokensRef.current,
+        currentCardEpochRef.current
+      )
+    }
   }
 
   const handleToggleTypingSound = () => {
@@ -1072,7 +1198,10 @@ export default function TypingClient() {
 
       // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức
       const newlyTypedText = newVal.slice(startIdx, endIdx)
-      if (preferences.speakOnType !== false && newlyTypedText.trim()) {
+      const isSentenceTTSCurrentlySpeaking = speechStatus === 'playing'
+
+      // Chỉ cập nhật highlight gõ và phát âm chữ lẻ nếu KHÔNG ĐANG trong phiên đọc câu/đoạn văn
+      if (!isSentenceTTSCurrentlySpeaking && preferences.speakOnType !== false && newlyTypedText.trim()) {
         // Tìm word token tương ứng nếu có để đồng bộ highlight
         if (lastMatchIdx !== -1 && exerciseWordTokens.length > 0) {
           const wIdx = findWordIndexByCharIndex(exerciseWordTokens, lastMatchIdx)
@@ -1960,8 +2089,18 @@ export default function TypingClient() {
                   {exerciseWordTokens.length > 0 && exerciseWordTokens.some((w) => w.pinyin) ? (
                     <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 select-none leading-relaxed text-sm md:text-base font-sans">
                       {exerciseWordTokens.map((w, wIdx) => {
+                        const activeSentence =
+                          speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
+                            ? chineseSentences[speakingSentenceIndex]
+                            : null
+
+                        const isTokenInSpeakingSentence = activeSentence
+                          ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
+                          : false
+
                         const isWordActive = speakingWordIndex === wIdx && w.isWord
-                        const isWordPast = speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
+                        const isWordPast = speakingWordIndex !== null && wIdx < speakingWordIndex && isTokenInSpeakingSentence && w.isWord
+                        const isSentenceFallback = isTokenInSpeakingSentence && speakingWordIndex === null && w.isWord
 
                         if (!w.pinyin) return null
 
@@ -1971,6 +2110,8 @@ export default function TypingClient() {
                             className={`transition-colors duration-150 rounded px-1 ${
                               isWordActive
                                 ? 'text-amber-950 dark:text-amber-100 font-bold bg-amber-200/80 dark:bg-amber-900/60 ring-1 ring-amber-400/80 shadow-2xs'
+                                : isSentenceFallback
+                                ? 'text-amber-900 dark:text-amber-200 font-semibold bg-amber-100/70 dark:bg-amber-950/40 ring-1 ring-amber-300/50 dark:ring-amber-800/40'
                                 : isWordPast
                                 ? 'text-muted/60'
                                 : 'text-muted font-medium'
@@ -2059,8 +2200,18 @@ export default function TypingClient() {
               ) : exerciseWordTokens.length > 0 ? (
                   <div className="flex flex-wrap items-baseline gap-y-1">
                     {exerciseWordTokens.map((w, wIdx) => {
+                      const activeSentence =
+                        speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
+                          ? chineseSentences[speakingSentenceIndex]
+                          : null
+
+                      const isTokenInSpeakingSentence = activeSentence
+                        ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
+                        : false
+
                       const isWordActive = speakingWordIndex === wIdx && w.isWord
-                      const isWordPast = speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
+                      const isWordPast = speakingWordIndex !== null && wIdx < speakingWordIndex && isTokenInSpeakingSentence && w.isWord
+                      const isSentenceFallback = isTokenInSpeakingSentence && speakingWordIndex === null && w.isWord
 
                       return (
                         <span
@@ -2072,6 +2223,8 @@ export default function TypingClient() {
                           className={`inline-block transition-all duration-150 rounded px-0.5 py-0.25 ${
                             isWordActive
                               ? 'bg-amber-100 dark:bg-amber-950/70 ring-2 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
+                              : isSentenceFallback
+                              ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
                               : isWordPast
                               ? 'opacity-85'
                               : ''
@@ -2081,15 +2234,6 @@ export default function TypingClient() {
                             const idx = w.startIndex + cOffset
                             const typedChar = userInput[idx]
                             const isCurrent = idx === userInput.length && !isCompleted
-
-                            // Kiểm tra xem ký tự này có thuộc câu đang phát âm TTS hay không
-                            const activeSentence =
-                              speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
-                                ? chineseSentences[speakingSentenceIndex]
-                                : null
-                            const isCharBeingSpoken = activeSentence
-                              ? idx >= activeSentence.startIndex && idx < activeSentence.endIndex
-                              : false
 
                             let statusClasses = 'text-title/80'
 
@@ -2107,7 +2251,10 @@ export default function TypingClient() {
                             } else if (isWordActive) {
                               // Từ đang được đọc TTS: Highlight từ nổi bật ấm áp
                               statusClasses = 'text-amber-950 dark:text-amber-100 font-bold'
-                            } else if (isCharBeingSpoken) {
+                            } else if (isSentenceFallback) {
+                              // Chế độ fallback cấp câu: Tô sáng toàn bộ câu đang phát âm
+                              statusClasses = 'text-title font-semibold'
+                            } else if (isTokenInSpeakingSentence) {
                               // Ký tự thuộc câu đang đọc
                               statusClasses = 'text-title/85'
                             }
@@ -2151,7 +2298,7 @@ export default function TypingClient() {
                       statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
                     } else if (isCharBeingSpoken) {
                       // Ký tự đang được đọc TTS: Highlight nổi bật đồng bộ
-                      statusClasses = 'bg-app-accent-soft/70 text-app-accent font-bold rounded px-0.5 ring-1 ring-app-accent/40'
+                      statusClasses = 'bg-amber-100/80 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200 font-semibold rounded px-0.5 ring-1 ring-amber-400/50'
                     }
 
                     return (

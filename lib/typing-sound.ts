@@ -193,7 +193,7 @@ export function hasChineseVoiceAvailable(): boolean {
  * 4. PHÁT ÂM KÝ TỰ / TỪ TIẾNG TRUNG KHI GÕ (REAL-TIME TTS TYPING FEEDBACK)
  * Tự động hủy âm thanh gõ trước đó để âm thanh phát ngay lập tức không bị trễ hay chồng chéo
  */
-import { ttsEngine } from '@/lib/tts/tts-engine';
+import { ttsEngine, retainUtterance, releaseUtterance, isSentenceTTSActive } from '@/lib/tts/tts-engine';
 
 let typingUtteranceId = 0;
 
@@ -204,6 +204,12 @@ export function speakChineseCharacter(
 ): number {
   if (typeof window === 'undefined' || !window.speechSynthesis) return 0;
   if (!text || !text.trim()) return 0;
+
+  // Nếu đang trong phiên đọc câu/đoạn văn (TTS Sentence/Paragraph Mode),
+  // TUYỆT ĐỐI KHÔNG cancel hoặc phát đè lên làm ngắt quãng câu đang đọc!
+  if (isSentenceTTSActive() || (window.speechSynthesis.speaking && ttsEngine.getState().status === 'playing')) {
+    return 0;
+  }
 
   try {
     const currentId = ++typingUtteranceId;
@@ -218,7 +224,30 @@ export function speakChineseCharacter(
     const voice = voices.find((v) => v.voiceURI === voiceURI) || voices[0];
     if (voice) utterance.voice = voice;
 
-    window.speechSynthesis.speak(utterance);
+    retainUtterance(utterance);
+
+    utterance.onend = () => {
+      releaseUtterance(utterance);
+    };
+
+    utterance.onerror = () => {
+      releaseUtterance(utterance);
+    };
+
+    // Độ trễ vi mô để bảo đảm cancel() trước đó đã hoàn tất trong IPC audio engine
+    setTimeout(() => {
+      if (currentId !== typingUtteranceId) {
+        releaseUtterance(utterance);
+        return;
+      }
+      if (window.speechSynthesis.paused) {
+        try {
+          window.speechSynthesis.resume();
+        } catch {}
+      }
+      window.speechSynthesis.speak(utterance);
+    }, 20);
+
     return currentId;
   } catch {
     return 0;
