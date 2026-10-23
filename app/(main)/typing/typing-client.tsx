@@ -10,6 +10,7 @@ import {
   VIETNAMESE_PROVERB_CATEGORIES,
 } from '@/data/typing-lessons'
 import CustomParagraphMode from './components/custom-paragraph-mode'
+import TranslateTypingMode from './components/translate-typing-mode'
 import TypingAudioControls from './components/typing-audio-controls'
 import { AudioButton } from '@/components/ui/audio-button'
 import { PassageAudioPlayer } from '@/components/ui/passage-audio-player'
@@ -143,9 +144,15 @@ export default function TypingClient() {
 
   const searchParams = useSearchParams()
   const urlMode = searchParams.get('mode') as TypingMode | null
+  const urlPractice = searchParams.get('practice')
   const urlHskLevel = searchParams.get('hskLevel')
   const urlLessonId = searchParams.get('lessonId')
   const urlPracticeType = searchParams.get('practiceType')
+
+  const [practiceMode, setPracticeMode] = useState<'visual' | 'translate'>(() => {
+    if (urlPractice === 'translate' || urlMode === ('translate' as any)) return 'translate'
+    return 'visual'
+  })
 
   const [mode, setMode] = useState<TypingMode>(() => {
     if (urlMode && ['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(urlMode)) {
@@ -176,6 +183,11 @@ export default function TypingClient() {
 
   // Đồng bộ searchParams từ URL nếu có thay đổi điều hướng
   useEffect(() => {
+    if (urlPractice === 'translate' || urlMode === ('translate' as any)) {
+      setPracticeMode('translate')
+    } else if (urlPractice === 'visual') {
+      setPracticeMode('visual')
+    }
     if (urlMode && ['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(urlMode)) {
       setMode(urlMode)
     }
@@ -190,7 +202,7 @@ export default function TypingClient() {
     if (urlPracticeType === 'dictation') {
       setPreferences((prev) => ({ ...prev, hideHanzi: true }))
     }
-  }, [urlMode, urlHskLevel, urlLessonId, urlPracticeType])
+  }, [urlPractice, urlMode, urlHskLevel, urlLessonId, urlPracticeType])
 
   // Danh sách các bài học có trong cấp HSK hiện tại (fallback tĩnh)
   const availableLessons = useMemo(() => {
@@ -1483,11 +1495,17 @@ export default function TypingClient() {
               <Keyboard className="w-5 h-5" />
             </span>
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-title tracking-tight">
-              {mode === 'sentence' ? '100 câu ca dao, tục ngữ Việt Nam' : 'Luyện đánh máy tiếng Trung'}
+              {practiceMode === 'translate'
+                ? 'Dịch Việt → Gõ Hán'
+                : mode === 'sentence'
+                ? '100 câu ca dao, tục ngữ Việt Nam'
+                : 'Luyện đánh máy tiếng Trung'}
             </h1>
           </div>
           <p className="text-muted font-serif text-sm mt-1.5 max-w-2xl">
-            {mode === 'sentence'
+            {practiceMode === 'translate'
+              ? 'Tự dịch câu tiếng Việt sang chữ Hán bằng bộ gõ Pinyin IME. Nghe phát âm tiếng Trung không lộ đáp án và sử dụng hệ thống gợi ý 3 mức khi cần.'
+              : mode === 'sentence'
               ? 'Luyện gõ chữ Hán qua 100 câu ca dao, tục ngữ Việt Nam được chuyển ngữ sang tiếng Trung giản thể. Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán.'
               : 'Rèn luyện kỹ năng gõ chữ Hán bằng Pinyin qua bộ gõ tiếng Trung (IME). Quan sát nội dung mục tiêu và tự gõ lại để cải thiện tốc độ và phản xạ.'}
           </p>
@@ -1505,8 +1523,48 @@ export default function TypingClient() {
         </div>
       </div>
 
-      {/* 2. Thanh chọn chế độ luyện tập (4 chế độ bao gồm Ôn câu sai) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 bg-card border border-[#E9DDD1] rounded-2xl p-1.5 shadow-2xs">
+      {/* 2. Thanh chọn chế độ luyện tập chính: Nghe & Gõ vs Dịch Việt → Gõ Hán */}
+      <div className="grid grid-cols-2 gap-1.5 sm:gap-2 p-1.5 bg-card border border-[#E9DDD1] rounded-2xl shadow-2xs">
+        <button
+          onClick={() => {
+            stopSpeech()
+            setPracticeMode('visual')
+          }}
+          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer ${
+            practiceMode === 'visual'
+              ? 'bg-[#B8322D] text-white shadow-2xs'
+              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+          }`}
+        >
+          <Headphones className="w-4 h-4 shrink-0" />
+          <span className="truncate">Nghe & Gõ</span>
+        </button>
+
+        <button
+          onClick={() => {
+            stopSpeech()
+            setPracticeMode('translate')
+          }}
+          className={`flex items-center justify-center py-2.5 px-3 rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer ${
+            practiceMode === 'translate'
+              ? 'bg-[#B8322D] text-white shadow-2xs'
+              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+          }`}
+        >
+          <span className="truncate">Dịch Việt → Gõ Hán</span>
+        </button>
+      </div>
+
+      {practiceMode === 'translate' ? (
+        <TranslateTypingMode
+          initialHskLevel={hskLevel}
+          initialLessonId={selectedLessonId}
+          onBackToNormalMode={() => setPracticeMode('visual')}
+        />
+      ) : (
+        <>
+          {/* 3. Thanh chọn phân loại nội dung cho Nhìn & Gõ (4 chế độ bao gồm Ôn câu sai) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 bg-card border border-[#E9DDD1] rounded-2xl p-1.5 shadow-2xs">
         <button
           onClick={() => {
             setActiveTab('practice')
@@ -2537,6 +2595,8 @@ export default function TypingClient() {
             </>
           )}
         </div>
+      )}
+      </>
       )}
       </>
       )}

@@ -898,4 +898,199 @@ export async function getTypingExercisesFromDBAction(params: {
   }
 }
 
+/**
+ * 11. Lấy danh sách câu ví dụ cho chế độ "Dịch Việt → Gõ Hán" từ Supabase
+ * Tái sử dụng 100% vocabulary_examples + vocabularies, không duplicate dữ liệu
+ */
+export interface TranslationExerciseItem {
+  id: string
+  exampleId?: string
+  vocabId: string
+  vietnamesePrompt: string      // Câu tiếng Việt hiển thị làm đề bài
+  chineseAnswer: string         // Câu chữ Hán mẫu
+  pinyinAnswer: string          // Pinyin câu mẫu
+  wordHanzi: string             // Từ vựng chủ điểm (dùng cho Gợi ý 1)
+  wordPinyin: string            // Pinyin từ vựng chủ điểm
+  wordMeaning: string           // Nghĩa từ vựng chủ điểm
+  hskLevel: number
+  lessonTitle?: string
+  difficulty: 'easy' | 'medium' | 'hard'
+}
+
+export async function getTranslationExercisesAction(params: {
+  hskLevel: number
+  lessonId?: string
+  limit?: number
+}) {
+  try {
+    const supabase = await createClient()
+    const limit = params.limit || 50
+    const hskTag = `HSK ${params.hskLevel}`
+
+    // 1. Trường hợp theo bài học cụ thể (Lesson ID)
+    if (params.lessonId) {
+      const { data: lessonData } = await supabase
+        .from('lessons')
+        .select('title, lesson_number, hsk_level')
+        .eq('id', params.lessonId)
+        .maybeSingle()
+
+      const lessonTitle = lessonData?.title || `Bài học (HSK ${params.hskLevel})`
+
+      const { data, error } = await supabase
+        .from('lesson_vocabularies')
+        .select(`
+          sort_order,
+          vocabularies!inner(
+            id,
+            hanzi,
+            pinyin,
+            meaning_vi,
+            hsk_level,
+            example_hanzi,
+            example_pinyin,
+            example_vi,
+            vocabulary_examples(id, chinese, pinyin, meaning_vi, difficulty_level, order_index)
+          )
+        `)
+        .eq('lesson_id', params.lessonId)
+        .order('sort_order', { ascending: true })
+
+      if (error || !data) {
+        return { success: false, data: [] }
+      }
+
+      const exercises: TranslationExerciseItem[] = []
+      for (const item of data) {
+        const v = item.vocabularies as any
+        if (!v) continue
+        const examples = (v.vocabulary_examples as any[]) || []
+        examples.sort((a, b) => (a.order_index || 1) - (b.order_index || 1))
+
+        if (examples.length > 0) {
+          for (const ex of examples) {
+            if (!ex.chinese || !ex.meaning_vi) continue
+            exercises.push({
+              id: `trans-ex-${ex.id}`,
+              exampleId: ex.id,
+              vocabId: v.id,
+              vietnamesePrompt: ex.meaning_vi.trim(),
+              chineseAnswer: ex.chinese.trim(),
+              pinyinAnswer: ex.pinyin?.trim() || '',
+              wordHanzi: v.hanzi,
+              wordPinyin: v.pinyin,
+              wordMeaning: v.meaning_vi,
+              hskLevel: params.hskLevel,
+              lessonTitle,
+              difficulty: ex.difficulty_level === 'basic' ? 'easy' : 'medium',
+            })
+          }
+        } else if (v.example_hanzi && v.example_vi) {
+          exercises.push({
+            id: `trans-v-${v.id}`,
+            vocabId: v.id,
+            vietnamesePrompt: v.example_vi.trim(),
+            chineseAnswer: v.example_hanzi.trim(),
+            pinyinAnswer: v.example_pinyin?.trim() || v.pinyin || '',
+            wordHanzi: v.hanzi,
+            wordPinyin: v.pinyin,
+            wordMeaning: v.meaning_vi,
+            hskLevel: params.hskLevel,
+            lessonTitle,
+            difficulty: 'easy',
+          })
+        }
+      }
+
+      return { success: exercises.length > 0, data: exercises }
+    }
+
+    // 2. Mặc định theo Cấp độ HSK (HSK 1 - 5)
+    const { data: exData, error: exErr } = await supabase
+      .from('vocabulary_examples')
+      .select(`
+        id,
+        chinese,
+        pinyin,
+        meaning_vi,
+        difficulty_level,
+        order_index,
+        vocabularies!inner(
+          id,
+          hanzi,
+          pinyin,
+          meaning_vi,
+          hsk_level
+        )
+      `)
+      .eq('vocabularies.hsk_level', hskTag)
+      .not('meaning_vi', 'is', null)
+      .not('chinese', 'is', null)
+      .order('order_index', { ascending: true })
+      .limit(limit)
+
+    const exercises: TranslationExerciseItem[] = []
+
+    if (exData && exData.length > 0) {
+      for (const row of exData as any[]) {
+        const v = row.vocabularies
+        if (!v || !row.chinese || !row.meaning_vi) continue
+        exercises.push({
+          id: `trans-ex-${row.id}`,
+          exampleId: row.id,
+          vocabId: v.id,
+          vietnamesePrompt: row.meaning_vi.trim(),
+          chineseAnswer: row.chinese.trim(),
+          pinyinAnswer: row.pinyin?.trim() || '',
+          wordHanzi: v.hanzi,
+          wordPinyin: v.pinyin,
+          wordMeaning: v.meaning_vi,
+          hskLevel: params.hskLevel,
+          lessonTitle: `HSK ${params.hskLevel}`,
+          difficulty: row.difficulty_level === 'basic' ? 'easy' : 'medium',
+        })
+      }
+    }
+
+    // Nếu số lượng câu từ bảng ví dụ chưa đủ limit, bù đắp từ câu ví dụ inline trong bảng vocabularies
+    if (exercises.length < limit) {
+      const existingVocabIds = new Set(exercises.map((e) => e.vocabId))
+      const { data: fallbackVocabs } = await supabase
+        .from('vocabularies')
+        .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
+        .eq('hsk_level', hskTag)
+        .not('example_hanzi', 'is', null)
+        .not('example_vi', 'is', null)
+        .limit(limit * 2)
+
+      if (fallbackVocabs) {
+        for (const fv of fallbackVocabs) {
+          if (!fv.example_hanzi || !fv.example_vi || existingVocabIds.has(fv.id)) continue
+          exercises.push({
+            id: `trans-v-${fv.id}`,
+            vocabId: fv.id,
+            vietnamesePrompt: fv.example_vi.trim(),
+            chineseAnswer: fv.example_hanzi.trim(),
+            pinyinAnswer: fv.example_pinyin?.trim() || fv.pinyin || '',
+            wordHanzi: fv.hanzi,
+            wordPinyin: fv.pinyin,
+            wordMeaning: fv.meaning_vi,
+            hskLevel: params.hskLevel,
+            lessonTitle: `HSK ${params.hskLevel}`,
+            difficulty: 'easy',
+          })
+          existingVocabIds.add(fv.id)
+          if (exercises.length >= limit) break
+        }
+      }
+    }
+
+    return { success: exercises.length > 0, data: exercises }
+  } catch (err: any) {
+    console.error('getTranslationExercisesAction error:', err)
+    return { success: false, data: [] }
+  }
+}
+
+
 
