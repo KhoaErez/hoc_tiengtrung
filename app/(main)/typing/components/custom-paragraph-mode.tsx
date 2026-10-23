@@ -204,6 +204,12 @@ export default function CustomParagraphMode({
   const [speechStatus, setSpeechStatus] = useState<'idle' | 'playing' | 'paused'>('idle')
   const [speakingSentenceIndex, setSpeakingSentenceIndex] = useState<number | null>(null)
   const [speakingWordIndex, setSpeakingWordIndex] = useState<number | null>(null)
+  const [audioSentenceIndex, setAudioSentenceIndex] = useState<number>(0)
+  const [isAudioFinished, setIsAudioFinished] = useState<boolean>(false)
+  const audioSentenceIndexRef = useRef<number>(0)
+  useEffect(() => {
+    audioSentenceIndexRef.current = audioSentenceIndex
+  }, [audioSentenceIndex])
   const [readingMode, setReadingMode] = useState<'all' | 'sentence' | null>(null)
   const [speechRate, setSpeechRate] = useState<number>(1)
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('')
@@ -494,6 +500,20 @@ export default function CustomParagraphMode({
     return findCurrentSentenceIndex(chineseSentences, userInput.length)
   }, [chineseSentences, userInput.length])
 
+  // Reset câu audio khi đổi văn bản luyện
+  useEffect(() => {
+    setAudioSentenceIndex(0)
+    setIsAudioFinished(false)
+  }, [currentText])
+
+  // Đồng bộ audioSentenceIndex theo tiến trình gõ phím khi âm thanh đang nghỉ
+  useEffect(() => {
+    if (speechStatus === 'idle') {
+      setAudioSentenceIndex(currentTypingSentenceIndex)
+      setIsAudioFinished(false)
+    }
+  }, [currentTypingSentenceIndex, speechStatus])
+
   // Dừng phát âm thanh ngay lập tức
   const stopSpeech = useCallback(() => {
     utteranceIdRef.current++
@@ -559,6 +579,7 @@ export default function CustomParagraphMode({
       const item = list[index]
 
       // Đặt câu đang đọc nhưng giữ speakingWordIndex = null ban đầu để hiển thị Sentence Fallback
+      setAudioSentenceIndex(index)
       setSpeakingSentenceIndex(index)
       setSpeakingWordIndex(null)
       setSpeechStatus('playing')
@@ -614,9 +635,33 @@ export default function CustomParagraphMode({
 
             if (readingModeRef.current === 'all' && isSequential) {
               if (index + 1 < list.length) {
+                setAudioSentenceIndex(index + 1)
                 speakSentence(index + 1, true)
               } else {
+                setAudioSentenceIndex(list.length - 1)
+                setIsAudioFinished(true)
                 stopSpeech()
+              }
+            } else if (readingModeRef.current === 'sentence') {
+              if (index + 1 < list.length) {
+                setAudioSentenceIndex(index + 1)
+                if (autoSpeakNextRef.current) {
+                  speakSentence(index + 1, false)
+                } else {
+                  setSpeechStatus('idle')
+                  setSpeakingSentenceIndex(null)
+                  setReadingMode(null)
+                  readingModeRef.current = null
+                  setSentenceTTSActive(false)
+                }
+              } else {
+                setAudioSentenceIndex(index)
+                setIsAudioFinished(true)
+                setSpeechStatus('idle')
+                setSpeakingSentenceIndex(null)
+                setReadingMode(null)
+                readingModeRef.current = null
+                setSentenceTTSActive(false)
               }
             } else {
               setSpeechStatus('idle')
@@ -666,17 +711,51 @@ export default function CustomParagraphMode({
         )
       }
     }
+    stopSpeech()
+    setIsAudioFinished(false)
+    setAudioSentenceIndex(0)
     readingModeRef.current = 'all'
     setReadingMode('all')
     speakSentence(0, true)
-  }, [chineseSentences, availableVoices, speakSentence])
+  }, [chineseSentences, availableVoices, speakSentence, stopSpeech])
 
   const handlePlayCurrentSentence = useCallback(() => {
     if (chineseSentences.length === 0) return
+    stopSpeech()
+    setIsAudioFinished(false)
+    const targetIdx = Math.min(Math.max(0, audioSentenceIndexRef.current), chineseSentences.length - 1)
     readingModeRef.current = 'sentence'
     setReadingMode('sentence')
-    speakSentence(currentTypingSentenceIndex, false)
-  }, [chineseSentences, currentTypingSentenceIndex, speakSentence])
+    speakSentence(targetIdx, false)
+  }, [chineseSentences, speakSentence, stopSpeech])
+
+  const handlePrevSentenceAudio = useCallback(() => {
+    if (chineseSentences.length <= 1) return
+    const prevIdx = Math.max(0, audioSentenceIndex - 1)
+    setAudioSentenceIndex(prevIdx)
+    setIsAudioFinished(false)
+
+    if (speechStatus === 'playing' && readingMode === 'sentence') {
+      stopSpeech()
+      readingModeRef.current = 'sentence'
+      setReadingMode('sentence')
+      speakSentence(prevIdx, false)
+    }
+  }, [chineseSentences, audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
+
+  const handleNextSentenceAudio = useCallback(() => {
+    if (chineseSentences.length <= 1) return
+    const nextIdx = Math.min(chineseSentences.length - 1, audioSentenceIndex + 1)
+    setAudioSentenceIndex(nextIdx)
+    setIsAudioFinished(false)
+
+    if (speechStatus === 'playing' && readingMode === 'sentence') {
+      stopSpeech()
+      readingModeRef.current = 'sentence'
+      setReadingMode('sentence')
+      speakSentence(nextIdx, false)
+    }
+  }, [chineseSentences, audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
 
   const handlePauseSpeech = useCallback(() => {
     clearKeepAlive()
@@ -1717,7 +1796,7 @@ export default function CustomParagraphMode({
       {/* 2.5 THANH ĐIỀU KHIỂN ÂM THANH (NGHE ĐOẠN, NGHE CÂU, TỐC ĐỘ, GIỌNG ĐỌC) */}
       <TypingAudioControls
         sentences={chineseSentences}
-        currentSentenceIndex={currentTypingSentenceIndex}
+        currentSentenceIndex={audioSentenceIndex}
         speakingSentenceIndex={speakingSentenceIndex}
         speechStatus={speechStatus}
         readingMode={readingMode}
@@ -1736,6 +1815,9 @@ export default function CustomParagraphMode({
         onToggleTypingSound={handleToggleTypingSound}
         autoSpeakNext={autoSpeakNext}
         onToggleAutoSpeakNext={handleToggleAutoSpeakNext}
+        onPrevSentence={handlePrevSentenceAudio}
+        onNextSentence={handleNextSentenceAudio}
+        isAudioFinished={isAudioFinished}
       />
 
       {/* 3. KHU VỰC VĂN BẢN MẪU (SAMPLE TEXT) */}

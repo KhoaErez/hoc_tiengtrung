@@ -716,7 +716,7 @@ export default function SystemLessonReader({
               <Button
                 variant="outline"
                 className="w-full sm:w-auto font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] text-title min-h-[44px] px-4 text-xs sm:text-sm gap-2 shadow-2xs cursor-pointer active:scale-[0.98] touch-manipulation"
-                title="Luyện đánh máy IME các câu ví dụ của bài học này"
+                title="Luyện đánh máy các câu ví dụ của bài học này"
               >
                 <Keyboard className="w-4 h-4 text-app-accent" />
                 <span>Luyện đánh máy</span>

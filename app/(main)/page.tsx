@@ -236,7 +236,7 @@ export default async function HomePage() {
                 {recentTyping ? (
                   <div>
                     <h3 className="font-serif font-bold text-base text-title">
-                      Luyện đánh máy Pinyin: {recentTyping.exercise_id}
+                      Luyện đánh máy: {recentTyping.exercise_id}
                     </h3>
                     <p className="text-xs text-muted font-serif mt-1">
                       Đã hoàn thành {recentTyping.completed_sentences}/{recentTyping.total_sentences} câu ({Math.round((recentTyping.completed_sentences / (recentTyping.total_sentences || 1)) * 100)}%)
@@ -477,7 +477,7 @@ export default async function HomePage() {
               </div>
               <div>
                 <h3 className="font-serif font-bold text-base text-title group-hover:text-app-accent transition-colors">
-                  Luyện đánh máy Pinyin
+                  Luyện đánh máy
                 </h3>
                 <p className="text-xs text-muted font-serif mt-1 leading-relaxed">
                   Luyện gõ chữ Hán theo từng cấp độ, đo tốc độ WPM và độ chính xác gõ thực tế.

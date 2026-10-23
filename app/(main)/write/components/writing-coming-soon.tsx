@@ -85,7 +85,7 @@ export function WritingComingSoon() {
           <Link href="/typing" className="w-full sm:w-auto">
             <Button variant="outline" className="w-full sm:w-auto font-serif border-[#E9DDD1] hover:bg-[#FFF9F3] text-title min-h-[44px] px-5 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-all">
               <Keyboard className="w-4 h-4 text-app-accent" />
-              <span>Luyện đánh máy Pinyin</span>
+              <span>Luyện đánh máy</span>
             </Button>
           </Link>
         </div>

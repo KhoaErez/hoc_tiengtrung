@@ -29,27 +29,60 @@ export function extractChineseSentences(
   if (!text || !text.trim()) return [];
 
   const sentences: ChineseSentenceItem[] = [];
-  // Tách theo các dấu ngắt câu tiếng Trung: 。！？!?；; hoặc xuống dòng \n
-  const regex = /[^。！？!?；;\n\r]+[。！？!?；;\n\r]*/g;
+
+  // Mẫu nhận diện kết thúc câu tiếng Trung:
+  // 1. Dấu câu tiếng Trung: [。！？]+
+  // 2. Dấu than/hỏi nửa góc: [!?]+
+  // 3. Dấu chấm nửa góc . nhưng không phải số thập phân (3.14) hoặc tên miền (.com/.cn):
+  //    (?<!\d)\.(?!\d)(?=\s|$|[\n\r]|["'”’」』）\)】\]])
+  // Kèm theo các dấu ngoặc kép / ngoặc đơn đóng liền sau nếu có: [”"’'」』）\)】\]]*
+  // Kèm theo khoảng trắng/xuống dòng hoặc kết thúc chuỗi.
+  // Hoặc ngắt theo dòng xuống dòng (\n, \r): [\n\r]+
+  const sentenceEndPattern =
+    /(?:[。！？]+|[!?]+|(?<!\d)\.(?!\d)(?=\s|$|[\n\r]|["'”’」』）\)】\]]))[”"’'」』）\)】\]]*(?:\s*[\n\r]+|\s*|$)|[\n\r]+/g;
+
+  let lastIndex = 0;
   let match: RegExpExecArray | null;
 
-  while ((match = regex.exec(text)) !== null) {
-    const rawMatch = match[0];
-    const trimmed = rawMatch.trim();
+  while ((match = sentenceEndPattern.exec(text)) !== null) {
+    const endIndex = match.index + match[0].length;
+    const rawChunk = text.slice(lastIndex, endIndex);
+    const trimmed = rawChunk.trim();
+
     if (trimmed) {
-      const offset = rawMatch.indexOf(trimmed);
-      const startIndex = match.index + offset;
-      const endIndex = startIndex + trimmed.length;
+      const offset = rawChunk.indexOf(trimmed);
+      const start = lastIndex + offset;
+      const end = start + trimmed.length;
+
       sentences.push({
         index: sentences.length,
-        startIndex,
-        endIndex,
+        startIndex: start,
+        endIndex: end,
         text: trimmed,
+      });
+    }
+
+    lastIndex = endIndex;
+  }
+
+  // Đoạn còn lại ở cuối nếu văn bản không kết thúc bằng dấu câu
+  if (lastIndex < text.length) {
+    const rawTail = text.slice(lastIndex);
+    const trimmedTail = rawTail.trim();
+    if (trimmedTail) {
+      const offset = rawTail.indexOf(trimmedTail);
+      const start = lastIndex + offset;
+      const end = start + trimmedTail.length;
+      sentences.push({
+        index: sentences.length,
+        startIndex: start,
+        endIndex: end,
+        text: trimmedTail,
       });
     }
   }
 
-  // Fallback nếu văn bản không chứa dấu câu ngắt
+  // Fallback nếu văn bản thuần không có dấu ngắt
   if (sentences.length === 0 && text.trim()) {
     sentences.push({
       index: 0,
@@ -74,10 +107,14 @@ export function findCurrentSentenceIndex(
   if (typedLength >= sentences[sentences.length - 1].endIndex) {
     return sentences.length - 1;
   }
-  const found = sentences.findIndex(
-    (s) => typedLength >= s.startIndex && typedLength < s.endIndex
-  );
-  return found !== -1 ? found : 0;
+  for (let i = 0; i < sentences.length; i++) {
+    const nextStart =
+      i + 1 < sentences.length ? sentences[i + 1].startIndex : Infinity;
+    if (typedLength >= sentences[i].startIndex && typedLength < nextStart) {
+      return i;
+    }
+  }
+  return 0;
 }
 
 /**

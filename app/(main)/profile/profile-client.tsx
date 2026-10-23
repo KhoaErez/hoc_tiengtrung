@@ -358,7 +358,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
                 <Keyboard className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-serif font-bold text-base text-title">Luyện đánh máy Pinyin</h3>
+                <h3 className="font-serif font-bold text-base text-title">Luyện đánh máy</h3>
                 <p className="text-xs text-muted font-serif">Kỹ năng gõ chữ Hán thực tế</p>
               </div>
             </div>

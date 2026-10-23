@@ -223,7 +223,7 @@ export function MobileNav({
   const coreNavItems = [
     { href: '/', icon: Home, label: 'Trang chủ', isProtected: false },
     { href: '/topics', icon: GraduationCap, label: 'HSK', isProtected: false },
-    { href: '/typing', icon: Keyboard, label: 'Luyện gõ', isProtected: false },
+    { href: '/typing', icon: Keyboard, label: 'Luyện đánh máy', isProtected: false },
     { href: '/review', icon: BrainCircuit, label: 'Ôn tập', isProtected: true },
   ]
 
@@ -269,7 +269,7 @@ export function MobileNav({
                   )}
                 </div>
                 <span
-                  className={`text-[10px] tracking-tight transition-colors duration-200 ${
+                  className={`text-[10px] tracking-tight truncate max-w-full text-center px-0.5 transition-colors duration-200 ${
                     isActive ? 'font-semibold font-serif text-app-accent' : 'font-normal font-serif text-muted'
                   }`}
                 >
@@ -452,7 +452,7 @@ function MobileDrawer({
 
   // Nhóm 3: Công cụ & Kỹ năng
   const practiceTools = [
-    { label: 'Luyện đánh máy IME', href: '/typing', icon: Keyboard, isProtected: false },
+    { label: 'Luyện đánh máy', href: '/typing', icon: Keyboard, isProtected: false },
     { label: '214 Bộ thủ Khang Hy', href: '/radicals', icon: Component, isProtected: false },
     { label: 'Luyện Viết AI', href: '/write', icon: PenTool, isProtected: false, badge: 'Sắp ra mắt' },
   ]

@@ -11,6 +11,9 @@ import {
   Sparkles,
   Info,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
   Gauge,
   Check,
   X,
@@ -20,11 +23,11 @@ import { ChineseSentenceItem } from '@/lib/typing-sound'
 
 export interface TypingAudioControlsProps {
   sentences: ChineseSentenceItem[];
-  currentSentenceIndex: number; // Câu mà người dùng đang gõ
+  currentSentenceIndex: number; // Câu mà người dùng đang gõ hoặc chọn nghe
   speakingSentenceIndex: number | null; // Câu đang được đọc bởi TTS
   speechStatus: 'idle' | 'playing' | 'paused';
   readingMode: 'all' | 'sentence' | null;
-  speechRate: number; // 0.75 | 1 | 1.25
+  speechRate: number; // 0.5 - 2.0
   onRateChange: (rate: number) => void;
   onPlayAll: () => void;
   onPlayCurrentSentence: () => void;
@@ -39,6 +42,9 @@ export interface TypingAudioControlsProps {
   onToggleTypingSound: () => void;
   autoSpeakNext: boolean;
   onToggleAutoSpeakNext: () => void;
+  onPrevSentence?: () => void;
+  onNextSentence?: () => void;
+  isAudioFinished?: boolean;
 }
 
 // Hàm chuẩn hóa tên và thông tin giọng đọc tiếng Trung
@@ -78,6 +84,9 @@ export default function TypingAudioControls({
   onToggleTypingSound,
   autoSpeakNext,
   onToggleAutoSpeakNext,
+  onPrevSentence,
+  onNextSentence,
+  isAudioFinished = false,
 }: TypingAudioControlsProps) {
   const [showVoiceDropdown, setShowVoiceDropdown] = useState(false)
   const [showHelpGuide, setShowHelpGuide] = useState(false)
@@ -395,23 +404,65 @@ export default function TypingAudioControls({
             )}
           </Button>
 
-          {/* Nút Nghe câu hiện tại */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onPlayCurrentSentence}
-            disabled={sentences.length === 0}
-            className={`font-serif text-xs rounded-xl border h-9 px-3 gap-1.5 transition-colors active:scale-[0.98] touch-manipulation ${
-              isPlayingCurrent
-                ? 'bg-[#FFF9F3] border-[#B8322D] text-[#B8322D] font-bold ring-1 ring-[#B8322D]'
-                : 'text-[#243047] border-[#E9DDD1] hover:border-[#B8322D]/40 hover:text-[#B8322D] bg-[#FFF9F3]'
-            }`}
-            title={`Nghe phát âm chuẩn của câu đang luyện (Câu ${currentSentenceIndex + 1})`}
-          >
-            <Headphones className="w-3.5 h-3.5 text-[#B8322D]" />
-            <span>Nghe câu hiện tại (Câu {currentSentenceIndex + 1})</span>
-          </Button>
+          {/* Nút Nghe câu hiện tại kèm điều hướng câu trước/sau nếu đoạn văn có nhiều câu */}
+          <div className="inline-flex items-center rounded-xl border border-[#E9DDD1] bg-[#FFF9F3] p-0.5 shadow-2xs">
+            {sentences.length > 1 && (
+              <button
+                type="button"
+                onClick={onPrevSentence}
+                disabled={currentSentenceIndex <= 0}
+                className="h-8 w-8 flex items-center justify-center rounded-lg text-[#243047]/70 hover:text-[#B8322D] hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer touch-manipulation active:scale-[0.96]"
+                title="Quay lại câu trước"
+                aria-label="Quay lại câu trước"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onPlayCurrentSentence}
+              disabled={sentences.length === 0}
+              className={`font-serif text-xs rounded-lg h-8 px-2.5 flex items-center gap-1.5 transition-all active:scale-[0.98] touch-manipulation cursor-pointer ${
+                isPlayingCurrent
+                  ? 'bg-white border border-[#B8322D]/40 text-[#B8322D] font-bold shadow-2xs ring-1 ring-[#B8322D]/30'
+                  : 'text-[#243047] hover:text-[#B8322D] hover:bg-white'
+              }`}
+              title={
+                sentences.length === 0
+                  ? 'Chưa có câu để đọc'
+                  : isAudioFinished
+                  ? `Đoạn văn đã đọc xong câu cuối (${currentSentenceIndex + 1}/${sentences.length}). Bấm để nghe lại.`
+                  : `Nghe câu hiện tại (Câu ${currentSentenceIndex + 1}/${sentences.length})`
+              }
+            >
+              {isPlayingCurrent ? (
+                <Volume2 className="w-3.5 h-3.5 text-[#B8322D] animate-pulse shrink-0" />
+              ) : isAudioFinished ? (
+                <RotateCcw className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              ) : (
+                <Headphones className="w-3.5 h-3.5 text-[#B8322D] shrink-0" />
+              )}
+              <span className="whitespace-nowrap">
+                {isAudioFinished
+                  ? `Đã xong đoạn • Nghe lại (${currentSentenceIndex + 1}/${sentences.length})`
+                  : `Nghe câu hiện tại (Câu ${currentSentenceIndex + 1}/${sentences.length})`}
+              </span>
+            </button>
+
+            {sentences.length > 1 && (
+              <button
+                type="button"
+                onClick={onNextSentence}
+                disabled={currentSentenceIndex >= sentences.length - 1}
+                className="h-8 w-8 flex items-center justify-center rounded-lg text-[#243047]/70 hover:text-[#B8322D] hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer touch-manipulation active:scale-[0.96]"
+                title="Chuyển sang câu tiếp theo"
+                aria-label="Chuyển sang câu tiếp theo"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
           {/* Nút Dừng phát */}
           <Button

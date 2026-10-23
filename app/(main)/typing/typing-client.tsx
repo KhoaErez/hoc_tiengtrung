@@ -320,6 +320,12 @@ export default function TypingClient() {
   const [speechStatus, setSpeechStatus] = useState<'idle' | 'playing' | 'paused'>('idle')
   const [speakingSentenceIndex, setSpeakingSentenceIndex] = useState<number | null>(null)
   const [speakingWordIndex, setSpeakingWordIndex] = useState<number | null>(null)
+  const [audioSentenceIndex, setAudioSentenceIndex] = useState<number>(0)
+  const [isAudioFinished, setIsAudioFinished] = useState<boolean>(false)
+  const audioSentenceIndexRef = useRef<number>(0)
+  useEffect(() => {
+    audioSentenceIndexRef.current = audioSentenceIndex
+  }, [audioSentenceIndex])
   const utteranceIdRef = useRef<number>(0)
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -442,6 +448,20 @@ export default function TypingClient() {
     return findCurrentSentenceIndex(chineseSentences, userInput.length)
   }, [chineseSentences, userInput.length])
 
+  // Reset câu audio khi đổi bài hoặc đổi câu tập
+  useEffect(() => {
+    setAudioSentenceIndex(0)
+    setIsAudioFinished(false)
+  }, [currentExercise?.id, currentIndex])
+
+  // Đồng bộ audioSentenceIndex theo tiến trình gõ phím khi âm thanh đang nghỉ
+  useEffect(() => {
+    if (speechStatus === 'idle') {
+      setAudioSentenceIndex(currentTypingSentenceIndex)
+      setIsAudioFinished(false)
+    }
+  }, [currentTypingSentenceIndex, speechStatus])
+
   // Dừng phát âm thanh ngay lập tức và giải phóng toàn bộ tài nguyên
   const stopSpeech = useCallback(() => {
     currentCardEpochRef.current++
@@ -534,6 +554,7 @@ export default function TypingClient() {
       // QUAN TRỌNG: KHÔNG gán cứng speakingWordIndex = 0! Giữ null ban đầu để hiển thị
       // Sentence-Level Highlight Fallback thanh lịch, chỉ nâng cấp lên Word-Level khi
       // sự kiện boundary thực sự phát sinh từ engine.
+      setAudioSentenceIndex(index)
       setSpeakingSentenceIndex(index)
       setSpeakingWordIndex(null)
       setSpeechStatus('playing')
@@ -599,9 +620,39 @@ export default function TypingClient() {
 
             if (readingModeRef.current === 'all' && isSequential) {
               if (index + 1 < list.length) {
+                setAudioSentenceIndex(index + 1)
                 speakSentence(index + 1, true, list, tokens, thisEpoch)
               } else {
+                setAudioSentenceIndex(list.length - 1)
+                setIsAudioFinished(true)
                 stopSpeech()
+              }
+            } else if (readingModeRef.current === 'sentence') {
+              if (index + 1 < list.length) {
+                // Đã đọc xong câu index, chuẩn bị sang câu tiếp theo
+                setAudioSentenceIndex(index + 1)
+                if (autoSpeakNextRef.current) {
+                  // Khi bật "Tự động đọc câu mới": tự động đọc tiếp câu tiếp theo
+                  speakSentence(index + 1, false, list, tokens, thisEpoch)
+                } else {
+                  // Khi tắt: chỉ phát 1 câu rồi dừng, câu tiếp theo đã sẵn sàng cho lần bấm tới
+                  setSpeechStatus('idle')
+                  setSpeakingSentenceIndex(null)
+                  setSpeakingWordIndex(null)
+                  setReadingMode(null)
+                  readingModeRef.current = null
+                  setSentenceTTSActive(false)
+                }
+              } else {
+                // Đã đọc đến câu cuối cùng của đoạn
+                setAudioSentenceIndex(index)
+                setIsAudioFinished(true)
+                setSpeechStatus('idle')
+                setSpeakingSentenceIndex(null)
+                setSpeakingWordIndex(null)
+                setReadingMode(null)
+                readingModeRef.current = null
+                setSentenceTTSActive(false)
               }
             } else {
               setSpeechStatus('idle')
@@ -725,25 +776,67 @@ export default function TypingClient() {
         )
       }
     }
+    stopSpeech()
+    const thisEpoch = ++currentCardEpochRef.current
+    setIsAudioFinished(false)
+    setAudioSentenceIndex(0)
     readingModeRef.current = 'all'
     setReadingMode('all')
-    speakSentence(0, true, list, exerciseWordTokensRef.current, currentCardEpochRef.current)
-  }, [availableVoices, speakSentence, clearAutoSpeakTimer])
+    speakSentence(0, true, list, exerciseWordTokensRef.current, thisEpoch)
+  }, [availableVoices, speakSentence, clearAutoSpeakTimer, stopSpeech])
 
   const handlePlayCurrentSentence = useCallback(() => {
     clearAutoSpeakTimer()
     const list = chineseSentencesRef.current
     if (list.length === 0) return
+
+    stopSpeech()
+    const thisEpoch = ++currentCardEpochRef.current
+    setIsAudioFinished(false)
+
+    const targetIdx = Math.min(Math.max(0, audioSentenceIndexRef.current), list.length - 1)
     readingModeRef.current = 'sentence'
     setReadingMode('sentence')
     speakSentence(
-      currentTypingSentenceIndex,
+      targetIdx,
       false,
       list,
       exerciseWordTokensRef.current,
-      currentCardEpochRef.current
+      thisEpoch
     )
-  }, [currentTypingSentenceIndex, speakSentence, clearAutoSpeakTimer])
+  }, [speakSentence, clearAutoSpeakTimer, stopSpeech])
+
+  const handlePrevSentenceAudio = useCallback(() => {
+    const list = chineseSentencesRef.current
+    if (list.length <= 1) return
+    const prevIdx = Math.max(0, audioSentenceIndex - 1)
+    setAudioSentenceIndex(prevIdx)
+    setIsAudioFinished(false)
+
+    if (speechStatus === 'playing' && readingMode === 'sentence') {
+      stopSpeech()
+      const thisEpoch = ++currentCardEpochRef.current
+      readingModeRef.current = 'sentence'
+      setReadingMode('sentence')
+      speakSentence(prevIdx, false, list, exerciseWordTokensRef.current, thisEpoch)
+    }
+  }, [audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
+
+  const handleNextSentenceAudio = useCallback(() => {
+    const list = chineseSentencesRef.current
+    if (list.length <= 1) return
+    const nextIdx = Math.min(list.length - 1, audioSentenceIndex + 1)
+    setAudioSentenceIndex(nextIdx)
+    setIsAudioFinished(false)
+
+    if (speechStatus === 'playing' && readingMode === 'sentence') {
+      stopSpeech()
+      const thisEpoch = ++currentCardEpochRef.current
+      readingModeRef.current = 'sentence'
+      setReadingMode('sentence')
+      speakSentence(nextIdx, false, list, exerciseWordTokensRef.current, thisEpoch)
+    }
+  }, [audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
 
   const handlePauseSpeech = useCallback(() => {
     clearKeepAlive()
@@ -835,6 +928,8 @@ export default function TypingClient() {
     setIsStarted(false)
     setIsCompleted(false)
     setElapsedSeconds(0)
+    setAudioSentenceIndex(0)
+    setIsAudioFinished(false)
     if (timerRef.current) clearInterval(timerRef.current)
     // Chỉ tự động focus bàn phím trên desktop/tablet để tránh giật bàn phím ảo trên mobile
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
@@ -1499,7 +1594,7 @@ export default function TypingClient() {
                 ? 'Dịch Việt → Gõ Hán'
                 : mode === 'sentence'
                 ? '100 câu ca dao, tục ngữ Việt Nam'
-                : 'Luyện đánh máy tiếng Trung'}
+                : 'Luyện đánh máy'}
             </h1>
           </div>
           <p className="text-muted font-serif text-sm mt-1.5 max-w-2xl">
@@ -2020,7 +2115,7 @@ export default function TypingClient() {
           {/* Thanh điều khiển âm thanh toàn diện (Nghe toàn bài, Nghe câu, Tốc độ, Giọng đọc, Âm gõ, Tự động đọc) */}
           <TypingAudioControls
             sentences={chineseSentences}
-            currentSentenceIndex={currentTypingSentenceIndex}
+            currentSentenceIndex={audioSentenceIndex}
             speakingSentenceIndex={speakingSentenceIndex}
             speechStatus={speechStatus}
             readingMode={readingMode}
@@ -2039,6 +2134,9 @@ export default function TypingClient() {
             onToggleTypingSound={handleToggleTypingSound}
             autoSpeakNext={preferences.autoSpeakNext || false}
             onToggleAutoSpeakNext={handleToggleAutoSpeakNext}
+            onPrevSentence={handlePrevSentenceAudio}
+            onNextSentence={handleNextSentenceAudio}
+            isAudioFinished={isAudioFinished}
           />
 
           <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-8 shadow-sm space-y-4 sm:space-y-6">

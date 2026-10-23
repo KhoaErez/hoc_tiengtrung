@@ -148,7 +148,7 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
   // Nhóm 3: Công cụ luyện tập (Practice & Tools)
   const practiceTools = [
     {
-      label: 'Luyện đánh máy IME',
+      label: 'Luyện đánh máy',
       href: '/typing',
       icon: Keyboard,
       isProtected: false,
