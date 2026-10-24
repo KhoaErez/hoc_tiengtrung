@@ -17,7 +17,6 @@ import {
   LogOut, 
   ArrowRight, 
   Award,
-  Sparkles,
   Timer,
   CheckCircle2,
   TrendingUp,

@@ -5,9 +5,12 @@ import { getCachedSystemLessonsByLevel, getCachedTotalVocabCountByLevel } from '
 
 export const dynamic = 'force-dynamic'
 
-export default async function TopicsPage(props: { searchParams: Promise<{ q?: string }> }) {
+export default async function TopicsPage(props: { searchParams: Promise<{ q?: string; page?: string; tab?: string; vq?: string }> }) {
   const searchParams = await props.searchParams;
   const currentHsk = searchParams.q || 'HSK 1'
+  const initialVocabPage = Math.max(1, parseInt(searchParams.page || '1', 10) || 1)
+  const initialTab = searchParams.tab === 'vocab' || searchParams.page ? 'vocab' : 'lessons'
+  const initialVocabSearch = searchParams.vq || ''
   
   // Validate HSK 3.0 level
   const validLevels = ['HSK 1', 'HSK 2', 'HSK 3', 'HSK 4', 'HSK 5', 'HSK 6', 'HSK 7-9', 'Giao tiếp', 'Công xưởng']
@@ -37,14 +40,14 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
     user
       ? supabase
           .from('user_vocabularies')
-          .select('vocabulary_id, vocabularies!inner(hsk_level)')
+          .select('vocabulary_id, vocabularies!inner()')
           .eq('user_id', user.id)
           .eq('vocabularies.hsk_level', currentHsk)
       : Promise.resolve({ data: null }),
     user
       ? supabase
           .from('user_vocabularies')
-          .select('id, vocabularies!inner(hsk_level)', { count: 'exact', head: true })
+          .select('id, vocabularies!inner()', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .eq('vocabularies.hsk_level', currentHsk)
           .lte('next_review_at', now)
@@ -117,6 +120,9 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
         recentVocabs={recentVocabs}
         totalLevelVocabCount={totalLevelVocabsCount || undefined}
         isLoggedIn={!!user}
+        initialVocabPage={initialVocabPage}
+        initialTab={initialTab}
+        initialVocabSearch={initialVocabSearch}
       />
     </div>
   )

@@ -1,0 +1,5582 @@
+[
+  {
+    "id": "2294259d-924e-46a7-a036-971daab12eea",
+    "hanzi": "岸",
+    "pinyin": "àn",
+    "meaning_vi": "bờ"
+  },
+  {
+    "id": "def97bb2-764f-4efd-bd4a-37e7c9258119",
+    "hanzi": "按摩",
+    "pinyin": "àn mó",
+    "meaning_vi": "mát-xa, xoa bóp"
+  },
+  {
+    "id": "762f59d3-6487-486f-b624-6e2b4401f091",
+    "hanzi": "昂贵",
+    "pinyin": "ángguì",
+    "meaning_vi": "đắt đỏ, giá cao"
+  },
+  {
+    "id": "154dfad9-9853-4eda-b6d2-1474d04b8c9f",
+    "hanzi": "案例",
+    "pinyin": "ànlì",
+    "meaning_vi": "án lệ, trường hợp thực tế"
+  },
+  {
+    "id": "c2a3200d-dcc4-4293-88c1-8bf9a12c26fd",
+    "hanzi": "暗示",
+    "pinyin": "ànshì",
+    "meaning_vi": "ám chỉ, gợi ý"
+  },
+  {
+    "id": "0f2c9c6c-a51d-4acf-8b74-86f6130e5b91",
+    "hanzi": "摆",
+    "pinyin": "bǎi",
+    "meaning_vi": "bày, đặt, đung đưa"
+  },
+  {
+    "id": "a33fdfcb-82fd-4861-a4bc-f7a04d07f7b5",
+    "hanzi": "拜访",
+    "pinyin": "bài fǎng",
+    "meaning_vi": "thăm viếng"
+  },
+  {
+    "id": "37a08168-1937-4352-802e-d798eb332b99",
+    "hanzi": "拜年",
+    "pinyin": "bài nián",
+    "meaning_vi": "chúc Tết"
+  },
+  {
+    "id": "6f390446-733b-4d8a-aa7f-82fa83f86834",
+    "hanzi": "摆脱",
+    "pinyin": "bǎi tuō",
+    "meaning_vi": "thoát khỏi, dứt ra"
+  },
+  {
+    "id": "c255ba5a-dff6-4bd2-a1bd-a9781fd3407c",
+    "hanzi": "版本",
+    "pinyin": "bǎnběn",
+    "meaning_vi": "phiên bản"
+  },
+  {
+    "id": "e47139b7-d6ca-4d4e-8ca2-e9398a62c2bf",
+    "hanzi": "榜样",
+    "pinyin": "bǎngyàng",
+    "meaning_vi": "tấm gương, hình mẫu"
+  },
+  {
+    "id": "a16118f3-b623-4264-87a9-6f829825b852",
+    "hanzi": "伴随",
+    "pinyin": "bànsuí",
+    "meaning_vi": "đi kèm, kèm theo, đi cùng"
+  },
+  {
+    "id": "c6d30d9d-66ca-4862-a4d3-79c83f72c376",
+    "hanzi": "扮演",
+    "pinyin": "bànyǎn",
+    "meaning_vi": "đóng vai, sắm vai"
+  },
+  {
+    "id": "8032b80e-b5fd-4cea-9270-2dbdcfe50d7b",
+    "hanzi": "爆发",
+    "pinyin": "bàofā",
+    "meaning_vi": "bùng nổ, bùng phát"
+  },
+  {
+    "id": "bc632413-6c9b-48ab-a2ac-37067e214889",
+    "hanzi": "保管",
+    "pinyin": "bǎoguǎn",
+    "meaning_vi": "bảo quản, trông coi; chắc chắn"
+  },
+  {
+    "id": "c0a41487-4b3e-453a-ab57-0b17e1653105",
+    "hanzi": "暴力",
+    "pinyin": "bàolì",
+    "meaning_vi": "bạo lực"
+  },
+  {
+    "id": "44f2af56-cceb-4f92-bf5c-0bcd7b686cfc",
+    "hanzi": "暴露",
+    "pinyin": "bàolù",
+    "meaning_vi": "bộc lộ, phơi bày"
+  },
+  {
+    "id": "305f532b-f3f7-42cd-8f71-f8591e2ba947",
+    "hanzi": "报社",
+    "pinyin": "bàoshè",
+    "meaning_vi": "tòa soạn báo"
+  },
+  {
+    "id": "d4b8eadd-7f03-4abc-838c-688660b9ac53",
+    "hanzi": "爆炸",
+    "pinyin": "bàozhà",
+    "meaning_vi": "nổ tung"
+  },
+  {
+    "id": "6ecea74b-00cf-4261-b647-06a75483c12e",
+    "hanzi": "保障",
+    "pinyin": "bǎozhàng",
+    "meaning_vi": "bảo đảm, bảo hộ"
+  },
+  {
+    "id": "c9cdd411-9b17-4fa1-b8cf-fb15f4c1ac21",
+    "hanzi": "被动",
+    "pinyin": "bèidòng",
+    "meaning_vi": "bị động"
+  },
+  {
+    "id": "1109c957-c5e6-4121-b5ef-7b43fbc23127",
+    "hanzi": "悲观",
+    "pinyin": "bēiguān",
+    "meaning_vi": "bi quan"
+  },
+  {
+    "id": "f54e0be3-1f68-4ea3-bab0-0ef4e9336ab5",
+    "hanzi": "北极",
+    "pinyin": "Běijí",
+    "meaning_vi": "Bắc cực"
+  },
+  {
+    "id": "632603dd-d929-4463-8456-85dbb6ef8091",
+    "hanzi": "本能",
+    "pinyin": "běnnéng",
+    "meaning_vi": "bản năng"
+  },
+  {
+    "id": "e4382e0e-7c5e-4652-881e-f350a75d3714",
+    "hanzi": "本身",
+    "pinyin": "běnshēn",
+    "meaning_vi": "bản thân, tự nó"
+  },
+  {
+    "id": "3a46cb0a-bfab-4385-a6a9-2334505b053b",
+    "hanzi": "编辑",
+    "pinyin": "biānjí",
+    "meaning_vi": "biên tập, biên tập viên"
+  },
+  {
+    "id": "3636ef74-8c51-4bbb-9426-83424ecf0216",
+    "hanzi": "变质",
+    "pinyin": "biànzhì",
+    "meaning_vi": "biến chất, ôi thiu"
+  },
+  {
+    "id": "92fa37c1-09cb-43ab-8682-9671f933cd4f",
+    "hanzi": "比方",
+    "pinyin": "bǐfang",
+    "meaning_vi": "ví dụ, ví von"
+  },
+  {
+    "id": "ca13b11d-76d4-4672-a09f-16af1e356cc8",
+    "hanzi": "病毒",
+    "pinyin": "bìngdú",
+    "meaning_vi": "vi-rút"
+  },
+  {
+    "id": "c715871d-d36f-492d-9297-cfe49e022b15",
+    "hanzi": "比重",
+    "pinyin": "bǐzhòng",
+    "meaning_vi": "tỷ trọng"
+  },
+  {
+    "id": "7ec4ddc9-b64e-409d-a241-e82088f41b22",
+    "hanzi": "博览会",
+    "pinyin": "bólǎnhuì",
+    "meaning_vi": "hội chợ triển lãm"
+  },
+  {
+    "id": "7e78cd6c-2410-4c4b-b179-395b3b6dbca5",
+    "hanzi": "薄弱",
+    "pinyin": "bóruò",
+    "meaning_vi": "yếu kém, mỏng manh"
+  },
+  {
+    "id": "6f75bd5d-02a1-4230-bbda-087962de4a1d",
+    "hanzi": "播种",
+    "pinyin": "bōzhòng",
+    "meaning_vi": "gieo hạt, gieo giống"
+  },
+  {
+    "id": "90df21ad-bf6f-4e72-a73f-e770c2fc8a7a",
+    "hanzi": "脖子",
+    "pinyin": "bózi",
+    "meaning_vi": "cổ"
+  },
+  {
+    "id": "9af4758b-66f9-410f-8cad-6365c075ee7c",
+    "hanzi": "布",
+    "pinyin": "bù",
+    "meaning_vi": "vải"
+  },
+  {
+    "id": "6fe36171-711c-407e-92fe-96233c7009cc",
+    "hanzi": "不顾",
+    "pinyin": "bú gù",
+    "meaning_vi": "bất chấp, không màng"
+  },
+  {
+    "id": "9abb54d5-2542-4065-a622-e727de8b5e5e",
+    "hanzi": "不禁",
+    "pinyin": "bù jīn",
+    "meaning_vi": "không kìm được, bất giác"
+  },
+  {
+    "id": "0bfde4c6-0a28-4e13-bc8a-7d3386b48a6e",
+    "hanzi": "不料",
+    "pinyin": "bú liào",
+    "meaning_vi": "không ngờ, chẳng ngờ"
+  },
+  {
+    "id": "19a003c9-38e9-4bfc-b27b-90a0b83900a2",
+    "hanzi": "不时",
+    "pinyin": "bù shí",
+    "meaning_vi": "thường xuyên, thỉnh thoảng, chốc chốc"
+  },
+  {
+    "id": "2b06b461-5833-4a16-9887-fb393bde43df",
+    "hanzi": "布置",
+    "pinyin": "bù zhì",
+    "meaning_vi": "bố trí, sắp đặt; phân công"
+  },
+  {
+    "id": "910b6bce-6870-4475-85e7-09b3d9322899",
+    "hanzi": "不止",
+    "pinyin": "bù zhǐ",
+    "meaning_vi": "không chỉ, không ngừng"
+  },
+  {
+    "id": "0aceb97a-acbe-434f-b248-33c7e450fa77",
+    "hanzi": "不安",
+    "pinyin": "bù'ān",
+    "meaning_vi": "bất an, lo lắng"
+  },
+  {
+    "id": "c636b429-5ae7-435d-beec-37cbab0d2632",
+    "hanzi": "补偿",
+    "pinyin": "bǔcháng",
+    "meaning_vi": "bồi thường, bù đắp"
+  },
+  {
+    "id": "2291b30a-a77b-4e50-b32f-a98ead4f5e38",
+    "hanzi": "不耐烦",
+    "pinyin": "búnàifán",
+    "meaning_vi": "mất kiên nhẫn, sốt ruột"
+  },
+  {
+    "id": "c13e1486-c5b5-4347-8868-b2f07164f690",
+    "hanzi": "补贴",
+    "pinyin": "bǔtiē",
+    "meaning_vi": "trợ cấp, phụ cấp"
+  },
+  {
+    "id": "301178f0-a7a7-4b2b-8f73-dff7b3e0bdcc",
+    "hanzi": "部位",
+    "pinyin": "bùwèi",
+    "meaning_vi": "bộ phận, vị trí"
+  },
+  {
+    "id": "3f8d733f-7216-4328-82ad-d17a6b91b210",
+    "hanzi": "步骤",
+    "pinyin": "bùzhòu",
+    "meaning_vi": "các bước, trình tự"
+  },
+  {
+    "id": "8e7604a1-fdd0-452a-9725-3ce5dac0e661",
+    "hanzi": "踩",
+    "pinyin": "cǎi",
+    "meaning_vi": "giẫm, đạp"
+  },
+  {
+    "id": "bc0b9358-3991-4be7-9fdc-81c524d47331",
+    "hanzi": "彩票",
+    "pinyin": "cǎi piào",
+    "meaning_vi": "vé số"
+  },
+  {
+    "id": "fcab81b2-b6fb-484f-824d-743476c46c98",
+    "hanzi": "财产",
+    "pinyin": "cáichǎn",
+    "meaning_vi": "tài sản"
+  },
+  {
+    "id": "8e09b594-b5f1-4dd0-ade4-52f0a697bbb1",
+    "hanzi": "财富",
+    "pinyin": "cáifù",
+    "meaning_vi": "của cải, tài sản"
+  },
+  {
+    "id": "e46e63ec-30b7-4a20-a0a6-a7b829576062",
+    "hanzi": "采购",
+    "pinyin": "cǎigòu",
+    "meaning_vi": "thu mua, mua sắm"
+  },
+  {
+    "id": "17add1d8-b3d2-420d-9d63-7285e3ca4c8f",
+    "hanzi": "彩虹",
+    "pinyin": "cǎihóng",
+    "meaning_vi": "cầu vồng"
+  },
+  {
+    "id": "0e5b428d-df64-42a5-ae88-495ec3c8a663",
+    "hanzi": "采集",
+    "pinyin": "cǎijí",
+    "meaning_vi": "thu thập, hái lượm"
+  },
+  {
+    "id": "598e6273-d02c-4168-b014-2cd1b98f2089",
+    "hanzi": "采纳",
+    "pinyin": "cǎinà",
+    "meaning_vi": "tiếp thu, chấp nhận"
+  },
+  {
+    "id": "fbf6d08f-c07a-46a2-84f5-75b3b3706617",
+    "hanzi": "财务",
+    "pinyin": "cáiwù",
+    "meaning_vi": "tài vụ, tài chính"
+  },
+  {
+    "id": "deb17956-2e93-49cc-9074-b0b04839301a",
+    "hanzi": "仓库",
+    "pinyin": "cāngkù",
+    "meaning_vi": "nhà kho, kho bãi"
+  },
+  {
+    "id": "9f501377-d081-4732-938d-fdf142259d24",
+    "hanzi": "残疾",
+    "pinyin": "cánjí",
+    "meaning_vi": "tàn tật, khuyết tật"
+  },
+  {
+    "id": "ab10e468-3a1d-4bf9-8877-e717ab2e0a07",
+    "hanzi": "策划",
+    "pinyin": "cèhuà",
+    "meaning_vi": "hoạch định, lên kế hoạch"
+  },
+  {
+    "id": "9f0c40e6-d304-46b2-8b39-0861ffad8c35",
+    "hanzi": "测量",
+    "pinyin": "cèliáng",
+    "meaning_vi": "đo đạc, đo lường"
+  },
+  {
+    "id": "a6ee19e9-cb80-456a-ac39-f10c52f2413f",
+    "hanzi": "策略",
+    "pinyin": "cèlüè",
+    "meaning_vi": "sách lược, chiến lược"
+  },
+  {
+    "id": "ddb1c2b0-e1c0-432c-a50f-135c43fd3fce",
+    "hanzi": "层次",
+    "pinyin": "céng cì",
+    "meaning_vi": "tầng thứ, thứ bậc"
+  },
+  {
+    "id": "8ec7c5dd-5f3e-4247-be9b-712130139318",
+    "hanzi": "插座",
+    "pinyin": "chā zuò",
+    "meaning_vi": "ổ cắm điện"
+  },
+  {
+    "id": "f9f8d9da-ac0e-4bdf-8694-7d809c75ef02",
+    "hanzi": "场合",
+    "pinyin": "chǎnghé",
+    "meaning_vi": "trường hợp, hoàn cảnh"
+  },
+  {
+    "id": "f3ee782b-383f-4c95-ba30-7b2ec9f3626f",
+    "hanzi": "场面",
+    "pinyin": "chǎngmiàn",
+    "meaning_vi": "cảnh tượng, thể diện"
+  },
+  {
+    "id": "c9f83e9b-3cd4-417f-b11e-79ae26fd0cbf",
+    "hanzi": "畅通",
+    "pinyin": "chàngtōng",
+    "meaning_vi": "thông suốt, hanh thông"
+  },
+  {
+    "id": "839d6864-80d1-4ee8-9524-97d27d4a6859",
+    "hanzi": "畅销",
+    "pinyin": "chàngxiāo",
+    "meaning_vi": "bán chạy"
+  },
+  {
+    "id": "1c25d9fb-cfa7-444e-a535-4c49f5931350",
+    "hanzi": "抄",
+    "pinyin": "chāo",
+    "meaning_vi": "chép, sao chép"
+  },
+  {
+    "id": "aaf6b94b-e1c2-48cb-8861-2d256ff9e7b5",
+    "hanzi": "朝代",
+    "pinyin": "cháodài",
+    "meaning_vi": "triều đại"
+  },
+  {
+    "id": "e0f20a8c-2b8c-4ccd-af2d-bab2a1d77241",
+    "hanzi": "吵架",
+    "pinyin": "chǎojià",
+    "meaning_vi": "cãi nhau"
+  },
+  {
+    "id": "30c07891-91ab-45ec-98f0-90814b01a58f",
+    "hanzi": "潮流",
+    "pinyin": "cháoliú",
+    "meaning_vi": "trào lưu, xu hướng"
+  },
+  {
+    "id": "5edd9ef2-57fd-4e56-b25b-f7486388425a",
+    "hanzi": "潮湿",
+    "pinyin": "cháoshī",
+    "meaning_vi": "ẩm ướt"
+  },
+  {
+    "id": "f83dd7ba-3c85-4c8a-908b-8e69a803110d",
+    "hanzi": "嘲笑",
+    "pinyin": "cháoxiào",
+    "meaning_vi": "cười nhạo, châm chọc"
+  },
+  {
+    "id": "d7f8eb39-63f6-4eb5-ad51-72b95d6110ac",
+    "hanzi": "超越",
+    "pinyin": "chāoyuè",
+    "meaning_vi": "vượt qua, vượt trội"
+  },
+  {
+    "id": "20ca7cd6-f288-40a8-9e9b-cc4b4454a959",
+    "hanzi": "趁",
+    "pinyin": "chèn",
+    "meaning_vi": "nhân dịp, nhân lúc"
+  },
+  {
+    "id": "e8089b10-dcb1-443e-9f1d-e9578d277c15",
+    "hanzi": "乘",
+    "pinyin": "chéng",
+    "meaning_vi": "ngồi (xe, tàu); nhân; tận dụng"
+  },
+  {
+    "id": "cfc61921-f3f1-44c1-8b62-517a89a38a08",
+    "hanzi": "惩罚",
+    "pinyin": "chéng fá",
+    "meaning_vi": "trừng phạt"
+  },
+  {
+    "id": "75360ddb-b60c-426e-bd74-d78b8ad5aded",
+    "hanzi": "承办",
+    "pinyin": "chéngbàn",
+    "meaning_vi": "đảm đương, đứng ra giải quyết"
+  },
+  {
+    "id": "cac47e21-7c65-4422-8b0c-671f8305ae51",
+    "hanzi": "称号",
+    "pinyin": "chēnghào",
+    "meaning_vi": "danh hiệu"
+  },
+  {
+    "id": "c2a03e99-63e9-4a28-91fc-190e1ce0b812",
+    "hanzi": "称呼",
+    "pinyin": "chēnghu",
+    "meaning_vi": "xưng hô, gọi là"
+  },
+  {
+    "id": "4fc1b6f6-0d28-4f4f-b39b-e8d2d881601a",
+    "hanzi": "成交",
+    "pinyin": "chéngjiāo",
+    "meaning_vi": "giao dịch thành công, chốt đơn"
+  },
+  {
+    "id": "4977e8a9-2ca6-4aa9-aa58-d901baaaeb36",
+    "hanzi": "承诺",
+    "pinyin": "chéngnuò",
+    "meaning_vi": "cam kết, lời hứa"
+  },
+  {
+    "id": "443e2be6-e714-4f14-b065-372132f97bc4",
+    "hanzi": "呈现",
+    "pinyin": "chéngxiàn",
+    "meaning_vi": "hiện ra, xuất hiện"
+  },
+  {
+    "id": "21eb5881-792d-4806-befa-a685a095a630",
+    "hanzi": "成效",
+    "pinyin": "chéngxiào",
+    "meaning_vi": "hiệu quả, kết quả"
+  },
+  {
+    "id": "82723c28-6a60-4527-bed2-7fa88e910101",
+    "hanzi": "成语",
+    "pinyin": "chéngyǔ",
+    "meaning_vi": "thành ngữ"
+  },
+  {
+    "id": "bab8f1f2-681f-409a-91d9-3809408fb377",
+    "hanzi": "沉重",
+    "pinyin": "chénzhòng",
+    "meaning_vi": "nặng nề, trầm trọng"
+  },
+  {
+    "id": "3fd87adb-ef30-48f1-87ed-d12f8644e378",
+    "hanzi": "撤销",
+    "pinyin": "chèxiāo",
+    "meaning_vi": "hủy bỏ, thu hồi"
+  },
+  {
+    "id": "4b4d0885-3fab-44c6-9082-8a80dab85036",
+    "hanzi": "持久",
+    "pinyin": "chí jiǔ",
+    "meaning_vi": "lâu bền, bền bỉ"
+  },
+  {
+    "id": "7593bb61-b2a1-4c40-95c9-7731e0a2fced",
+    "hanzi": "崇拜",
+    "pinyin": "chóng bài",
+    "meaning_vi": "sùng bái"
+  },
+  {
+    "id": "f7a69563-4851-4ca7-9181-12519163bf71",
+    "hanzi": "冲动",
+    "pinyin": "chōngdòng",
+    "meaning_vi": "bốc đồng, kích động"
+  },
+  {
+    "id": "572378a8-6701-4684-9ea1-8539ddf5d2ac",
+    "hanzi": "冲击",
+    "pinyin": "chōngjī",
+    "meaning_vi": "tác động mạnh, va chạm, xung kích"
+  },
+  {
+    "id": "10e3cdc7-481a-4d1d-b5bc-fe4ce0f62d6e",
+    "hanzi": "充实",
+    "pinyin": "chōngshí",
+    "meaning_vi": "dồi dào, phong phú, làm đầy"
+  },
+  {
+    "id": "968481da-df61-47da-9e2a-5344c2ee10f5",
+    "hanzi": "冲突",
+    "pinyin": "chōngtū",
+    "meaning_vi": "xung đột, va chạm"
+  },
+  {
+    "id": "48af543d-7382-4b9d-8de7-b5c8bc9c80c2",
+    "hanzi": "筹备",
+    "pinyin": "chóubèi",
+    "meaning_vi": "chuẩn bị, trù bị"
+  },
+  {
+    "id": "8fbca0d3-2ae3-433e-825f-cee55c442ea0",
+    "hanzi": "抽象",
+    "pinyin": "chōuxiàng",
+    "meaning_vi": "trừu tượng"
+  },
+  {
+    "id": "f1dadc28-6424-4341-95af-3271bbbf7eb9",
+    "hanzi": "除",
+    "pinyin": "chú",
+    "meaning_vi": "trừ, ngoại trừ"
+  },
+  {
+    "id": "1351d455-11b4-49a4-8369-207ee453a3ad",
+    "hanzi": "串",
+    "pinyin": "chuàn",
+    "meaning_vi": "xâu, chuỗi; kết nối"
+  },
+  {
+    "id": "dc702185-d99e-4c06-81ab-52c8a7debebf",
+    "hanzi": "传达",
+    "pinyin": "chuándá",
+    "meaning_vi": "truyền đạt, thông báo"
+  },
+  {
+    "id": "30c0b436-a84f-4d9a-b8c3-32f17668dad7",
+    "hanzi": "创立",
+    "pinyin": "chuànglì",
+    "meaning_vi": "sáng lập, thành lập"
+  },
+  {
+    "id": "b06cbc16-978d-4875-9ea2-6a512cba61b2",
+    "hanzi": "传染",
+    "pinyin": "chuánrǎn",
+    "meaning_vi": "truyền nhiễm, lây nhiễm"
+  },
+  {
+    "id": "442f36b4-3a14-4c6a-89cb-b65f3c2d0e7f",
+    "hanzi": "传授",
+    "pinyin": "chuánshòu",
+    "meaning_vi": "truyền thụ, truyền dạy"
+  },
+  {
+    "id": "20ce3759-c9eb-47b8-af0a-6912c7150442",
+    "hanzi": "初步",
+    "pinyin": "chūbù",
+    "meaning_vi": "sơ bộ, bước đầu"
+  },
+  {
+    "id": "b49c2b27-825e-4ac5-bda7-2f5174d1fc4b",
+    "hanzi": "储存",
+    "pinyin": "chǔcún",
+    "meaning_vi": "lưu trữ, tích trữ"
+  },
+  {
+    "id": "e93db931-7c82-4f52-ade1-e0263bd02c4a",
+    "hanzi": "垂直",
+    "pinyin": "chuízhí",
+    "meaning_vi": "thẳng đứng, vuông góc"
+  },
+  {
+    "id": "a8c58e2c-5458-463f-b073-166ee77e502b",
+    "hanzi": "出示",
+    "pinyin": "chūshì",
+    "meaning_vi": "xuất trình, đưa ra"
+  },
+  {
+    "id": "2297d47e-670e-4be3-af1e-c0566e1f318a",
+    "hanzi": "储蓄",
+    "pinyin": "chǔxù",
+    "meaning_vi": "tiết kiệm, gửi tiết kiệm"
+  },
+  {
+    "id": "438d1bbc-c135-4a25-b944-1e3d595025d0",
+    "hanzi": "刺",
+    "pinyin": "cì",
+    "meaning_vi": "gai; đâm, chích"
+  },
+  {
+    "id": "cb93b5e9-bcc6-4192-b1c2-ca1bb013d5b7",
+    "hanzi": "匆忙",
+    "pinyin": "cōngmáng",
+    "meaning_vi": "vội vã, gấp gáp"
+  },
+  {
+    "id": "c1ca6ad9-c70d-4438-a1e3-5bff54355392",
+    "hanzi": "脆弱",
+    "pinyin": "cuì ruò",
+    "meaning_vi": "yếu đuối, mong manh"
+  },
+  {
+    "id": "3ad882c0-a694-4e31-b2e6-83d812a5a65d",
+    "hanzi": "挫折",
+    "pinyin": "cuò zhé",
+    "meaning_vi": "trắc trở, thất bại"
+  },
+  {
+    "id": "0b7948a7-46c7-4c4b-82f7-2cd46380e8d5",
+    "hanzi": "搭",
+    "pinyin": "dā",
+    "meaning_vi": "dựng lên, đi nhờ, khớp"
+  },
+  {
+    "id": "bf923e46-ba01-4e01-9597-8ef98586fde6",
+    "hanzi": "打交道",
+    "pinyin": "dǎ jiāodao",
+    "meaning_vi": "tiếp xúc, giao thiệp"
+  },
+  {
+    "id": "fcd0503b-3469-4692-b237-38a686186f7a",
+    "hanzi": "搭配",
+    "pinyin": "dā pèi",
+    "meaning_vi": "kết hợp, phối hợp"
+  },
+  {
+    "id": "bb1a9453-03d7-4f86-88e5-44d2ed3f16a7",
+    "hanzi": "大臣",
+    "pinyin": "dàchén",
+    "meaning_vi": "đại thần, quan lớn"
+  },
+  {
+    "id": "31e8c893-bac8-40c7-98a7-bc63d3a48ee5",
+    "hanzi": "大方",
+    "pinyin": "dàfang",
+    "meaning_vi": "hào phóng, tự nhiên"
+  },
+  {
+    "id": "1e52a9e5-91fb-474c-8e8e-6a44b181da0a",
+    "hanzi": "答复",
+    "pinyin": "dáfù",
+    "meaning_vi": "trả lời, giải đáp"
+  },
+  {
+    "id": "73909ff3-035d-419f-9f1a-973ebbce47c6",
+    "hanzi": "大伙儿",
+    "pinyin": "dàhuǒr",
+    "meaning_vi": "mọi người, chúng ta"
+  },
+  {
+    "id": "9f11e27a-1184-4a18-8d3f-25d2c9d65e4f",
+    "hanzi": "呆",
+    "pinyin": "dāi",
+    "meaning_vi": "ngẩn ngơ; ở lại"
+  },
+  {
+    "id": "c9b99b49-1f2d-46ce-af9c-d1dd033870fd",
+    "hanzi": "带领",
+    "pinyin": "dài lǐng",
+    "meaning_vi": "dẫn dắt, lãnh đạo"
+  },
+  {
+    "id": "cc97d498-fd8f-44d6-8f8b-c5633849d9b8",
+    "hanzi": "代价",
+    "pinyin": "dàijià",
+    "meaning_vi": "cái giá, giá đắt"
+  },
+  {
+    "id": "92d002a9-4c17-4a95-ab91-e1ba272d38aa",
+    "hanzi": "贷款",
+    "pinyin": "dàikuǎn",
+    "meaning_vi": "khoản vay, cho vay"
+  },
+  {
+    "id": "9b457512-2b22-4b2f-9917-59016a87dc89",
+    "hanzi": "代理",
+    "pinyin": "dàilǐ",
+    "meaning_vi": "đại lý, đại diện"
+  },
+  {
+    "id": "dfc77d22-d836-4aa4-9a7e-b2257eaef997",
+    "hanzi": "打击",
+    "pinyin": "dǎjī",
+    "meaning_vi": "đả kích, tấn công"
+  },
+  {
+    "id": "9a64ce9e-479d-4652-98e4-6338cc8e10af",
+    "hanzi": "打架",
+    "pinyin": "dǎjià",
+    "meaning_vi": "đánh nhau"
+  },
+  {
+    "id": "6934b1b8-f727-4373-a0cd-c5d8c3f6194c",
+    "hanzi": "蛋白质",
+    "pinyin": "dànbáizhì",
+    "meaning_vi": "chất đạm, protein"
+  },
+  {
+    "id": "b022bfa6-e22c-4810-a478-fb8c35db8ffd",
+    "hanzi": "单纯",
+    "pinyin": "dānchún",
+    "meaning_vi": "đơn thuần, ngây thơ"
+  },
+  {
+    "id": "ad7289ed-bb74-4333-aa2d-bab77ec9acaf",
+    "hanzi": "单调",
+    "pinyin": "dāndiào",
+    "meaning_vi": "đơn điệu, tẻ nhạt"
+  },
+  {
+    "id": "37c5f3ca-dff2-498a-9dbc-abd0c6f4bcac",
+    "hanzi": "当场",
+    "pinyin": "dāng chǎng",
+    "meaning_vi": "tại chỗ, tại trận"
+  },
+  {
+    "id": "f87912f5-1fc4-437b-b1a6-b4284f61cf5d",
+    "hanzi": "当初",
+    "pinyin": "dāng chū",
+    "meaning_vi": "lúc đầu, ban đầu"
+  },
+  {
+    "id": "7b82b982-bdfd-402b-91e9-963e7dd2f316",
+    "hanzi": "当代",
+    "pinyin": "dāng dài",
+    "meaning_vi": "đương đại"
+  },
+  {
+    "id": "6becbbf8-711f-475f-aedc-2878d96a71d3",
+    "hanzi": "当面",
+    "pinyin": "dāng miàn",
+    "meaning_vi": "trực tiếp, trước mặt"
+  },
+  {
+    "id": "742e6bed-4207-4062-be41-787365957123",
+    "hanzi": "当选",
+    "pinyin": "dāng xuǎn",
+    "meaning_vi": "trúng cử"
+  },
+  {
+    "id": "8e2a8a25-2303-4628-b381-edc2e53d1f93",
+    "hanzi": "档案",
+    "pinyin": "dàng'àn",
+    "meaning_vi": "hồ sơ, tư liệu"
+  },
+  {
+    "id": "dfb6e6d5-07d1-491c-908d-a2f98585dffe",
+    "hanzi": "诞生",
+    "pinyin": "dànshēng",
+    "meaning_vi": "ra đời, sinh ra"
+  },
+  {
+    "id": "d4becd76-7502-4d87-bbd0-f17f102a1b15",
+    "hanzi": "耽误",
+    "pinyin": "dānwu",
+    "meaning_vi": "làm lỡ dở, chậm trễ"
+  },
+  {
+    "id": "f694e63f-14ff-415a-afc3-7dcd6f071788",
+    "hanzi": "倒闭",
+    "pinyin": "dǎobì",
+    "meaning_vi": "phá sản, đóng cửa"
+  },
+  {
+    "id": "2c39fddd-4404-4eab-8b23-b12948fd4cda",
+    "hanzi": "打仗",
+    "pinyin": "dǎzhàng",
+    "meaning_vi": "đánh trận, đánh nhau"
+  },
+  {
+    "id": "66766dd6-551a-481a-b317-2d7fa0ac222f",
+    "hanzi": "大致",
+    "pinyin": "dàzhì",
+    "meaning_vi": "đại khái, khoảng chừng"
+  },
+  {
+    "id": "89d51e6a-f652-44bf-be5e-318db2b4dcfb",
+    "hanzi": "等级",
+    "pinyin": "děngjí",
+    "meaning_vi": "đẳng cấp, cấp bậc"
+  },
+  {
+    "id": "9c1c16f6-714e-40ec-b862-45f9a12b28cb",
+    "hanzi": "灯笼",
+    "pinyin": "dēnglong",
+    "meaning_vi": "đèn lồng"
+  },
+  {
+    "id": "999f1e56-6eb4-4c73-a347-935347b3539f",
+    "hanzi": "滴",
+    "pinyin": "dī",
+    "meaning_vi": "giọt, nhỏ giọt"
+  },
+  {
+    "id": "46acb8b5-3811-4a98-959e-e12617acdd81",
+    "hanzi": "典礼",
+    "pinyin": "diǎnlǐ",
+    "meaning_vi": "buổi lễ, nghi lễ"
+  },
+  {
+    "id": "8e7e5146-7940-4a4b-a13d-d14fdbd9a8d8",
+    "hanzi": "典型",
+    "pinyin": "diǎnxíng",
+    "meaning_vi": "điển hình"
+  },
+  {
+    "id": "85ae2479-5e5c-4363-8b51-4e90c429ec62",
+    "hanzi": "电源",
+    "pinyin": "diànyuán",
+    "meaning_vi": "nguồn điện"
+  },
+  {
+    "id": "23eaa405-469e-4e56-952f-4be8354ec9c0",
+    "hanzi": "吊",
+    "pinyin": "diào",
+    "meaning_vi": "treo, dòng xuống, điếu"
+  },
+  {
+    "id": "84420fbb-96fc-43f4-a9d2-56ecd33e1d92",
+    "hanzi": "调动",
+    "pinyin": "diàodòng",
+    "meaning_vi": "điều động"
+  },
+  {
+    "id": "550bc1cb-2a75-4062-a15b-0a7d0c16267d",
+    "hanzi": "抵达",
+    "pinyin": "dǐdá",
+    "meaning_vi": "đến nơi, tới nơi"
+  },
+  {
+    "id": "69b42613-063b-4daf-9a2f-a733f7c41e81",
+    "hanzi": "地道",
+    "pinyin": "dìdao",
+    "meaning_vi": "chuẩn, chính cống"
+  },
+  {
+    "id": "088ec908-6c03-4209-ba7c-3d7e96e323ce",
+    "hanzi": "跌",
+    "pinyin": "diē",
+    "meaning_vi": "ngã, sụt giảm"
+  },
+  {
+    "id": "49b2dbb1-dc17-4819-a1ed-533bf4aa89fe",
+    "hanzi": "抵抗",
+    "pinyin": "dǐkàng",
+    "meaning_vi": "đề kháng, kháng cự"
+  },
+  {
+    "id": "1d8cbc56-0e6d-47ff-82fd-1926184d6070",
+    "hanzi": "顶",
+    "pinyin": "dǐng",
+    "meaning_vi": "đỉnh, đội, chống cự"
+  },
+  {
+    "id": "baa02802-6b43-4d0b-a11a-48c13b765e40",
+    "hanzi": "定义",
+    "pinyin": "dìngyì",
+    "meaning_vi": "định nghĩa"
+  },
+  {
+    "id": "e72d560b-0a51-47c4-b851-22eaaa5502c1",
+    "hanzi": "地质",
+    "pinyin": "dìzhì",
+    "meaning_vi": "địa chất"
+  },
+  {
+    "id": "e3dc90b7-5c44-48d2-bd12-6c72130eab74",
+    "hanzi": "栋",
+    "pinyin": "dòng",
+    "meaning_vi": "tòa, căn (nhà)"
+  },
+  {
+    "id": "df0c7863-a98e-44f1-a8d3-a820fd6d282e",
+    "hanzi": "动机",
+    "pinyin": "dòngjī",
+    "meaning_vi": "động cơ, mục đích"
+  },
+  {
+    "id": "fd1107e7-43e2-491b-8e6a-6952009735d3",
+    "hanzi": "动力",
+    "pinyin": "dònglì",
+    "meaning_vi": "động lực"
+  },
+  {
+    "id": "206607de-670b-464a-8710-3c6838aa72ea",
+    "hanzi": "动态",
+    "pinyin": "dòngtài",
+    "meaning_vi": "động thái, tình hình"
+  },
+  {
+    "id": "c829c335-81ee-40c6-9993-44927fe2fa0e",
+    "hanzi": "逗",
+    "pinyin": "dòu",
+    "meaning_vi": "trêu chọc, buồn cười"
+  },
+  {
+    "id": "00824429-c915-4de4-a2c7-6ef11f9cdbb3",
+    "hanzi": "斗争",
+    "pinyin": "dòuzhēng",
+    "meaning_vi": "đấu tranh"
+  },
+  {
+    "id": "d35466a9-7a86-4851-936a-bac91fcbd0fa",
+    "hanzi": "端",
+    "pinyin": "duān",
+    "meaning_vi": "bưng, bê, đầu mút, ngay thẳng"
+  },
+  {
+    "id": "f7b98c6a-4a5e-4ef4-9411-48f5b0f13f03",
+    "hanzi": "对称",
+    "pinyin": "duìchèn",
+    "meaning_vi": "đối xứng"
+  },
+  {
+    "id": "57d9fcf5-6ff9-46b5-8111-4a3fdee2a896",
+    "hanzi": "对抗",
+    "pinyin": "duìkàng",
+    "meaning_vi": "đối kháng, chống lại"
+  },
+  {
+    "id": "6a2ce0d5-d1cb-45e7-bfe2-217e1a5f6f8d",
+    "hanzi": "对立",
+    "pinyin": "duìlì",
+    "meaning_vi": "đối lập"
+  },
+  {
+    "id": "fc76dda8-d402-4f77-945f-fbf7fb568b36",
+    "hanzi": "对应",
+    "pinyin": "duìyìng",
+    "meaning_vi": "tương ứng"
+  },
+  {
+    "id": "70b3d139-b4fd-47b8-a3a0-5d00042801d9",
+    "hanzi": "蹲",
+    "pinyin": "dūn",
+    "meaning_vi": "ngồi xổm"
+  },
+  {
+    "id": "2e895462-7a45-4de6-b54c-f739380da2d4",
+    "hanzi": "顿时",
+    "pinyin": "dùnshí",
+    "meaning_vi": "ngay lập tức, bỗng chốc"
+  },
+  {
+    "id": "ab2996bb-882a-45d3-b2a1-eb20469c29f5",
+    "hanzi": "多亏",
+    "pinyin": "duōkuī",
+    "meaning_vi": "may mà, nhờ có"
+  },
+  {
+    "id": "1ade2559-4230-48ca-91e8-6a48120ab24b",
+    "hanzi": "多余",
+    "pinyin": "duōyú",
+    "meaning_vi": "dư thừa"
+  },
+  {
+    "id": "eb248ce7-8b4b-4317-90de-70954190aea6",
+    "hanzi": "恶心",
+    "pinyin": "ě xin",
+    "meaning_vi": "buồn nôn, ghê tởm"
+  },
+  {
+    "id": "b1128a43-86a2-4f96-a8b8-a449bfdc2db6",
+    "hanzi": "恶劣",
+    "pinyin": "èliè",
+    "meaning_vi": "tồi tệ, khắc nghiệt"
+  },
+  {
+    "id": "86024e42-d24c-47a8-9499-6c6b51673771",
+    "hanzi": "耳环",
+    "pinyin": "ěrhuán",
+    "meaning_vi": "bông tai, khuyên tai"
+  },
+  {
+    "id": "3531942a-c54e-47c9-b9aa-e0dd1efb40b8",
+    "hanzi": "二氧化碳",
+    "pinyin": "èryǎnghuàtàn",
+    "meaning_vi": "khí cacbonic, CO2"
+  },
+  {
+    "id": "18bbb34e-d6ac-415b-b8e8-2a987b1301aa",
+    "hanzi": "发愁",
+    "pinyin": "fāchóu",
+    "meaning_vi": "lo lắng, lo buồn"
+  },
+  {
+    "id": "3715f7a0-af22-4b49-bb25-e21d861ace72",
+    "hanzi": "发动",
+    "pinyin": "fādòng",
+    "meaning_vi": "phát động, khởi động"
+  },
+  {
+    "id": "5fec446f-b0f3-436b-bcb4-2308229b671a",
+    "hanzi": "番",
+    "pinyin": "fān",
+    "meaning_vi": "lần, lượt, phen"
+  },
+  {
+    "id": "f894dc2d-9c55-4fe9-a972-7eed0c414b3e",
+    "hanzi": "妨碍",
+    "pinyin": "fáng'ài",
+    "meaning_vi": "cản trở, gây trở ngại"
+  },
+  {
+    "id": "20425981-d60f-4c2c-9003-9301bf7c3986",
+    "hanzi": "放大",
+    "pinyin": "fàngdà",
+    "meaning_vi": "phóng to, mở rộng"
+  },
+  {
+    "id": "0acfb37e-922e-49ae-9650-e4e39e29ac24",
+    "hanzi": "方位",
+    "pinyin": "fāngwèi",
+    "meaning_vi": "phương vị, phương hướng"
+  },
+  {
+    "id": "b187ca98-1f11-437c-abc7-ac5f15ed3b83",
+    "hanzi": "方言",
+    "pinyin": "fāngyán",
+    "meaning_vi": "tiếng địa phương, phương ngôn"
+  },
+  {
+    "id": "5117f0ae-4307-4909-986d-cdbc2d6b9975",
+    "hanzi": "防治",
+    "pinyin": "fángzhì",
+    "meaning_vi": "phòng và chữa trị"
+  },
+  {
+    "id": "0cdbfc8c-d9e6-4b35-8b0a-4c1ed9362dc8",
+    "hanzi": "反馈",
+    "pinyin": "fǎnkuì",
+    "meaning_vi": "phản hồi"
+  },
+  {
+    "id": "f2aee802-4521-4459-8aab-e77a40288faf",
+    "hanzi": "繁忙",
+    "pinyin": "fánmáng",
+    "meaning_vi": "bận rộn"
+  },
+  {
+    "id": "57e754f8-c1e7-4da4-bda5-1d7efa5db78d",
+    "hanzi": "凡是",
+    "pinyin": "fánshì",
+    "meaning_vi": "phàm là, hễ là"
+  },
+  {
+    "id": "1038d3c4-7e29-421c-aaae-d46841454d81",
+    "hanzi": "反思",
+    "pinyin": "fǎnsī",
+    "meaning_vi": "suy ngẫm, tự kiểm điểm"
+  },
+  {
+    "id": "f99f274b-5c4f-4efe-a864-ae92934958ad",
+    "hanzi": "繁殖",
+    "pinyin": "fánzhí",
+    "meaning_vi": "sinh sôi, sinh sản"
+  },
+  {
+    "id": "4b5b8a22-4da3-4d46-88c7-f91087a7ee15",
+    "hanzi": "发票",
+    "pinyin": "fāpiào",
+    "meaning_vi": "hóa đơn"
+  },
+  {
+    "id": "72ff141e-00c4-4402-9b75-03828a279749",
+    "hanzi": "发行",
+    "pinyin": "fāxíng",
+    "meaning_vi": "phát hành"
+  },
+  {
+    "id": "0d1190ad-3b08-46c8-9bfa-6d170ee5dcc2",
+    "hanzi": "发炎",
+    "pinyin": "fāyán",
+    "meaning_vi": "viêm, phát viêm"
+  },
+  {
+    "id": "decbf141-c338-43d6-94ec-6f90a8601308",
+    "hanzi": "发育",
+    "pinyin": "fāyù",
+    "meaning_vi": "phát triển, dậy thì"
+  },
+  {
+    "id": "af4c09d5-bdf1-4e8b-9c47-b0a812fa9fe3",
+    "hanzi": "肺",
+    "pinyin": "fèi",
+    "meaning_vi": "phổi"
+  },
+  {
+    "id": "fe679ddf-ef47-47bb-a4f1-d49cee187e4e",
+    "hanzi": "肥沃",
+    "pinyin": "féi wò",
+    "meaning_vi": "màu mỡ, phì nhiêu"
+  },
+  {
+    "id": "f073f26a-066f-41fb-b85a-36673e4b9d40",
+    "hanzi": "丰收",
+    "pinyin": "fēng shōu",
+    "meaning_vi": "bội thu, được mùa"
+  },
+  {
+    "id": "9a6092e4-244b-4681-a100-bd3bfafc7bc2",
+    "hanzi": "封闭",
+    "pinyin": "fēngbì",
+    "meaning_vi": "khép kín, đóng kín"
+  },
+  {
+    "id": "e664721f-d3d3-4535-8b12-8a5607b43c39",
+    "hanzi": "风光",
+    "pinyin": "fēngguāng",
+    "meaning_vi": "phong cảnh; vẻ vang"
+  },
+  {
+    "id": "8d4c8f02-7b8b-4e09-9a5e-e5ce7137bf67",
+    "hanzi": "奉献",
+    "pinyin": "fèngxiàn",
+    "meaning_vi": "cống hiến, dâng hiến"
+  },
+  {
+    "id": "6ce99c1b-3008-4ee1-806f-e63e55616348",
+    "hanzi": "愤怒",
+    "pinyin": "fènnù",
+    "meaning_vi": "phẫn nộ, tức giận"
+  },
+  {
+    "id": "a0b32773-b77e-443e-972d-53c0dfafe381",
+    "hanzi": "分散",
+    "pinyin": "fēnsàn",
+    "meaning_vi": "phân tán"
+  },
+  {
+    "id": "a2a52335-b9d5-445b-932d-9377ea3eb309",
+    "hanzi": "幅度",
+    "pinyin": "fú dù",
+    "meaning_vi": "biên độ, mức độ"
+  },
+  {
+    "id": "dfc4dbe3-8a2d-4699-afcb-6379f371d05d",
+    "hanzi": "服从",
+    "pinyin": "fúcóng",
+    "meaning_vi": "phục tùng, tuân theo"
+  },
+  {
+    "id": "339f2b85-e859-4e57-9013-b2b843753fdd",
+    "hanzi": "辅导",
+    "pinyin": "fǔdǎo",
+    "meaning_vi": "phụ đạo, hướng dẫn"
+  },
+  {
+    "id": "868d9b50-9645-4a3e-8756-19aff0883598",
+    "hanzi": "覆盖",
+    "pinyin": "fùgài",
+    "meaning_vi": "bao phủ, che phủ"
+  },
+  {
+    "id": "a4354234-daef-46d9-8227-a0e949230ab6",
+    "hanzi": "符号",
+    "pinyin": "fúhào",
+    "meaning_vi": "ký hiệu"
+  },
+  {
+    "id": "2cc0bc53-62b3-41d3-ba31-367427021a1e",
+    "hanzi": "附件",
+    "pinyin": "fùjiàn",
+    "meaning_vi": "tệp đính kèm, phụ kiện"
+  },
+  {
+    "id": "d3854911-1fc2-44fa-850e-92cfa8b104af",
+    "hanzi": "福利",
+    "pinyin": "fúlì",
+    "meaning_vi": "phúc lợi"
+  },
+  {
+    "id": "ae99ebbc-543d-4dfa-9df8-f764f0fff2e4",
+    "hanzi": "夫人",
+    "pinyin": "fūrén",
+    "meaning_vi": "phu nhân, bà"
+  },
+  {
+    "id": "c2635314-836b-45d9-8d65-e276d9c16976",
+    "hanzi": "富裕",
+    "pinyin": "fùyù",
+    "meaning_vi": "giàu có, dư dả"
+  },
+  {
+    "id": "f3308de4-6383-4cde-8f98-f6cc0b3d13aa",
+    "hanzi": "赋予",
+    "pinyin": "fùyǔ",
+    "meaning_vi": "trao cho, ban cho"
+  },
+  {
+    "id": "c9df0cd5-3bb3-42fe-affe-cfb399372e5c",
+    "hanzi": "辅助",
+    "pinyin": "fǔzhù",
+    "meaning_vi": "phụ trợ, bổ trợ"
+  },
+  {
+    "id": "f0dea705-7e9e-4465-89a0-f5fc68737349",
+    "hanzi": "尴尬",
+    "pinyin": "gān gà",
+    "meaning_vi": "lúng túng, ngượng ngùng"
+  },
+  {
+    "id": "12f95792-aae8-4f13-ab9f-809d3a627ec5",
+    "hanzi": "干旱",
+    "pinyin": "gān hàn",
+    "meaning_vi": "hạn hán, khô hạn"
+  },
+  {
+    "id": "ea1e2a40-6dbf-4659-873f-d8dfa3413d79",
+    "hanzi": "干扰",
+    "pinyin": "gān rǎo",
+    "meaning_vi": "can nhiễu, làm phiền"
+  },
+  {
+    "id": "60e3bc6a-c827-41b1-ba5b-a500db5a0b03",
+    "hanzi": "干脆",
+    "pinyin": "gāncuì",
+    "meaning_vi": "dứt khoát, thẳng thắn"
+  },
+  {
+    "id": "ddf882f9-ab64-41ad-bc02-0f120b6717a4",
+    "hanzi": "岗位",
+    "pinyin": "gǎng wèi",
+    "meaning_vi": "cương vị, vị trí công tác"
+  },
+  {
+    "id": "f3c6e6e3-e8d1-4b2c-98e5-499a6375e4f9",
+    "hanzi": "港口",
+    "pinyin": "gǎngkǒu",
+    "meaning_vi": "cảng, bến cảng"
+  },
+  {
+    "id": "7284e098-4836-4e4d-ab76-82b963b1eb21",
+    "hanzi": "感激",
+    "pinyin": "gǎnjī",
+    "meaning_vi": "cảm kích, biết ơn"
+  },
+  {
+    "id": "56ff3183-3997-4185-90ab-7a7fb0f6ceaa",
+    "hanzi": "感染",
+    "pinyin": "gǎnrǎn",
+    "meaning_vi": "lây nhiễm, truyền cảm"
+  },
+  {
+    "id": "0e436700-33b2-4a28-92f2-2a247ed7e0ad",
+    "hanzi": "感想",
+    "pinyin": "gǎnxiǎng",
+    "meaning_vi": "cảm tưởng"
+  },
+  {
+    "id": "bc07b398-d127-45b0-9568-87457d44f1cc",
+    "hanzi": "干燥",
+    "pinyin": "gānzào",
+    "meaning_vi": "khô ráo, hanh khô"
+  },
+  {
+    "id": "16e53be0-b37b-449e-92aa-ad78be8b1237",
+    "hanzi": "高超",
+    "pinyin": "gāochāo",
+    "meaning_vi": "cao siêu, siêu phàm"
+  },
+  {
+    "id": "bd0a09f1-c326-4556-bf63-98cde8815c4b",
+    "hanzi": "高峰",
+    "pinyin": "gāofēng",
+    "meaning_vi": "đỉnh cao, cao điểm"
+  },
+  {
+    "id": "59f6c7c2-1049-4aa2-9c8e-80cfea39507e",
+    "hanzi": "稿件",
+    "pinyin": "gǎojiàn",
+    "meaning_vi": "bản thảo, bài viết"
+  },
+  {
+    "id": "69ef91d6-880e-4282-988c-f2a91496abb5",
+    "hanzi": "高尚",
+    "pinyin": "gāoshàng",
+    "meaning_vi": "cao thượng"
+  },
+  {
+    "id": "0c775018-29de-4db9-bdd7-cf8869b13c67",
+    "hanzi": "割",
+    "pinyin": "gē",
+    "meaning_vi": "cắt, cứa"
+  },
+  {
+    "id": "03ea2558-752e-4fd0-b9d3-7ad1ddcd3c60",
+    "hanzi": "个体",
+    "pinyin": "gè tǐ",
+    "meaning_vi": "cá thể, cá nhân"
+  },
+  {
+    "id": "fa71dbac-a7ac-4a43-88e2-2fbaea0c5eff",
+    "hanzi": "革命",
+    "pinyin": "gémìng",
+    "meaning_vi": "cách mạng"
+  },
+  {
+    "id": "15fc3509-11d3-4870-b385-465937e4d659",
+    "hanzi": "跟前",
+    "pinyin": "gēnqián",
+    "meaning_vi": "trước mặt, bên cạnh"
+  },
+  {
+    "id": "e44e2c8f-2e1b-4ffe-8a10-e8cc75738544",
+    "hanzi": "跟随",
+    "pinyin": "gēnsuí",
+    "meaning_vi": "đi theo, theo sau"
+  },
+  {
+    "id": "654c85ea-0eee-481c-916b-40b301dc2231",
+    "hanzi": "跟踪",
+    "pinyin": "gēnzōng",
+    "meaning_vi": "theo dõi, bám theo"
+  },
+  {
+    "id": "1122408d-f88f-432f-ad17-eb0647cd7fad",
+    "hanzi": "巩固",
+    "pinyin": "gǒng gù",
+    "meaning_vi": "củng cố"
+  },
+  {
+    "id": "bfc23cc5-95bb-4c3b-9a88-1e1735511c94",
+    "hanzi": "公告",
+    "pinyin": "gōnggào",
+    "meaning_vi": "thông báo, cáo thị"
+  },
+  {
+    "id": "8c0da145-71cf-486d-831d-b53174f07d30",
+    "hanzi": "共计",
+    "pinyin": "gòngjì",
+    "meaning_vi": "tổng cộng, cộng lại"
+  },
+  {
+    "id": "c20acf6f-85e4-492f-8a8a-153c6d1aadda",
+    "hanzi": "供给",
+    "pinyin": "gōngjǐ",
+    "meaning_vi": "cung cấp, chu cấp"
+  },
+  {
+    "id": "98852353-03dc-41f8-9f0f-64a8188b0467",
+    "hanzi": "攻击",
+    "pinyin": "gōngjī",
+    "meaning_vi": "tấn công, công kích"
+  },
+  {
+    "id": "3feabd5b-58e9-4f15-8359-8fb51f5f2769",
+    "hanzi": "公开",
+    "pinyin": "gōngkāi",
+    "meaning_vi": "công khai"
+  },
+  {
+    "id": "5e352e7e-61a5-4b95-a278-dfa284e3ce81",
+    "hanzi": "公民",
+    "pinyin": "gōngmín",
+    "meaning_vi": "công dân"
+  },
+  {
+    "id": "f1ef73ff-89c5-4241-ad98-390ea570dd9e",
+    "hanzi": "公认",
+    "pinyin": "gōngrèn",
+    "meaning_vi": "công nhận"
+  },
+  {
+    "id": "ef6f7e02-960f-4048-aed7-3b711c679ef1",
+    "hanzi": "功效",
+    "pinyin": "gōngxiào",
+    "meaning_vi": "công hiệu, tác dụng"
+  },
+  {
+    "id": "fc806d09-642d-4e2a-939b-6b66d4e96cdc",
+    "hanzi": "公元",
+    "pinyin": "gōngyuán",
+    "meaning_vi": "Công nguyên"
+  },
+  {
+    "id": "a20c8a49-4fbb-4f6c-ae3d-19c4bb640067",
+    "hanzi": "公正",
+    "pinyin": "gōngzhèng",
+    "meaning_vi": "công chính, công bằng"
+  },
+  {
+    "id": "8ba99504-9e6b-4c87-8353-dbefda2039c3",
+    "hanzi": "公主",
+    "pinyin": "gōngzhǔ",
+    "meaning_vi": "công chúa"
+  },
+  {
+    "id": "23b2db00-b4fc-491a-8710-4e835201d1a7",
+    "hanzi": "拐弯",
+    "pinyin": "guǎiwān",
+    "meaning_vi": "rẽ, quẹo"
+  },
+  {
+    "id": "492b1815-7370-4c7c-86d2-ef758bbdb2d1",
+    "hanzi": "罐",
+    "pinyin": "guàn",
+    "meaning_vi": "hũ, bình, lon"
+  },
+  {
+    "id": "07f568f6-15fb-469f-833f-f5a658f84ad6",
+    "hanzi": "官",
+    "pinyin": "guān",
+    "meaning_vi": "quan, viên chức"
+  },
+  {
+    "id": "b5edd573-b945-4e0d-a36a-84fa8b442929",
+    "hanzi": "官方",
+    "pinyin": "guānfāng",
+    "meaning_vi": "chính quyền, chính thức"
+  },
+  {
+    "id": "35d0b9f2-a5d4-4b5f-be98-b4353e7576c9",
+    "hanzi": "广阔",
+    "pinyin": "guǎng kuò",
+    "meaning_vi": "rộng lớn, bao la"
+  },
+  {
+    "id": "9d9df85f-48d7-4fa3-8d8d-1bb3bcfcb689",
+    "hanzi": "观光",
+    "pinyin": "guānguāng",
+    "meaning_vi": "tham quan, ngắm cảnh"
+  },
+  {
+    "id": "0ced5982-7f70-4523-a798-ff3ed24af93e",
+    "hanzi": "关怀",
+    "pinyin": "guānhuái",
+    "meaning_vi": "quan tâm, săn sóc"
+  },
+  {
+    "id": "4dccd490-3e2a-4b00-8a88-5b19238936bf",
+    "hanzi": "古典",
+    "pinyin": "gǔdiǎn",
+    "meaning_vi": "cổ điển"
+  },
+  {
+    "id": "4e790fe7-1ad7-4216-9ab6-bf041d1fc639",
+    "hanzi": "孤独",
+    "pinyin": "gūdú",
+    "meaning_vi": "cô đơn, cô độc"
+  },
+  {
+    "id": "d3add7a4-c178-4d6a-ad11-ae3eef5bb071",
+    "hanzi": "姑姑",
+    "pinyin": "gūgu",
+    "meaning_vi": "cô (chị em gái của bố)"
+  },
+  {
+    "id": "f3b320fd-4e9e-4da8-8ee7-67f2f3ca9a5b",
+    "hanzi": "跪",
+    "pinyin": "guì",
+    "meaning_vi": "quỳ"
+  },
+  {
+    "id": "2954a9db-aee4-42fa-b464-30bdeaa39fc6",
+    "hanzi": "归还",
+    "pinyin": "guī huán",
+    "meaning_vi": "trả lại, hoàn trả"
+  },
+  {
+    "id": "304d46dc-3d7b-416d-94f2-12a4df4e67fd",
+    "hanzi": "轨道",
+    "pinyin": "guǐdào",
+    "meaning_vi": "quỹ đạo, đường ray"
+  },
+  {
+    "id": "938b9935-fd46-4ae4-bb55-380ce1bc1552",
+    "hanzi": "规范",
+    "pinyin": "guīfàn",
+    "meaning_vi": "quy phạm, chuẩn mực"
+  },
+  {
+    "id": "506dab03-3924-4ac9-a14f-b5beb178ef7c",
+    "hanzi": "规划",
+    "pinyin": "guīhuà",
+    "meaning_vi": "quy hoạch"
+  },
+  {
+    "id": "42ad7abd-9bee-4b8e-a4f1-37792a627803",
+    "hanzi": "规矩",
+    "pinyin": "guīju",
+    "meaning_vi": "quy củ, khuôn phép"
+  },
+  {
+    "id": "7e47455c-3fcf-4ff6-9393-9ad9f0f965a9",
+    "hanzi": "过渡",
+    "pinyin": "guòdù",
+    "meaning_vi": "chuyển tiếp, quá độ"
+  },
+  {
+    "id": "893b2bf6-180a-4ed7-812b-18996a5d99d7",
+    "hanzi": "国王",
+    "pinyin": "guówáng",
+    "meaning_vi": "quốc vương, vua"
+  },
+  {
+    "id": "da2e400c-be51-43c3-bcf2-82716958705c",
+    "hanzi": "股票",
+    "pinyin": "gǔpiào",
+    "meaning_vi": "cổ phiếu"
+  },
+  {
+    "id": "1d0068cb-035c-4272-8882-bf05e18b944e",
+    "hanzi": "固体",
+    "pinyin": "gùtǐ",
+    "meaning_vi": "thể rắn, chất rắn"
+  },
+  {
+    "id": "582e24e2-8e85-4a22-992a-8d2a047bf9ac",
+    "hanzi": "骨头",
+    "pinyin": "gútou",
+    "meaning_vi": "xương"
+  },
+  {
+    "id": "0e363c15-961f-4b47-bc87-29eb6830f692",
+    "hanzi": "顾问",
+    "pinyin": "gùwèn",
+    "meaning_vi": "cố vấn"
+  },
+  {
+    "id": "cda17071-fb76-4d80-b97b-168b045a3ba8",
+    "hanzi": "鼓舞",
+    "pinyin": "gǔwǔ",
+    "meaning_vi": "cổ vũ, khích lệ"
+  },
+  {
+    "id": "3264a5bc-8ebd-4f8c-be66-03357bc15ceb",
+    "hanzi": "故障",
+    "pinyin": "gùzhàng",
+    "meaning_vi": "sự cố, trục trặc"
+  },
+  {
+    "id": "71d97e9a-19c8-426d-9c07-a24b7ec4ed89",
+    "hanzi": "海拔",
+    "pinyin": "hǎibá",
+    "meaning_vi": "độ cao so với mực nước biển"
+  },
+  {
+    "id": "138138c1-f3fc-44b2-9fb5-3c4a4d7e4446",
+    "hanzi": "罕见",
+    "pinyin": "hǎn jiàn",
+    "meaning_vi": "hiếm thấy"
+  },
+  {
+    "id": "81457b09-1a8e-42fb-9515-994da2359498",
+    "hanzi": "航空",
+    "pinyin": "háng kōng",
+    "meaning_vi": "hàng không"
+  },
+  {
+    "id": "25b5d3d9-6cba-430c-819f-6f5405b11c22",
+    "hanzi": "含义",
+    "pinyin": "hányì",
+    "meaning_vi": "hàm ý, ý nghĩa"
+  },
+  {
+    "id": "f3c5dbf6-9ee3-4ed5-b852-9047c8f7ba28",
+    "hanzi": "好客",
+    "pinyin": "hàokè",
+    "meaning_vi": "hiếu khách"
+  },
+  {
+    "id": "62aa5770-af9e-4753-bde7-bd55721918c2",
+    "hanzi": "毫米",
+    "pinyin": "háomǐ",
+    "meaning_vi": "mi-li-mét"
+  },
+  {
+    "id": "8a33124b-f818-413c-bdc9-5294dba74fc5",
+    "hanzi": "毫无",
+    "pinyin": "háowú",
+    "meaning_vi": "hoàn toàn không"
+  },
+  {
+    "id": "d6491f8f-85c8-4465-9b83-e0ac4c9049c1",
+    "hanzi": "号召",
+    "pinyin": "hàozhào",
+    "meaning_vi": "kêu gọi, hiệu triệu"
+  },
+  {
+    "id": "4ccb942d-8e10-4477-98ec-9b06ba959840",
+    "hanzi": "合并",
+    "pinyin": "hébìng",
+    "meaning_vi": "sáp nhập, hợp nhất"
+  },
+  {
+    "id": "13978627-4171-48f8-8ed1-438e5525c4ea",
+    "hanzi": "合成",
+    "pinyin": "héchéng",
+    "meaning_vi": "hợp thành, tổng hợp"
+  },
+  {
+    "id": "26d0a696-4284-4945-a844-ee2aa6234fa4",
+    "hanzi": "嘿",
+    "pinyin": "hēi",
+    "meaning_vi": "này, hây (thán từ)"
+  },
+  {
+    "id": "111bf4cd-5468-43a1-8e5c-7d91155919c7",
+    "hanzi": "恨",
+    "pinyin": "hèn",
+    "meaning_vi": "hận, ghét"
+  },
+  {
+    "id": "cf985185-1a44-404c-a2c2-90a521a1cbf6",
+    "hanzi": "横",
+    "pinyin": "héng",
+    "meaning_vi": "ngang, nằm ngang"
+  },
+  {
+    "id": "9b84fed8-1174-4124-a73d-b3bab7dba520",
+    "hanzi": "痕迹",
+    "pinyin": "hénjì",
+    "meaning_vi": "dấu vết, vết tích"
+  },
+  {
+    "id": "b44bb9e0-687a-4e80-b2e6-345be2481caa",
+    "hanzi": "和平",
+    "pinyin": "hépíng",
+    "meaning_vi": "hòa bình"
+  },
+  {
+    "id": "b6465976-f0b7-4c1f-ab2d-3d03ec7a8f5f",
+    "hanzi": "和谐",
+    "pinyin": "héxié",
+    "meaning_vi": "hài hòa"
+  },
+  {
+    "id": "9354b282-3291-48fa-bb5e-5f2fe1bfe3b2",
+    "hanzi": "核心",
+    "pinyin": "héxīn",
+    "meaning_vi": "cốt lõi, trọng tâm"
+  },
+  {
+    "id": "6635a983-4d45-48da-b985-25f22cda6c75",
+    "hanzi": "洪水",
+    "pinyin": "hóngshuǐ",
+    "meaning_vi": "lũ lụt"
+  },
+  {
+    "id": "eb0183ef-f47e-43c0-8abd-a275c2dee211",
+    "hanzi": "后代",
+    "pinyin": "hòudài",
+    "meaning_vi": "hậu duệ, con cháu"
+  },
+  {
+    "id": "d417173c-c754-451c-9e32-b19c8a72a580",
+    "hanzi": "壶",
+    "pinyin": "hú",
+    "meaning_vi": "ấm, bình"
+  },
+  {
+    "id": "cd065090-2321-46e3-ae43-208ca177791c",
+    "hanzi": "忽略",
+    "pinyin": "hū lüè",
+    "meaning_vi": "bỏ qua, lơ là"
+  },
+  {
+    "id": "e6e959ee-a114-4a9f-a9b4-b82e05793891",
+    "hanzi": "划分",
+    "pinyin": "huàfēn",
+    "meaning_vi": "phân chia, phân định"
+  },
+  {
+    "id": "ce3d70bc-6ff3-4f76-9a96-26132b6d78af",
+    "hanzi": "怀念",
+    "pinyin": "huáiniàn",
+    "meaning_vi": "hoài niệm, nhớ nhung"
+  },
+  {
+    "id": "1a565556-82e1-42a8-9eef-e34f688d5752",
+    "hanzi": "怀孕",
+    "pinyin": "huáiyùn",
+    "meaning_vi": "mang thai"
+  },
+  {
+    "id": "26e0f0fc-3048-4e92-93a0-8b6be8dcc25f",
+    "hanzi": "患者",
+    "pinyin": "huàn zhě",
+    "meaning_vi": "bệnh nhân"
+  },
+  {
+    "id": "ed05f081-2328-4575-9963-d21ac5b8d941",
+    "hanzi": "皇帝",
+    "pinyin": "huángdì",
+    "meaning_vi": "hoàng đế"
+  },
+  {
+    "id": "898a5861-ee19-4576-afc6-807968776c70",
+    "hanzi": "欢乐",
+    "pinyin": "huānlè",
+    "meaning_vi": "vui vẻ, hân hoan"
+  },
+  {
+    "id": "6a56e1d8-3332-4dbe-af28-83c184ae4d5a",
+    "hanzi": "幻想",
+    "pinyin": "huànxiǎng",
+    "meaning_vi": "ảo tưởng, mơ tưởng"
+  },
+  {
+    "id": "0afda2c9-5390-43e2-b221-ad692a8b882c",
+    "hanzi": "还原",
+    "pinyin": "huányuán",
+    "meaning_vi": "khôi phục, hoàn nguyên"
+  },
+  {
+    "id": "c6c1a446-0254-44bd-827a-049a188f03b8",
+    "hanzi": "花生",
+    "pinyin": "huāshēng",
+    "meaning_vi": "củ lạc, đậu phộng"
+  },
+  {
+    "id": "689c73e7-5289-4b0c-b045-919c50c82112",
+    "hanzi": "化石",
+    "pinyin": "huàshí",
+    "meaning_vi": "hóa thạch"
+  },
+  {
+    "id": "efaf9da6-7b59-4c83-9c9c-7c7da7be4a90",
+    "hanzi": "话筒",
+    "pinyin": "huàtǒng",
+    "meaning_vi": "ống nghe, micro"
+  },
+  {
+    "id": "7edfed46-1f0e-48de-a73f-4c775c9fc5a2",
+    "hanzi": "化妆",
+    "pinyin": "huàzhuāng",
+    "meaning_vi": "trang điểm"
+  },
+  {
+    "id": "8e27ac40-8b2a-41ff-b279-95ac31c51813",
+    "hanzi": "回报",
+    "pinyin": "huíbào",
+    "meaning_vi": "đáp lại, báo đáp"
+  },
+  {
+    "id": "021a66e4-9b0c-49e9-8cd1-f0061bc183e3",
+    "hanzi": "汇报",
+    "pinyin": "huìbào",
+    "meaning_vi": "báo cáo"
+  },
+  {
+    "id": "d793ee2e-0a97-4967-ae23-69681903e791",
+    "hanzi": "灰尘",
+    "pinyin": "huīchén",
+    "meaning_vi": "bụi bặm"
+  },
+  {
+    "id": "e3f104a7-50db-41ca-af93-1546b72bfe25",
+    "hanzi": "回顾",
+    "pinyin": "huígù",
+    "meaning_vi": "nhìn lại, hồi tưởng"
+  },
+  {
+    "id": "fe308fbd-43e8-414a-8e8e-da00edc3bad4",
+    "hanzi": "灰心",
+    "pinyin": "huīxīn",
+    "meaning_vi": "nản lòng, nản chí"
+  },
+  {
+    "id": "9b8feb45-6ec2-472a-8029-925e57c74c37",
+    "hanzi": "混合",
+    "pinyin": "hùnhé",
+    "meaning_vi": "hỗn hợp, pha trộn"
+  },
+  {
+    "id": "b861c53e-150b-420c-8dd3-5a1257491e57",
+    "hanzi": "混乱",
+    "pinyin": "hùnluàn",
+    "meaning_vi": "hỗn loạn, lộn xộn"
+  },
+  {
+    "id": "e2d9057c-e2d3-4171-93a5-6cdfba25ef3e",
+    "hanzi": "婚姻",
+    "pinyin": "hūnyīn",
+    "meaning_vi": "hôn nhân"
+  },
+  {
+    "id": "3a6bc156-e239-4fa3-b716-1c1a5e42f179",
+    "hanzi": "货币",
+    "pinyin": "huòbì",
+    "meaning_vi": "tiền tệ"
+  },
+  {
+    "id": "76e86ec9-eed0-42ec-814e-815ad8be5c19",
+    "hanzi": "火柴",
+    "pinyin": "huǒchái",
+    "meaning_vi": "diêm"
+  },
+  {
+    "id": "81ca6837-3a54-418f-8aff-034482022f16",
+    "hanzi": "活力",
+    "pinyin": "huólì",
+    "meaning_vi": "sức sống, sinh lực"
+  },
+  {
+    "id": "59f93f2e-0556-4de8-9bd5-289febf0d573",
+    "hanzi": "活跃",
+    "pinyin": "huóyuè",
+    "meaning_vi": "sôi nổi, hoạt bát"
+  },
+  {
+    "id": "743a3840-762c-4e8a-a9c8-7189ff7aa112",
+    "hanzi": "继承",
+    "pinyin": "jì chéng",
+    "meaning_vi": "thừa kế, kế thừa"
+  },
+  {
+    "id": "7f3ae745-469d-4dbb-92b2-8830528fbf54",
+    "hanzi": "急切",
+    "pinyin": "jí qiè",
+    "meaning_vi": "cấp bách, tha thiết"
+  },
+  {
+    "id": "fa52bf2a-2774-4205-a3f3-66a91bd5aba1",
+    "hanzi": "饥饿",
+    "pinyin": "jī'è",
+    "meaning_vi": "đói khát"
+  },
+  {
+    "id": "da28614b-f5d3-4aa2-9800-f85c333764a2",
+    "hanzi": "嫁",
+    "pinyin": "jià",
+    "meaning_vi": "lấy (chồng), gả"
+  },
+  {
+    "id": "fa23948f-2897-4fba-bc20-067abfba671e",
+    "hanzi": "家常",
+    "pinyin": "jiācháng",
+    "meaning_vi": "thường ngày, cơm nhà"
+  },
+  {
+    "id": "d8e6effe-2a09-451e-aed2-ebf6cbc49eb3",
+    "hanzi": "加剧",
+    "pinyin": "jiājù",
+    "meaning_vi": "gia tăng, thêm trầm trọng"
+  },
+  {
+    "id": "42ce02ad-6948-4a28-88bf-3a7e667eb302",
+    "hanzi": "剑",
+    "pinyin": "jiàn",
+    "meaning_vi": "kiếm, thanh kiếm"
+  },
+  {
+    "id": "cf6250eb-75d5-4314-982c-6127aac4a0a2",
+    "hanzi": "肩膀",
+    "pinyin": "jiānbǎng",
+    "meaning_vi": "vai"
+  },
+  {
+    "id": "814d1ad6-c5d3-4876-b0bb-cc281ed0ae1e",
+    "hanzi": "鉴定",
+    "pinyin": "jiàndìng",
+    "meaning_vi": "giám định, đánh giá"
+  },
+  {
+    "id": "850d5af3-aaef-492a-aa68-c0b6dc603f87",
+    "hanzi": "坚定",
+    "pinyin": "jiāndìng",
+    "meaning_vi": "kiên định, vững vàng"
+  },
+  {
+    "id": "8272a28c-fe36-4179-9f3a-49648d4f42ba",
+    "hanzi": "监督",
+    "pinyin": "jiāndū",
+    "meaning_vi": "giám sát"
+  },
+  {
+    "id": "a6c1604e-c34a-4cbc-ba27-5b1dae16b76b",
+    "hanzi": "间隔",
+    "pinyin": "jiàngé",
+    "meaning_vi": "khoảng cách, ngăn cách"
+  },
+  {
+    "id": "734f757c-19f9-475f-aa51-fac796524638",
+    "hanzi": "将军",
+    "pinyin": "jiāngjūn",
+    "meaning_vi": "tướng quân, vị tướng"
+  },
+  {
+    "id": "420319af-1881-4cef-a328-f3be3548b0ba",
+    "hanzi": "坚固",
+    "pinyin": "jiāngù",
+    "meaning_vi": "kiên cố, chắc chắn"
+  },
+  {
+    "id": "92aebf71-a909-4632-912d-d531d7defbef",
+    "hanzi": "简化",
+    "pinyin": "jiǎnhuà",
+    "meaning_vi": "đơn giản hóa"
+  },
+  {
+    "id": "a001dbeb-6d58-448d-b4f8-82b95dbc28e9",
+    "hanzi": "间接",
+    "pinyin": "jiànjiē",
+    "meaning_vi": "gián tiếp"
+  },
+  {
+    "id": "fe39b236-caeb-4ca7-a74a-b8ee388e7d85",
+    "hanzi": "坚决",
+    "pinyin": "jiānjué",
+    "meaning_vi": "kiên quyết"
+  },
+  {
+    "id": "8d0a182a-33fe-42dd-a56d-cf8b72eb0a10",
+    "hanzi": "艰难",
+    "pinyin": "jiānnán",
+    "meaning_vi": "gian nan, khó khăn"
+  },
+  {
+    "id": "2dd96cb0-ff27-47e9-a55f-22e1efcf427a",
+    "hanzi": "健全",
+    "pinyin": "jiànquán",
+    "meaning_vi": "kiện toàn, lành mạnh"
+  },
+  {
+    "id": "4aac94e2-e016-4342-979c-049dfa2f965d",
+    "hanzi": "检验",
+    "pinyin": "jiǎnyàn",
+    "meaning_vi": "kiểm nghiệm, kiểm tra"
+  },
+  {
+    "id": "aee5e8db-f42e-4b54-929a-9be5450bc8dc",
+    "hanzi": "坚硬",
+    "pinyin": "jiānyìng",
+    "meaning_vi": "cứng rắn, rắn chắc"
+  },
+  {
+    "id": "8bed47ab-f257-4822-9561-6f3b35f8a52d",
+    "hanzi": "兼职",
+    "pinyin": "jiānzhí",
+    "meaning_vi": "làm thêm, kiêm nhiệm"
+  },
+  {
+    "id": "98780b6a-9c8c-40f9-90a7-a8d78c26f175",
+    "hanzi": "焦点",
+    "pinyin": "jiāodiǎn",
+    "meaning_vi": "tiêu điểm, trọng tâm"
+  },
+  {
+    "id": "e310d4a2-6007-41c4-bd12-97172e3adcd3",
+    "hanzi": "交际",
+    "pinyin": "jiāojì",
+    "meaning_vi": "giao tiếp, giao tế"
+  },
+  {
+    "id": "c3d1af2f-2716-415c-a7ff-1acd10ff57c8",
+    "hanzi": "角落",
+    "pinyin": "jiǎoluò",
+    "meaning_vi": "góc, xó"
+  },
+  {
+    "id": "2c34df3d-98f9-4e2d-8d50-9b48403bf77f",
+    "hanzi": "胶水",
+    "pinyin": "jiāoshuǐ",
+    "meaning_vi": "keo dán, hồ dán"
+  },
+  {
+    "id": "f4763e18-454c-420c-836d-53603f3924ef",
+    "hanzi": "教训",
+    "pinyin": "jiàoxun",
+    "meaning_vi": "bài học, dạy bảo"
+  },
+  {
+    "id": "889deebb-30a2-42bf-885c-60e166de13f6",
+    "hanzi": "假设",
+    "pinyin": "jiǎshè",
+    "meaning_vi": "giả thuyết, giả sử"
+  },
+  {
+    "id": "11b55a15-22fe-4af9-9ab4-dc619688e14f",
+    "hanzi": "家属",
+    "pinyin": "jiāshǔ",
+    "meaning_vi": "người nhà, thân nhân"
+  },
+  {
+    "id": "adf0f570-f6a0-4d08-a2fb-d5539b04fdb2",
+    "hanzi": "即便",
+    "pinyin": "jíbiàn",
+    "meaning_vi": "cho dù, ngay cả khi"
+  },
+  {
+    "id": "efa783a4-b320-4e29-b2a6-790cb891215d",
+    "hanzi": "基地",
+    "pinyin": "jīdì",
+    "meaning_vi": "căn cứ, cơ sở"
+  },
+  {
+    "id": "22262e22-07af-43e7-9944-0ecb339b8046",
+    "hanzi": "极端",
+    "pinyin": "jíduān",
+    "meaning_vi": "cực đoan"
+  },
+  {
+    "id": "f2c84bda-c164-4d9b-ba2f-ffbc9393eb3a",
+    "hanzi": "接连",
+    "pinyin": "jiē lián",
+    "meaning_vi": "liên tiếp, liên tục"
+  },
+  {
+    "id": "35013312-0aa8-4030-8881-8131b250b194",
+    "hanzi": "杰出",
+    "pinyin": "jiéchū",
+    "meaning_vi": "kiệt xuất, xuất sắc"
+  },
+  {
+    "id": "463cddcc-f7e2-4e5b-8c09-bf1dbc66f8a7",
+    "hanzi": "解放",
+    "pinyin": "jiěfàng",
+    "meaning_vi": "giải phóng"
+  },
+  {
+    "id": "00e582d8-c7a2-4fec-a704-2d3982c35fa1",
+    "hanzi": "借鉴",
+    "pinyin": "jièjiàn",
+    "meaning_vi": "tham khảo, rút kinh nghiệm"
+  },
+  {
+    "id": "bf1b2caa-aca8-4998-91bb-e43a9da5e815",
+    "hanzi": "结实",
+    "pinyin": "jiēshi",
+    "meaning_vi": "chắc chắn, vạm vỡ"
+  },
+  {
+    "id": "7a67c600-a345-4edb-aea3-ca46c44197b0",
+    "hanzi": "截至",
+    "pinyin": "jiézhì",
+    "meaning_vi": "tính đến (thời điểm)"
+  },
+  {
+    "id": "55097f60-b7f0-4559-9867-c2e15cd9d0fe",
+    "hanzi": "截止",
+    "pinyin": "jiézhǐ",
+    "meaning_vi": "kết thúc, hết hạn"
+  },
+  {
+    "id": "da05decd-7277-4eab-99e0-0db4675bcd8d",
+    "hanzi": "戒指",
+    "pinyin": "jièzhi",
+    "meaning_vi": "nhẫn"
+  },
+  {
+    "id": "cfef3140-4cd8-4394-b045-de0d5aeaf6e0",
+    "hanzi": "借助",
+    "pinyin": "jièzhù",
+    "meaning_vi": "nhờ vào, mượn cớ"
+  },
+  {
+    "id": "84a449c8-fec5-459e-949c-d918ee038aaf",
+    "hanzi": "节奏",
+    "pinyin": "jiézòu",
+    "meaning_vi": "tiết tấu, nhịp điệu"
+  },
+  {
+    "id": "220ca331-247f-46b1-9d19-19c6af797a67",
+    "hanzi": "激发",
+    "pinyin": "jīfā",
+    "meaning_vi": "kích thích, khơi dậy"
+  },
+  {
+    "id": "6b14f75c-6ce4-4b24-9ef1-0c5fb49ec8fe",
+    "hanzi": "基金",
+    "pinyin": "jījīn",
+    "meaning_vi": "quỹ"
+  },
+  {
+    "id": "e0f7b060-ddb6-4e40-89fe-2307f1ffc467",
+    "hanzi": "季军",
+    "pinyin": "jìjūn",
+    "meaning_vi": "vị trí thứ ba, giải ba"
+  },
+  {
+    "id": "5b7c549c-4f6d-4871-afbf-355d6e4b2f7d",
+    "hanzi": "激励",
+    "pinyin": "jīlì",
+    "meaning_vi": "khích lệ, động viên"
+  },
+  {
+    "id": "27048e6d-e02b-4a51-93b0-89229cfa0154",
+    "hanzi": "纪律",
+    "pinyin": "jìlǜ",
+    "meaning_vi": "kỷ luật"
+  },
+  {
+    "id": "1311bf48-1f3e-49b8-9a4e-6db064922506",
+    "hanzi": "寂寞",
+    "pinyin": "jìmò",
+    "meaning_vi": "cô đơn, quạnh quẽ"
+  },
+  {
+    "id": "5c148527-3431-40a9-9944-992bcd712dab",
+    "hanzi": "进而",
+    "pinyin": "jìn'ér",
+    "meaning_vi": "tiếp đó, hơn nữa"
+  },
+  {
+    "id": "f7404a84-7a4c-429a-8ff7-29dc9e86bc4f",
+    "hanzi": "井",
+    "pinyin": "jǐng",
+    "meaning_vi": "cái giếng"
+  },
+  {
+    "id": "f04d153a-a886-48c8-98ef-7fceefb64170",
+    "hanzi": "惊讶",
+    "pinyin": "jīng yà",
+    "meaning_vi": "ngạc nhiên, sửng sốt"
+  },
+  {
+    "id": "505b449e-4963-4c74-9e72-25b5063745d1",
+    "hanzi": "警告",
+    "pinyin": "jǐnggào",
+    "meaning_vi": "cảnh cáo"
+  },
+  {
+    "id": "a0731a4a-e59f-490c-857b-4dcbe6805a79",
+    "hanzi": "精确",
+    "pinyin": "jīngquè",
+    "meaning_vi": "chính xác, chuẩn xác"
+  },
+  {
+    "id": "456f11df-cc6b-407a-a2af-5bf7bcfec2bd",
+    "hanzi": "竞赛",
+    "pinyin": "jìngsài",
+    "meaning_vi": "thi đấu, đua tranh"
+  },
+  {
+    "id": "4ef74753-e5b1-443a-b127-b96747c5e1c6",
+    "hanzi": "经商",
+    "pinyin": "jīngshāng",
+    "meaning_vi": "kinh doanh"
+  },
+  {
+    "id": "147fe42a-052f-4446-a701-3967cbdf40f2",
+    "hanzi": "精通",
+    "pinyin": "jīngtōng",
+    "meaning_vi": "tinh thông, thành thạo"
+  },
+  {
+    "id": "ecb1ca4b-f0fa-4a96-9cf7-3bc25a8caca8",
+    "hanzi": "镜头",
+    "pinyin": "jìngtóu",
+    "meaning_vi": "ống kính, cảnh quay"
+  },
+  {
+    "id": "8a869b4f-13ce-4bc5-8a76-869a73414022",
+    "hanzi": "精心",
+    "pinyin": "jīngxīn",
+    "meaning_vi": "tỉ mỉ, tận tâm"
+  },
+  {
+    "id": "aec5d9a2-30f7-47b5-8ab4-8bce877d5b94",
+    "hanzi": "精致",
+    "pinyin": "jīngzhì",
+    "meaning_vi": "tinh tế, tinh xảo"
+  },
+  {
+    "id": "b517873e-3697-40b2-8da8-5ad5a83e7b35",
+    "hanzi": "颈椎",
+    "pinyin": "jǐngzhuī",
+    "meaning_vi": "đốt sống cổ"
+  },
+  {
+    "id": "329592c7-e961-4367-a286-506c1dacc12a",
+    "hanzi": "进化",
+    "pinyin": "jìnhuà",
+    "meaning_vi": "tiến hóa"
+  },
+  {
+    "id": "25c5d7fc-4717-462e-ad39-44a8d80de58d",
+    "hanzi": "近来",
+    "pinyin": "jìnlái",
+    "meaning_vi": "dạo này, gần đây"
+  },
+  {
+    "id": "c0c4a11a-3d5d-4e82-960a-4a3b6a608851",
+    "hanzi": "金融",
+    "pinyin": "jīnróng",
+    "meaning_vi": "tài chính"
+  },
+  {
+    "id": "b56f4b9c-4205-4a49-8567-03365f9dd99e",
+    "hanzi": "进展",
+    "pinyin": "jìnzhǎn",
+    "meaning_vi": "tiến triển"
+  },
+  {
+    "id": "70550535-6115-4df0-bd10-43c85040cf49",
+    "hanzi": "技巧",
+    "pinyin": "jìqiǎo",
+    "meaning_vi": "kỹ xảo, kỹ năng"
+  },
+  {
+    "id": "369711d9-c8e8-40d6-bdb8-ead7eca36d2f",
+    "hanzi": "激情",
+    "pinyin": "jīqíng",
+    "meaning_vi": "nhiệt huyết, say mê, cảm xúc mãnh liệt"
+  },
+  {
+    "id": "faed074e-adbe-485a-b38f-66dd6c647daf",
+    "hanzi": "集团",
+    "pinyin": "jítuán",
+    "meaning_vi": "tập đoàn"
+  },
+  {
+    "id": "5ca48ce5-8ebc-47a5-b04e-31271174675c",
+    "hanzi": "纠纷",
+    "pinyin": "jiūfēn",
+    "meaning_vi": "tranh chấp, xích mích"
+  },
+  {
+    "id": "864c76a2-3605-4417-b498-8f4d45328755",
+    "hanzi": "酒精",
+    "pinyin": "jiǔjīng",
+    "meaning_vi": "cồn, rượu"
+  },
+  {
+    "id": "a9fc9adb-9898-49b8-b05f-cbd3d40f2f0b",
+    "hanzi": "舅舅",
+    "pinyin": "jiùjiu",
+    "meaning_vi": "cậu (anh em mẹ)"
+  },
+  {
+    "id": "3159278d-dbbc-4d1b-9e7d-e33b0fcec373",
+    "hanzi": "纠正",
+    "pinyin": "jiūzhèng",
+    "meaning_vi": "sửa chữa, uốn nắn"
+  },
+  {
+    "id": "80fde773-3d8b-423c-b92d-f371f0f338c0",
+    "hanzi": "吉祥",
+    "pinyin": "jíxiáng",
+    "meaning_vi": "cát tường, may mắn"
+  },
+  {
+    "id": "12179d3c-fa28-49f9-99e7-1d2152d35a28",
+    "hanzi": "机械",
+    "pinyin": "jīxiè",
+    "meaning_vi": "máy móc, rập khuôn"
+  },
+  {
+    "id": "be5d519c-7bcd-431d-b87d-85b4c8a781e9",
+    "hanzi": "基因",
+    "pinyin": "jīyīn",
+    "meaning_vi": "gen"
+  },
+  {
+    "id": "c4aa12b9-f7c4-4039-a186-2e72f3e881e6",
+    "hanzi": "给予",
+    "pinyin": "jǐyǔ",
+    "meaning_vi": "cho, dành cho"
+  },
+  {
+    "id": "67094cfc-c453-4816-a8a5-96ac60883511",
+    "hanzi": "机遇",
+    "pinyin": "jīyù",
+    "meaning_vi": "cơ hội, dịp may"
+  },
+  {
+    "id": "96a535fc-d0e4-430e-a123-42aabcdf082d",
+    "hanzi": "举动",
+    "pinyin": "jǔ dòng",
+    "meaning_vi": "hành động, cử chỉ"
+  },
+  {
+    "id": "d8d06555-0452-4fca-a288-1f6c6059b598",
+    "hanzi": "局面",
+    "pinyin": "jú miàn",
+    "meaning_vi": "cục diện, tình hình"
+  },
+  {
+    "id": "43d1f916-3d52-416e-bdf7-ce25debecb71",
+    "hanzi": "局限",
+    "pinyin": "jú xiàn",
+    "meaning_vi": "giới hạn, hạn chế"
+  },
+  {
+    "id": "0a2b0027-8224-4c7b-bf42-ca0ac2b6c8c6",
+    "hanzi": "卷",
+    "pinyin": "juǎn",
+    "meaning_vi": "cuộn, cuốn"
+  },
+  {
+    "id": "612832c4-c648-4d35-ad93-13c8a5efa021",
+    "hanzi": "剧本",
+    "pinyin": "jùběn",
+    "meaning_vi": "kịch bản"
+  },
+  {
+    "id": "521b901d-0ff9-4bb1-80ac-4ffc1ab6aace",
+    "hanzi": "绝望",
+    "pinyin": "jué wàng",
+    "meaning_vi": "tuyệt vọng"
+  },
+  {
+    "id": "8896c5e1-af0b-4809-9d23-29d5f0b195a3",
+    "hanzi": "决策",
+    "pinyin": "juécè",
+    "meaning_vi": "quyết sách, đưa ra quyết định"
+  },
+  {
+    "id": "d41368b0-b9ab-4b7b-a2d5-6e6f0b7e567e",
+    "hanzi": "俱乐部",
+    "pinyin": "jùlèbù",
+    "meaning_vi": "câu lạc bộ"
+  },
+  {
+    "id": "0c6de14d-329d-4344-88c4-b92fc98f2448",
+    "hanzi": "剧烈",
+    "pinyin": "jùliè",
+    "meaning_vi": "kịch liệt, dữ dội"
+  },
+  {
+    "id": "d6f9e532-2685-441d-8a5f-0e347cfe6268",
+    "hanzi": "军队",
+    "pinyin": "jūnduì",
+    "meaning_vi": "quân đội"
+  },
+  {
+    "id": "1cba11db-1120-4930-81f8-fbf6e0e4704b",
+    "hanzi": "均匀",
+    "pinyin": "jūnyún",
+    "meaning_vi": "đều đặn, đồng đều"
+  },
+  {
+    "id": "94982e95-41f1-46aa-9914-f92039501b1f",
+    "hanzi": "砍",
+    "pinyin": "kǎn",
+    "meaning_vi": "chặt, chém"
+  },
+  {
+    "id": "e4dd98de-b8be-419d-8a98-8865275d429e",
+    "hanzi": "看不起",
+    "pinyin": "kànbuqǐ",
+    "meaning_vi": "coi thường, khinh rẻ"
+  },
+  {
+    "id": "7133b9d8-7ca0-431c-b0fd-0fa6eff2535c",
+    "hanzi": "看待",
+    "pinyin": "kàndài",
+    "meaning_vi": "nhìn nhận, đối đãi"
+  },
+  {
+    "id": "2dade4f9-9806-4192-b6a1-c8032d6f3fa4",
+    "hanzi": "考察",
+    "pinyin": "kǎo chá",
+    "meaning_vi": "khảo sát, nghiên cứu"
+  },
+  {
+    "id": "d16c0bdc-18ea-4eea-9d2c-7ba5547a4d2d",
+    "hanzi": "考古",
+    "pinyin": "kǎo gǔ",
+    "meaning_vi": "khảo cổ"
+  },
+  {
+    "id": "a1f23bb7-8e51-4f35-9e32-1a4184f9bf9b",
+    "hanzi": "考核",
+    "pinyin": "kǎo hé",
+    "meaning_vi": "khảo hạch, kiểm tra đánh giá"
+  },
+  {
+    "id": "8a5e3504-3ed5-476a-b308-3ae9f89916a9",
+    "hanzi": "考验",
+    "pinyin": "kǎo yàn",
+    "meaning_vi": "thử thách, kiểm nghiệm"
+  },
+  {
+    "id": "9e88fe3d-53b1-4fd7-8357-ce18ea4cbe21",
+    "hanzi": "可口",
+    "pinyin": "kěkǒu",
+    "meaning_vi": "ngon miệng"
+  },
+  {
+    "id": "075fc113-7268-4057-b373-1cf60ff7476a",
+    "hanzi": "科目",
+    "pinyin": "kēmù",
+    "meaning_vi": "môn học, hạng mục"
+  },
+  {
+    "id": "cfea4fee-0eff-49a9-9a86-ba21bf5c9dbf",
+    "hanzi": "课题",
+    "pinyin": "kètí",
+    "meaning_vi": "đề tài, chuyên đề"
+  },
+  {
+    "id": "50ba8032-363d-4514-9559-99b3f598b78b",
+    "hanzi": "渴望",
+    "pinyin": "kěwàng",
+    "meaning_vi": "khát khao, khao khát"
+  },
+  {
+    "id": "8e6d39f9-4077-41df-83ff-0947591f034f",
+    "hanzi": "可行",
+    "pinyin": "kěxíng",
+    "meaning_vi": "khả thi"
+  },
+  {
+    "id": "eecc3768-1fb9-4e2b-b0bb-71b5146c2a5f",
+    "hanzi": "恐惧",
+    "pinyin": "kǒng jù",
+    "meaning_vi": "sợ hãi"
+  },
+  {
+    "id": "858c85ae-8874-4806-aaa5-77429552d6ad",
+    "hanzi": "空闲",
+    "pinyin": "kòngxián",
+    "meaning_vi": "rảnh rỗi"
+  },
+  {
+    "id": "b560836a-e270-4aca-9c6a-289a33caf643",
+    "hanzi": "扣",
+    "pinyin": "kòu",
+    "meaning_vi": "khấu trừ, cài (nút), giữ lại"
+  },
+  {
+    "id": "2920671c-f804-4e5e-bd5a-a4b20c3bc6a3",
+    "hanzi": "口腔",
+    "pinyin": "kǒuqiāng",
+    "meaning_vi": "khoang miệng"
+  },
+  {
+    "id": "d8e6e434-54a8-4e09-8b1d-5fd177442e38",
+    "hanzi": "口头",
+    "pinyin": "kǒutóu",
+    "meaning_vi": "bằng miệng, lời nói"
+  },
+  {
+    "id": "4720be4a-41e9-4a91-8007-3d58caf567aa",
+    "hanzi": "夸",
+    "pinyin": "kuā",
+    "meaning_vi": "khen ngợi, khoe"
+  },
+  {
+    "id": "c3e4209c-8cec-4868-ace8-73873b1f8e99",
+    "hanzi": "会计",
+    "pinyin": "kuàijì",
+    "meaning_vi": "kế toán"
+  },
+  {
+    "id": "b3f6b33c-5835-485a-84cc-c115d645890b",
+    "hanzi": "款式",
+    "pinyin": "kuǎnshì",
+    "meaning_vi": "kiểu dáng, mẫu mã"
+  },
+  {
+    "id": "1844847c-7d31-4087-b6f5-ed63461e2383",
+    "hanzi": "夸张",
+    "pinyin": "kuāzhāng",
+    "meaning_vi": "khoa trương, phóng đại"
+  },
+  {
+    "id": "689dbec0-8777-4558-8f27-f05af8eae699",
+    "hanzi": "亏损",
+    "pinyin": "kuīsǔn",
+    "meaning_vi": "thua lỗ"
+  },
+  {
+    "id": "599aeb43-b149-40c2-af14-bb38701369c2",
+    "hanzi": "枯燥",
+    "pinyin": "kūzào",
+    "meaning_vi": "khô khan, tẻ nhạt"
+  },
+  {
+    "id": "315922ac-4cc7-4218-8705-606a3b23d057",
+    "hanzi": "啦",
+    "pinyin": "la",
+    "meaning_vi": "rồi, cơ mà (trợ từ)"
+  },
+  {
+    "id": "3fe99dc4-04e5-4218-98d4-c538e451d9d1",
+    "hanzi": "辣椒",
+    "pinyin": "làjiāo",
+    "meaning_vi": "ớt"
+  },
+  {
+    "id": "6e3f2a34-5d88-415f-9847-2b49494e0f0b",
+    "hanzi": "拦",
+    "pinyin": "lán",
+    "meaning_vi": "chặn, ngăn cản"
+  },
+  {
+    "id": "571f5705-78d5-4b28-8eee-4f0970aefed5",
+    "hanzi": "烂",
+    "pinyin": "làn",
+    "meaning_vi": "nát, rách, thối rữa"
+  },
+  {
+    "id": "611073c2-ac75-4c70-a055-6becc8689bf8",
+    "hanzi": "朗读",
+    "pinyin": "lǎngdú",
+    "meaning_vi": "đọc to, đọc diễn cảm"
+  },
+  {
+    "id": "655e2d99-f5d2-4244-be82-c3637ce9742e",
+    "hanzi": "老实",
+    "pinyin": "lǎoshi",
+    "meaning_vi": "thành thật, thật thà"
+  },
+  {
+    "id": "e286c27b-a36b-4216-a128-a406262ebb48",
+    "hanzi": "老鼠",
+    "pinyin": "lǎoshǔ",
+    "meaning_vi": "chuột"
+  },
+  {
+    "id": "ac461117-a7cb-4477-b117-1143843412b5",
+    "hanzi": "雷",
+    "pinyin": "léi",
+    "meaning_vi": "sấm, sét"
+  },
+  {
+    "id": "47d2a3ab-acaa-4e33-9d80-eeeaee6be6e1",
+    "hanzi": "粒",
+    "pinyin": "lì",
+    "meaning_vi": "hạt, viên"
+  },
+  {
+    "id": "4dccbcda-aa22-492d-bef2-91f791adbc70",
+    "hanzi": "联想",
+    "pinyin": "lián xiǎng",
+    "meaning_vi": "liên tưởng"
+  },
+  {
+    "id": "dc801ed9-8917-4c45-b522-5cf03d31bfe5",
+    "hanzi": "晾",
+    "pinyin": "liàng",
+    "meaning_vi": "phơi, hong gió"
+  },
+  {
+    "id": "2c093bf4-75b8-44e0-aa49-2798e923b755",
+    "hanzi": "立场",
+    "pinyin": "lìchǎng",
+    "meaning_vi": "lập trường"
+  },
+  {
+    "id": "832f7324-253a-41c0-b37c-92aaf2a2eec7",
+    "hanzi": "淋",
+    "pinyin": "lín",
+    "meaning_vi": "dầm, tưới, ướt sũng"
+  },
+  {
+    "id": "ec772fb0-01e7-4f4f-a2b3-53dfdc7d32ca",
+    "hanzi": "凌晨",
+    "pinyin": "língchén",
+    "meaning_vi": "rạng sáng"
+  },
+  {
+    "id": "9ae43667-74ac-4257-8006-fddfcb0b02f4",
+    "hanzi": "流通",
+    "pinyin": "liútōng",
+    "meaning_vi": "lưu thông"
+  },
+  {
+    "id": "e2096e25-15f4-4294-a02a-c36a7605f929",
+    "hanzi": "例外",
+    "pinyin": "lìwài",
+    "meaning_vi": "ngoại lệ"
+  },
+  {
+    "id": "5dad64ff-ebb2-4341-8431-365e5330b8e5",
+    "hanzi": "利息",
+    "pinyin": "lìxī",
+    "meaning_vi": "tiền lãi, lãi suất"
+  },
+  {
+    "id": "20b16a24-7e8e-4a3d-bc3f-d8c14250e231",
+    "hanzi": "履行",
+    "pinyin": "lǚ xíng",
+    "meaning_vi": "thực hiện, thi hành"
+  },
+  {
+    "id": "2cfc1df0-0601-4277-ad0d-fe7baa0eedc3",
+    "hanzi": "轮船",
+    "pinyin": "lúnchuán",
+    "meaning_vi": "tàu thủy"
+  },
+  {
+    "id": "6483445a-c02d-4a9a-82b6-952b0df7bcb0",
+    "hanzi": "轮流",
+    "pinyin": "lúnliú",
+    "meaning_vi": "luân phiên"
+  },
+  {
+    "id": "dc468662-d277-49fe-a0de-bd33e4b626cd",
+    "hanzi": "论坛",
+    "pinyin": "lùntán",
+    "meaning_vi": "diễn đàn"
+  },
+  {
+    "id": "a188080b-677c-434b-a4a0-548fa655c3b2",
+    "hanzi": "落后",
+    "pinyin": "luòhòu",
+    "meaning_vi": "lạc hậu, tụt hậu"
+  },
+  {
+    "id": "9f78e464-f81f-4f70-b444-09afa1db1337",
+    "hanzi": "嘛",
+    "pinyin": "ma",
+    "meaning_vi": "mà, chứ (trợ từ)"
+  },
+  {
+    "id": "6c763587-d03f-452b-a82d-2214c0bb96eb",
+    "hanzi": "迈",
+    "pinyin": "mài",
+    "meaning_vi": "sải bước, bước"
+  },
+  {
+    "id": "38ff6ef5-caab-48ec-81cc-78c11796aa35",
+    "hanzi": "麦克风",
+    "pinyin": "màikèfēng",
+    "meaning_vi": "micrô"
+  },
+  {
+    "id": "588a5231-401b-440d-a0cd-0b9c0c2ca8f2",
+    "hanzi": "漫长",
+    "pinyin": "màncháng",
+    "meaning_vi": "dài dằng dặc, lê thê"
+  },
+  {
+    "id": "7af67c63-2db1-4317-a71b-cbcf3c2f3944",
+    "hanzi": "漫画",
+    "pinyin": "mànhuà",
+    "meaning_vi": "truyện tranh, tranh biếm họa"
+  },
+  {
+    "id": "df35b351-e6be-4821-9ffc-bfbc46d46805",
+    "hanzi": "冒险",
+    "pinyin": "màoxiǎn",
+    "meaning_vi": "mạo hiểm"
+  },
+  {
+    "id": "b7b79b72-110a-4493-8814-32cdf8eafb59",
+    "hanzi": "贸易",
+    "pinyin": "màoyì",
+    "meaning_vi": "thương mại"
+  },
+  {
+    "id": "476908c2-e166-4123-8be3-d92003959ccd",
+    "hanzi": "码头",
+    "pinyin": "mǎtou",
+    "meaning_vi": "bến tàu, bến cảng"
+  },
+  {
+    "id": "20f71df3-083b-4a15-8dd1-e6c86d52d0c1",
+    "hanzi": "蚂蚁",
+    "pinyin": "mǎyǐ",
+    "meaning_vi": "con kiến"
+  },
+  {
+    "id": "86036014-90bb-4277-b09d-5d747ade2937",
+    "hanzi": "美观",
+    "pinyin": "měi guān",
+    "meaning_vi": "đẹp mắt, mỹ quan"
+  },
+  {
+    "id": "bb2f532a-2507-4b53-ac85-e062e4acd137",
+    "hanzi": "眉毛",
+    "pinyin": "méimao",
+    "meaning_vi": "lông mày"
+  },
+  {
+    "id": "91ef748d-aa68-4ec5-bedf-3c69773e7d51",
+    "hanzi": "弥补",
+    "pinyin": "mí bǔ",
+    "meaning_vi": "bù đắp"
+  },
+  {
+    "id": "2f281f34-8a21-4c59-9173-4739c22e738b",
+    "hanzi": "勉强",
+    "pinyin": "miǎnqiǎng",
+    "meaning_vi": "miễn cưỡng, gượng gạo"
+  },
+  {
+    "id": "c3762874-f168-456c-9c7b-525552da2583",
+    "hanzi": "免疫",
+    "pinyin": "miǎnyì",
+    "meaning_vi": "miễn dịch"
+  },
+  {
+    "id": "e3496c9c-a2cc-447a-84fd-8959bf078f40",
+    "hanzi": "面子",
+    "pinyin": "miànzi",
+    "meaning_vi": "thể diện, mặt mũi"
+  },
+  {
+    "id": "456b5518-33fb-440a-b640-1d6d7c9a4877",
+    "hanzi": "描绘",
+    "pinyin": "miáo huì",
+    "meaning_vi": "miêu tả, khắc họa"
+  },
+  {
+    "id": "edb6cded-725c-4d83-be55-520ba102dc44",
+    "hanzi": "描写",
+    "pinyin": "miáoxiě",
+    "meaning_vi": "miêu tả"
+  },
+  {
+    "id": "0cd0e35c-5c44-4c81-bb93-438a300ff2dc",
+    "hanzi": "密度",
+    "pinyin": "mìdù",
+    "meaning_vi": "mật độ"
+  },
+  {
+    "id": "df062d57-9a6a-4c2e-86a2-eefedaf93415",
+    "hanzi": "蜜蜂",
+    "pinyin": "mìfēng",
+    "meaning_vi": "con ong"
+  },
+  {
+    "id": "ee73f78a-b1fb-4c57-b09f-11e7f152a718",
+    "hanzi": "名额",
+    "pinyin": "míng'é",
+    "meaning_vi": "chỉ tiêu, suất"
+  },
+  {
+    "id": "c5412253-a81e-42f9-9bb4-9d8bac98bf60",
+    "hanzi": "命令",
+    "pinyin": "mìnglìng",
+    "meaning_vi": "mệnh lệnh, ra lệnh"
+  },
+  {
+    "id": "116f12c5-1f4c-4dd0-a3ae-cb31dbb9a166",
+    "hanzi": "明明",
+    "pinyin": "míngmíng",
+    "meaning_vi": "rõ ràng, rành rành"
+  },
+  {
+    "id": "2cb10681-3712-46a9-9f1c-69e82c76699a",
+    "hanzi": "命名",
+    "pinyin": "mìngmíng",
+    "meaning_vi": "đặt tên"
+  },
+  {
+    "id": "5ed96c62-69f6-4fd7-a61b-6bce07573ccd",
+    "hanzi": "民间",
+    "pinyin": "mínjiān",
+    "meaning_vi": "dân gian"
+  },
+  {
+    "id": "3a63111e-606b-4617-85e3-8ae1bf9bb84c",
+    "hanzi": "民主",
+    "pinyin": "mínzhǔ",
+    "meaning_vi": "dân chủ"
+  },
+  {
+    "id": "a829b1a7-c7e0-4254-85c9-3fee4d32a3bb",
+    "hanzi": "迷人",
+    "pinyin": "mírén",
+    "meaning_vi": "mê người, quyến rũ"
+  },
+  {
+    "id": "2ae6dff4-d853-4292-85ab-b70b92738aa1",
+    "hanzi": "模仿",
+    "pinyin": "mófǎng",
+    "meaning_vi": "bắt chước, mô phỏng"
+  },
+  {
+    "id": "331e7da7-d4a6-4d2c-86d3-0b4cb6c4c4ea",
+    "hanzi": "默默",
+    "pinyin": "mòmò",
+    "meaning_vi": "im lặng, lặng lẽ"
+  },
+  {
+    "id": "4a7104ed-b6bf-4bfc-8419-4466a5ae3206",
+    "hanzi": "摩托车",
+    "pinyin": "mótuōchē",
+    "meaning_vi": "xe máy"
+  },
+  {
+    "id": "0ad1e8f1-3475-490e-9047-6e1df00af0af",
+    "hanzi": "模型",
+    "pinyin": "móxíng",
+    "meaning_vi": "mô hình"
+  },
+  {
+    "id": "f9be2bfb-2ee5-4825-836e-78dddb817d86",
+    "hanzi": "目录",
+    "pinyin": "mùlù",
+    "meaning_vi": "mục lục"
+  },
+  {
+    "id": "97c4fce0-4046-45e4-8812-40c928cf30fb",
+    "hanzi": "模样",
+    "pinyin": "múyàng",
+    "meaning_vi": "dáng vẻ, diện mạo"
+  },
+  {
+    "id": "357ce3e6-d667-4643-929a-6780e00737e3",
+    "hanzi": "母语",
+    "pinyin": "mǔyǔ",
+    "meaning_vi": "tiếng mẹ đẻ"
+  },
+  {
+    "id": "ecb3153e-d41c-4517-8cb8-0c8a7271070c",
+    "hanzi": "脑袋",
+    "pinyin": "nǎodai",
+    "meaning_vi": "đầu, não"
+  },
+  {
+    "id": "6887eee6-a08a-4dbd-a075-376f41db1c73",
+    "hanzi": "内涵",
+    "pinyin": "nèihán",
+    "meaning_vi": "nội hàm, chiều sâu tư tưởng"
+  },
+  {
+    "id": "edfbb27f-903c-4017-82b2-3e3b5634eaa9",
+    "hanzi": "内科",
+    "pinyin": "nèikē",
+    "meaning_vi": "khoa nội"
+  },
+  {
+    "id": "360d44bd-6688-43f6-88ed-bd11530fa59b",
+    "hanzi": "能量",
+    "pinyin": "néng liàng",
+    "meaning_vi": "năng lượng"
+  },
+  {
+    "id": "899e11d4-b083-429b-ae12-ff3448f659cb",
+    "hanzi": "能源",
+    "pinyin": "néngyuán",
+    "meaning_vi": "năng lượng, nguồn năng lượng"
+  },
+  {
+    "id": "db687251-d180-42bb-927a-86a7d5bf9f78",
+    "hanzi": "年度",
+    "pinyin": "nián dù",
+    "meaning_vi": "niên độ, năm"
+  },
+  {
+    "id": "70d1b7f4-a36f-4116-8924-1a6d25ee5675",
+    "hanzi": "浓厚",
+    "pinyin": "nónghòu",
+    "meaning_vi": "nồng hậu, đậm nét, sâu sắc"
+  },
+  {
+    "id": "cf2ee71e-f2ea-4e2e-922f-498d55aee9d3",
+    "hanzi": "偶像",
+    "pinyin": "ǒuxiàng",
+    "meaning_vi": "thần tượng"
+  },
+  {
+    "id": "80d4b33f-351f-4d54-aca5-483a8967bf01",
+    "hanzi": "排除",
+    "pinyin": "pái chú",
+    "meaning_vi": "loại trừ, bài trừ"
+  },
+  {
+    "id": "cf475538-5149-48b9-a988-9b989f7f8e40",
+    "hanzi": "排放",
+    "pinyin": "pái fàng",
+    "meaning_vi": "xả, thải (chất thải)"
+  },
+  {
+    "id": "095d7911-5e0b-4034-852a-de5f24ab81df",
+    "hanzi": "排练",
+    "pinyin": "pái liàn",
+    "meaning_vi": "tập dượt, diễn tập"
+  },
+  {
+    "id": "6e988eb9-0c85-4add-9789-675f8ec879c3",
+    "hanzi": "庞大",
+    "pinyin": "páng dà",
+    "meaning_vi": "khổng lồ, to lớn"
+  },
+  {
+    "id": "730cedf3-ae3d-430a-85fc-6d05691c6de2",
+    "hanzi": "盼望",
+    "pinyin": "pànwàng",
+    "meaning_vi": "trông mong, ngóng trông"
+  },
+  {
+    "id": "6ad928f4-a87a-49f5-a6ad-e7a37cb59d94",
+    "hanzi": "配备",
+    "pinyin": "pèibèi",
+    "meaning_vi": "trang bị, bố trí"
+  },
+  {
+    "id": "e19b9a05-2291-4c0d-b8eb-e78dd5d353c0",
+    "hanzi": "赔偿",
+    "pinyin": "péicháng",
+    "meaning_vi": "bồi thường"
+  },
+  {
+    "id": "d24fe306-65ab-4cad-912a-a006a854203b",
+    "hanzi": "佩服",
+    "pinyin": "pèifú",
+    "meaning_vi": "khâm phục"
+  },
+  {
+    "id": "f2ef1fe0-3b2f-4227-baa1-20069814a240",
+    "hanzi": "配套",
+    "pinyin": "pèitào",
+    "meaning_vi": "đồng bộ, trọn bộ"
+  },
+  {
+    "id": "b13df53b-3ac2-4f16-ab16-ab22f8700b37",
+    "hanzi": "培育",
+    "pinyin": "péiyù",
+    "meaning_vi": "ươm trồng, bồi dưỡng"
+  },
+  {
+    "id": "109e668f-86ad-4a94-9b4c-1eb791e28c46",
+    "hanzi": "捧",
+    "pinyin": "pěng",
+    "meaning_vi": "bưng, nâng niu, tâng bốc"
+  },
+  {
+    "id": "bd396ef8-fc6c-4300-bf5b-8d403f522ed2",
+    "hanzi": "披",
+    "pinyin": "pī",
+    "meaning_vi": "khoác, choàng"
+  },
+  {
+    "id": "749d5851-6fc0-4d1f-b943-8f53ad8c8c2a",
+    "hanzi": "片刻",
+    "pinyin": "piànkè",
+    "meaning_vi": "chốc lát, thoáng chốc"
+  },
+  {
+    "id": "f7573dd2-efcf-4ca4-90d7-1e53c34efd07",
+    "hanzi": "片面",
+    "pinyin": "piànmiàn",
+    "meaning_vi": "phiến diện, một chiều"
+  },
+  {
+    "id": "325f89d2-1ba7-4aee-9b67-e7c108300f7b",
+    "hanzi": "飘",
+    "pinyin": "piāo",
+    "meaning_vi": "bay, trôi giạt"
+  },
+  {
+    "id": "6f5c67fb-7a43-40f2-8075-b9605bab3a85",
+    "hanzi": "疲劳",
+    "pinyin": "píláo",
+    "meaning_vi": "mệt mỏi, mệt nhọc"
+  },
+  {
+    "id": "3f00aabc-1138-4e8b-aa5d-bd633983cdd9",
+    "hanzi": "品尝",
+    "pinyin": "pǐncháng",
+    "meaning_vi": "nếm, thưởng thức"
+  },
+  {
+    "id": "f1ec4afe-bd3e-4d33-ac49-b4bfc167db43",
+    "hanzi": "频道",
+    "pinyin": "píndào",
+    "meaning_vi": "kênh (truyền hình)"
+  },
+  {
+    "id": "02aa87af-01df-4e91-873d-cce3812e90c2",
+    "hanzi": "频繁",
+    "pinyin": "pínfán",
+    "meaning_vi": "thường xuyên, dồn dập"
+  },
+  {
+    "id": "62483033-fa1c-401a-8e74-727efbd0f2d9",
+    "hanzi": "平凡",
+    "pinyin": "píng fán",
+    "meaning_vi": "bình thường, bình phàm"
+  },
+  {
+    "id": "6e83085a-4ac9-41f4-a56d-a03dd4a0af3a",
+    "hanzi": "平等",
+    "pinyin": "píngděng",
+    "meaning_vi": "bình đẳng"
+  },
+  {
+    "id": "643a2a18-6104-47cd-8582-d270184d540f",
+    "hanzi": "平方",
+    "pinyin": "píngfāng",
+    "meaning_vi": "bình phương, mét vuông"
+  },
+  {
+    "id": "aef39cbb-aed0-4e9c-ac39-0b89e3cf8eb1",
+    "hanzi": "评估",
+    "pinyin": "pínggū",
+    "meaning_vi": "đánh giá, định giá"
+  },
+  {
+    "id": "b6794063-cf08-4b28-ba71-d024ca17de06",
+    "hanzi": "评论",
+    "pinyin": "pínglùn",
+    "meaning_vi": "bình luận"
+  },
+  {
+    "id": "bfba7a3c-fa65-4f1c-9a95-5a7513721959",
+    "hanzi": "贫困",
+    "pinyin": "pínkùn",
+    "meaning_vi": "nghèo khó, bần cùng"
+  },
+  {
+    "id": "9859abef-1b54-41f5-bf68-ab497decacaa",
+    "hanzi": "频率",
+    "pinyin": "pínlǜ",
+    "meaning_vi": "tần số, tần suất"
+  },
+  {
+    "id": "0cfcb575-1c04-4100-a9c6-00475b88715f",
+    "hanzi": "泼",
+    "pinyin": "pō",
+    "meaning_vi": "hắt, tạt, dội"
+  },
+  {
+    "id": "78d3c333-e8d1-4533-bd1b-0587e1493605",
+    "hanzi": "坡",
+    "pinyin": "pō",
+    "meaning_vi": "dốc, sườn dốc"
+  },
+  {
+    "id": "a3d22d39-b7fd-4bbf-a60b-f85f5d5a95cf",
+    "hanzi": "破产",
+    "pinyin": "pòchǎn",
+    "meaning_vi": "phá sản"
+  },
+  {
+    "id": "92ac8d4c-a3c0-40d1-bfb2-f1bc282feaa6",
+    "hanzi": "迫切",
+    "pinyin": "pòqiè",
+    "meaning_vi": "cấp bách, bức thiết"
+  },
+  {
+    "id": "9b052b41-5125-4d72-8f58-7840d61edcc7",
+    "hanzi": "铺",
+    "pinyin": "pū",
+    "meaning_vi": "trải, lát"
+  },
+  {
+    "id": "97bce18e-a236-4680-97d6-51841f03aebc",
+    "hanzi": "扑",
+    "pinyin": "pū",
+    "meaning_vi": "vồ, lao tới, đập"
+  },
+  {
+    "id": "7678c4a1-3d10-4d84-984e-e2260b55690f",
+    "hanzi": "朴素",
+    "pinyin": "pǔsù",
+    "meaning_vi": "giản dị, mộc mạc"
+  },
+  {
+    "id": "2c836217-209e-4519-b163-cd6cded4cb62",
+    "hanzi": "恰当",
+    "pinyin": "qià dàng",
+    "meaning_vi": "thích đáng, phù hợp"
+  },
+  {
+    "id": "181be991-9dde-4f3e-89a4-743750297429",
+    "hanzi": "牵",
+    "pinyin": "qiān",
+    "meaning_vi": "dắt, kéo"
+  },
+  {
+    "id": "543de345-8d6a-41a1-bb15-32b1ce0a6e6a",
+    "hanzi": "枪",
+    "pinyin": "qiāng",
+    "meaning_vi": "khẩu súng"
+  },
+  {
+    "id": "d666b077-236c-4052-8f39-952323b66eb4",
+    "hanzi": "强迫",
+    "pinyin": "qiǎng pò",
+    "meaning_vi": "bắt buộc, ép buộc"
+  },
+  {
+    "id": "7ecee42e-0c2b-4eb8-96a5-ec50446dc9a8",
+    "hanzi": "前景",
+    "pinyin": "qiánjǐng",
+    "meaning_vi": "triển vọng, tiền cảnh"
+  },
+  {
+    "id": "060a301e-269d-4239-89cc-c70a308eafbe",
+    "hanzi": "潜力",
+    "pinyin": "qiánlì",
+    "meaning_vi": "tiềm lực, tiềm năng"
+  },
+  {
+    "id": "968d8735-b2b6-4f46-a792-984ee300ac23",
+    "hanzi": "前提",
+    "pinyin": "qiántí",
+    "meaning_vi": "tiền đề"
+  },
+  {
+    "id": "67b6a679-8def-4efb-bb9e-6fe026fca18f",
+    "hanzi": "谦虚",
+    "pinyin": "qiānxū",
+    "meaning_vi": "khiêm tốn"
+  },
+  {
+    "id": "d7dc9e14-7532-48eb-8520-12da7d49eb1e",
+    "hanzi": "瞧",
+    "pinyin": "qiáo",
+    "meaning_vi": "nhìn, xem"
+  },
+  {
+    "id": "8d437489-0534-4945-88ab-9cf555d2be79",
+    "hanzi": "桥梁",
+    "pinyin": "qiáoliáng",
+    "meaning_vi": "cầu, cầu nối"
+  },
+  {
+    "id": "387b8256-432c-49a1-9927-2b8872cfbc41",
+    "hanzi": "巧妙",
+    "pinyin": "qiǎomiào",
+    "meaning_vi": "khéo léo, tài tình"
+  },
+  {
+    "id": "1f6a871a-d23f-40ef-909c-fbce6cc8b780",
+    "hanzi": "起初",
+    "pinyin": "qǐchū",
+    "meaning_vi": "ban đầu, thoạt đầu"
+  },
+  {
+    "id": "1d7f6d19-7f69-4020-8af8-79ccfbf346c2",
+    "hanzi": "切实",
+    "pinyin": "qièshí",
+    "meaning_vi": "thiết thực, sát thực"
+  },
+  {
+    "id": "3d4e5294-37cc-4960-9483-88dcf7bbb273",
+    "hanzi": "启发",
+    "pinyin": "qǐfā",
+    "meaning_vi": "gợi mở, khơi dậy"
+  },
+  {
+    "id": "706377d0-1a6f-426d-bd78-8e698fe993a7",
+    "hanzi": "气氛",
+    "pinyin": "qìfēn",
+    "meaning_vi": "bầu không khí"
+  },
+  {
+    "id": "9703a07f-2fd0-477f-a818-e3e69c556282",
+    "hanzi": "情节",
+    "pinyin": "qíng jié",
+    "meaning_vi": "tình tiết"
+  },
+  {
+    "id": "3ab82b3a-232c-4642-a8ed-e9365bfd1a25",
+    "hanzi": "情形",
+    "pinyin": "qíng xing",
+    "meaning_vi": "tình hình, sự việc"
+  },
+  {
+    "id": "94542b9a-444c-4696-a573-e5e5a2588604",
+    "hanzi": "清晨",
+    "pinyin": "qīngchén",
+    "meaning_vi": "sáng sớm"
+  },
+  {
+    "id": "8b202770-0268-4e07-adc1-ef9adbd3fec8",
+    "hanzi": "青春",
+    "pinyin": "qīngchūn",
+    "meaning_vi": "thanh xuân, tuổi trẻ"
+  },
+  {
+    "id": "2eb8ca6f-c7d2-4d3e-a15a-af0364c37d7d",
+    "hanzi": "清淡",
+    "pinyin": "qīngdàn",
+    "meaning_vi": "thanh đạm, vị nhạt"
+  },
+  {
+    "id": "62a1e4f0-fe5a-4b33-a683-2ef89cd64bb0",
+    "hanzi": "清洁",
+    "pinyin": "qīngjié",
+    "meaning_vi": "sạch sẽ, thanh khiết"
+  },
+  {
+    "id": "53585211-b143-4df6-b476-e80488770723",
+    "hanzi": "晴朗",
+    "pinyin": "qínglǎng",
+    "meaning_vi": "nắng ráo, trong xanh"
+  },
+  {
+    "id": "e88b7c97-d9d0-4a24-a5c8-e4dda623ead3",
+    "hanzi": "清理",
+    "pinyin": "qīnglǐ",
+    "meaning_vi": "dọn dẹp, thanh lý"
+  },
+  {
+    "id": "9338a926-e8c4-46aa-8547-2494b38120ec",
+    "hanzi": "倾听",
+    "pinyin": "qīngtīng",
+    "meaning_vi": "lắng nghe"
+  },
+  {
+    "id": "302e797b-cbdb-4949-8bbc-5790a8f7263e",
+    "hanzi": "清晰",
+    "pinyin": "qīngxī",
+    "meaning_vi": "rõ ràng, rành mạch"
+  },
+  {
+    "id": "0102075b-ba3c-49c3-9ae5-65a627dd560a",
+    "hanzi": "倾向",
+    "pinyin": "qīngxiàng",
+    "meaning_vi": "xu hướng, thiên hướng"
+  },
+  {
+    "id": "f976024a-94a2-47ad-80b4-48efabc949f2",
+    "hanzi": "清醒",
+    "pinyin": "qīngxǐng",
+    "meaning_vi": "tỉnh táo"
+  },
+  {
+    "id": "51bb9253-16b8-4ee3-aa79-834f617569e9",
+    "hanzi": "勤劳",
+    "pinyin": "qínláo",
+    "meaning_vi": "cần cù, chăm chỉ"
+  },
+  {
+    "id": "210132f4-acfa-480e-adbb-23620cd4487d",
+    "hanzi": "亲密",
+    "pinyin": "qīnmì",
+    "meaning_vi": "thân mật, gắn bó"
+  },
+  {
+    "id": "a02e3cf1-e6c2-4d6c-8398-a15abf4c8486",
+    "hanzi": "欺骗",
+    "pinyin": "qīpiàn",
+    "meaning_vi": "lừa gạt, dối trá"
+  },
+  {
+    "id": "c547531c-c077-4fee-bd90-bafed6129305",
+    "hanzi": "齐全",
+    "pinyin": "qíquán",
+    "meaning_vi": "đầy đủ, trọn vẹn"
+  },
+  {
+    "id": "7eed8953-6db6-420d-b503-61425d7b7c4c",
+    "hanzi": "启示",
+    "pinyin": "qǐshì",
+    "meaning_vi": "gợi ý, bài học"
+  },
+  {
+    "id": "0c1c1285-4ddb-493d-9813-fe66dee21e31",
+    "hanzi": "启事",
+    "pinyin": "qǐshì",
+    "meaning_vi": "thông báo, cáo thị"
+  },
+  {
+    "id": "ef96e036-2ca7-4af3-911e-1ba3b3b3eb65",
+    "hanzi": "期望",
+    "pinyin": "qīwàng",
+    "meaning_vi": "kỳ vọng, mong mỏi"
+  },
+  {
+    "id": "e86e19db-c303-4ade-95b2-59835454aea7",
+    "hanzi": "气味",
+    "pinyin": "qìwèi",
+    "meaning_vi": "mùi vị"
+  },
+  {
+    "id": "3004494f-a334-4183-80fc-51ef8327df97",
+    "hanzi": "期限",
+    "pinyin": "qīxiàn",
+    "meaning_vi": "thời hạn"
+  },
+  {
+    "id": "4db9a49b-0b97-43ea-82fe-56187af3b7d8",
+    "hanzi": "起源",
+    "pinyin": "qǐyuán",
+    "meaning_vi": "nguồn gốc, bắt nguồn"
+  },
+  {
+    "id": "a4178d9c-313d-40d3-bfcc-85473a64e3bc",
+    "hanzi": "气质",
+    "pinyin": "qìzhì",
+    "meaning_vi": "khí chất"
+  },
+  {
+    "id": "c6a6d9b8-1ac8-4089-adcf-9a6ac93af528",
+    "hanzi": "娶",
+    "pinyin": "qǔ",
+    "meaning_vi": "cưới (vợ), lấy (vợ)"
+  },
+  {
+    "id": "2635ada4-51c0-47b9-a8a9-23e6b9c4e71a",
+    "hanzi": "圈",
+    "pinyin": "quān",
+    "meaning_vi": "vòng tròn, khoanh tròn"
+  },
+  {
+    "id": "e93e46b0-8541-40b3-acad-6eba6551f63e",
+    "hanzi": "权力",
+    "pinyin": "quánlì",
+    "meaning_vi": "quyền lực"
+  },
+  {
+    "id": "936a7a6b-426a-4c03-980c-a9a6988cc668",
+    "hanzi": "渠道",
+    "pinyin": "qúdào",
+    "meaning_vi": "kênh mương, kênh phân phối/thông tin"
+  },
+  {
+    "id": "85784ca1-ecac-4ea5-941a-25032747725d",
+    "hanzi": "缺陷",
+    "pinyin": "quē xiàn",
+    "meaning_vi": "khuyết điểm, nhược điểm"
+  },
+  {
+    "id": "d6b7da60-119d-41db-8de7-255132ade62e",
+    "hanzi": "确立",
+    "pinyin": "quèlì",
+    "meaning_vi": "xác lập, thiết lập"
+  },
+  {
+    "id": "2a99cb0a-fe53-42be-ac7c-a644c18724d8",
+    "hanzi": "区分",
+    "pinyin": "qūfēn",
+    "meaning_vi": "phân biệt, chia ra"
+  },
+  {
+    "id": "b35c4c3b-ec29-4f27-9e34-df611f3a79e7",
+    "hanzi": "群众",
+    "pinyin": "qún zhòng",
+    "meaning_vi": "quần chúng"
+  },
+  {
+    "id": "8fcb1066-bfae-4a9f-84eb-ce3142ce3a6e",
+    "hanzi": "趣味",
+    "pinyin": "qùwèi",
+    "meaning_vi": "thú vị, hứng thú"
+  },
+  {
+    "id": "6387593c-9014-4183-a95d-f81b30101e05",
+    "hanzi": "染",
+    "pinyin": "rǎn",
+    "meaning_vi": "nhuộm, lây lan"
+  },
+  {
+    "id": "d0d88213-5f19-4615-8729-633e3a4ef958",
+    "hanzi": "热门",
+    "pinyin": "rèmén",
+    "meaning_vi": "sốt dẻo, được ưa chuộng"
+  },
+  {
+    "id": "b4f7f1b1-ba1b-444e-a737-6dd54090d4f7",
+    "hanzi": "忍受",
+    "pinyin": "rěn shòu",
+    "meaning_vi": "chịu đựng, nhẫn nhịn"
+  },
+  {
+    "id": "5ee5c8e3-ac84-42b8-b7d3-4b56a1d402f8",
+    "hanzi": "认定",
+    "pinyin": "rèndìng",
+    "meaning_vi": "nhận định, khẳng định"
+  },
+  {
+    "id": "71424656-82f8-49e0-99b4-3ddc17f7daf6",
+    "hanzi": "仍旧",
+    "pinyin": "réngjiù",
+    "meaning_vi": "vẫn, vẫn như cũ"
+  },
+  {
+    "id": "7987de10-e5bc-4bfa-9ffb-ff27e04cb881",
+    "hanzi": "人家",
+    "pinyin": "rénjia",
+    "meaning_vi": "người ta, nhà người khác"
+  },
+  {
+    "id": "9e116743-8c40-405f-bfb9-d1354fdb1acb",
+    "hanzi": "认可",
+    "pinyin": "rènkě",
+    "meaning_vi": "công nhận, thừa nhận"
+  },
+  {
+    "id": "aee00d5f-a523-4c7c-ad85-bc0e43205453",
+    "hanzi": "人士",
+    "pinyin": "rénshì",
+    "meaning_vi": "nhân sĩ, giới, người"
+  },
+  {
+    "id": "0ed5056e-354a-4ada-bd61-253659c08822",
+    "hanzi": "人事",
+    "pinyin": "rénshì",
+    "meaning_vi": "nhân sự"
+  },
+  {
+    "id": "d8a76652-06d0-40ee-b057-4e39c9e18074",
+    "hanzi": "人为",
+    "pinyin": "rénwéi",
+    "meaning_vi": "do con người, nhân tạo"
+  },
+  {
+    "id": "6d0a4911-b6ea-4aed-9f54-5a737fb581bd",
+    "hanzi": "日益",
+    "pinyin": "rìyì",
+    "meaning_vi": "ngày càng"
+  },
+  {
+    "id": "c8600842-7bc4-49ba-ae9e-42a54870622e",
+    "hanzi": "融化",
+    "pinyin": "rónghuà",
+    "meaning_vi": "tan chảy"
+  },
+  {
+    "id": "b8bc5409-a6ed-4e08-aa9c-5d3ac5bcf90c",
+    "hanzi": "荣誉",
+    "pinyin": "róngyù",
+    "meaning_vi": "danh dự"
+  },
+  {
+    "id": "5b2b8391-cfd8-41d9-8110-ea177a6a4150",
+    "hanzi": "弱点",
+    "pinyin": "ruò diǎn",
+    "meaning_vi": "điểm yếu"
+  },
+  {
+    "id": "532c29a6-5888-447f-b6dd-a0c0167be2da",
+    "hanzi": "散发",
+    "pinyin": "sànfā",
+    "meaning_vi": "tỏa ra, phát ra, phát tờ rơi"
+  },
+  {
+    "id": "82652f5b-743b-4daa-9203-3794af8bba31",
+    "hanzi": "丧失",
+    "pinyin": "sàng shī",
+    "meaning_vi": "đánh mất, mất đi"
+  },
+  {
+    "id": "8da2fec0-34ae-405a-9403-a88c94e7ace8",
+    "hanzi": "散文",
+    "pinyin": "sǎnwén",
+    "meaning_vi": "tản văn, văn xuôi"
+  },
+  {
+    "id": "194e7307-892e-4464-8e3a-9b95f8ad125d",
+    "hanzi": "杀",
+    "pinyin": "shā",
+    "meaning_vi": "giết, sát hại"
+  },
+  {
+    "id": "ecda2ccf-1326-42a4-8803-0caf6ea0d96e",
+    "hanzi": "刹车",
+    "pinyin": "shāchē",
+    "meaning_vi": "hãm phanh, đạp phanh"
+  },
+  {
+    "id": "83c74683-b6c1-4eff-9467-c9e829b71240",
+    "hanzi": "筛选",
+    "pinyin": "shāixuǎn",
+    "meaning_vi": "sàng lọc, chọn lựa"
+  },
+  {
+    "id": "3a468403-5360-4387-91e0-fcc0a5a71724",
+    "hanzi": "上级",
+    "pinyin": "shàng jí",
+    "meaning_vi": "cấp trên"
+  },
+  {
+    "id": "2738bf3f-0493-4b30-8919-ed2cef886f27",
+    "hanzi": "上进",
+    "pinyin": "shàng jìn",
+    "meaning_vi": "cầu tiến, tiến bộ"
+  },
+  {
+    "id": "39f338eb-086f-4ec9-94c7-a23c3f542b9d",
+    "hanzi": "商标",
+    "pinyin": "shāngbiāo",
+    "meaning_vi": "nhãn hiệu, thương hiệu"
+  },
+  {
+    "id": "44617974-68f6-499d-a86d-ea02179f2fba",
+    "hanzi": "上当",
+    "pinyin": "shàngdàng",
+    "meaning_vi": "mắc lừa, bị lừa"
+  },
+  {
+    "id": "ba2a69cd-7176-40cd-a40e-1781cca5a8bd",
+    "hanzi": "舌头",
+    "pinyin": "shé tou",
+    "meaning_vi": "lưỡi"
+  },
+  {
+    "id": "dce63833-5cda-4488-bdc5-b78458d9afed",
+    "hanzi": "涉及",
+    "pinyin": "shèjí",
+    "meaning_vi": "liên quan đến, đề cập tới"
+  },
+  {
+    "id": "6d88af9b-071e-4639-aeab-49d2d4521654",
+    "hanzi": "射击",
+    "pinyin": "shèjī",
+    "meaning_vi": "bắn súng, xạ kích"
+  },
+  {
+    "id": "7fb84dfa-5758-42d5-928a-e57eb13974d1",
+    "hanzi": "盛",
+    "pinyin": "shèng",
+    "meaning_vi": "thịnh vượng, nồng hậu"
+  },
+  {
+    "id": "a8c5d157-2ae1-4256-b52e-59270e5387a7",
+    "hanzi": "声调",
+    "pinyin": "shēngdiào",
+    "meaning_vi": "thanh điệu, giọng điệu"
+  },
+  {
+    "id": "e9f05563-fb3d-4cc1-9822-c092bd9da87a",
+    "hanzi": "生态",
+    "pinyin": "shēngtài",
+    "meaning_vi": "sinh thái"
+  },
+  {
+    "id": "852cb1c1-5e30-4908-a335-82fa08a4e023",
+    "hanzi": "神经",
+    "pinyin": "shénjīng",
+    "meaning_vi": "thần kinh"
+  },
+  {
+    "id": "67cb0432-bc33-461f-95c4-11de612b21e9",
+    "hanzi": "审美",
+    "pinyin": "shěnměi",
+    "meaning_vi": "thẩm mỹ"
+  },
+  {
+    "id": "f09e455a-117b-4cc9-942a-dacbbd17e65d",
+    "hanzi": "神奇",
+    "pinyin": "shénqí",
+    "meaning_vi": "thần kỳ, kỳ diệu"
+  },
+  {
+    "id": "f5e0a544-8c1d-467d-aca1-d10580131b20",
+    "hanzi": "设想",
+    "pinyin": "shèxiǎng",
+    "meaning_vi": "tưởng tượng, trù tính"
+  },
+  {
+    "id": "325d48e6-9bd6-4147-84b2-e5e9456cd03a",
+    "hanzi": "拾",
+    "pinyin": "shí",
+    "meaning_vi": "nhặt, lượm"
+  },
+  {
+    "id": "65a81ea3-0f6a-4e19-831b-6311017308bc",
+    "hanzi": "事务",
+    "pinyin": "shì wù",
+    "meaning_vi": "sự vụ, công việc"
+  },
+  {
+    "id": "3e246155-b58b-45a3-9753-c3590cf8328f",
+    "hanzi": "识别",
+    "pinyin": "shíbié",
+    "meaning_vi": "nhận biết, phân biệt"
+  },
+  {
+    "id": "5642aa3e-4002-443f-a4c5-1b53e278fa98",
+    "hanzi": "士兵",
+    "pinyin": "shìbīng",
+    "meaning_vi": "binh lính, chiến sĩ"
+  },
+  {
+    "id": "ff40ded9-5cfe-4da9-9ffb-444574c9d91c",
+    "hanzi": "示范",
+    "pinyin": "shìfàn",
+    "meaning_vi": "làm mẫu, nêu gương"
+  },
+  {
+    "id": "1109dd47-af91-4ede-af09-dcef5848eaff",
+    "hanzi": "释放",
+    "pinyin": "shìfàng",
+    "meaning_vi": "phóng thích, giải phóng"
+  },
+  {
+    "id": "9a84affb-de63-497e-bbcf-f00c42d48e14",
+    "hanzi": "时光",
+    "pinyin": "shíguāng",
+    "meaning_vi": "thời gian, thời khắc"
+  },
+  {
+    "id": "7ac78ab0-1c22-4d60-a56b-b6afe41fcde4",
+    "hanzi": "实话",
+    "pinyin": "shíhuà",
+    "meaning_vi": "lời nói thật"
+  },
+  {
+    "id": "7d29fd09-95ce-424f-88c0-2b3b8e6af84a",
+    "hanzi": "实惠",
+    "pinyin": "shíhuì",
+    "meaning_vi": "lợi ích thực tế, giá rẻ"
+  },
+  {
+    "id": "65331318-da58-40c9-914d-8c46bfa4783b",
+    "hanzi": "时机",
+    "pinyin": "shíjī",
+    "meaning_vi": "thời cơ, cơ hội"
+  },
+  {
+    "id": "7792b919-f9b1-4f34-8608-8bce47c67ed4",
+    "hanzi": "势力",
+    "pinyin": "shìli",
+    "meaning_vi": "thế lực"
+  },
+  {
+    "id": "6f4e25c7-041e-47dc-95f1-35eab46017d8",
+    "hanzi": "视力",
+    "pinyin": "shìlì",
+    "meaning_vi": "thị lực"
+  },
+  {
+    "id": "aa303b34-01d1-4c07-abf9-b097b75ed21a",
+    "hanzi": "时尚",
+    "pinyin": "shíshàng",
+    "meaning_vi": "thời trang, xu hướng"
+  },
+  {
+    "id": "2c165a46-5c16-4375-9ee8-bd960bab70e7",
+    "hanzi": "试图",
+    "pinyin": "shìtú",
+    "meaning_vi": "thử, có ý định"
+  },
+  {
+    "id": "de7be255-6c84-495a-897f-7b22ae68d195",
+    "hanzi": "事项",
+    "pinyin": "shìxiàng",
+    "meaning_vi": "sự việc, hạng mục"
+  },
+  {
+    "id": "feacc51c-0ac4-4cde-850f-c6667bd02262",
+    "hanzi": "适宜",
+    "pinyin": "shìyí",
+    "meaning_vi": "thích hợp, phù hợp"
+  },
+  {
+    "id": "4e92b08a-f0b6-4b5a-aff1-b157139372af",
+    "hanzi": "石油",
+    "pinyin": "shíyóu",
+    "meaning_vi": "dầu mỏ"
+  },
+  {
+    "id": "af351776-31be-4a29-b5f6-d8ba5e41a78b",
+    "hanzi": "实质",
+    "pinyin": "shízhì",
+    "meaning_vi": "thực chất, bản chất"
+  },
+  {
+    "id": "4da8c247-0bfb-424f-8534-d70bc4be6e19",
+    "hanzi": "狮子",
+    "pinyin": "shīzi",
+    "meaning_vi": "sư tử"
+  },
+  {
+    "id": "5ff4748f-8dc5-45b1-a88b-24c2030fcd13",
+    "hanzi": "十足",
+    "pinyin": "shízú",
+    "meaning_vi": "tràn đầy, mười phần"
+  },
+  {
+    "id": "93395a04-ee82-4d23-b40f-c40093cb81f1",
+    "hanzi": "收藏",
+    "pinyin": "shōucáng",
+    "meaning_vi": "sưu tập, cất giữ"
+  },
+  {
+    "id": "a8fec3c5-00cf-4d71-824a-03bace2f875a",
+    "hanzi": "手法",
+    "pinyin": "shǒufǎ",
+    "meaning_vi": "thủ pháp, kỹ xảo, mánh khóe"
+  },
+  {
+    "id": "f38fa3d6-bb00-42d5-bf8e-acc70527d8c4",
+    "hanzi": "寿命",
+    "pinyin": "shòumìng",
+    "meaning_vi": "tuổi thọ"
+  },
+  {
+    "id": "06eaadc0-b712-48d7-a177-70f333caddf1",
+    "hanzi": "手势",
+    "pinyin": "shǒushì",
+    "meaning_vi": "cử chỉ, điệu bộ tay"
+  },
+  {
+    "id": "b4ab116e-5281-4423-a737-41a5a135b7f3",
+    "hanzi": "首要",
+    "pinyin": "shǒuyào",
+    "meaning_vi": "hàng đầu, quan trọng nhất"
+  },
+  {
+    "id": "87859680-0a6e-4e46-903e-0e735c006156",
+    "hanzi": "收益",
+    "pinyin": "shōuyì",
+    "meaning_vi": "lợi nhuận, thu nhập"
+  },
+  {
+    "id": "443389ad-3b9b-45fd-98d8-cd754596665b",
+    "hanzi": "竖",
+    "pinyin": "shù",
+    "meaning_vi": "dựng thẳng, nét sổ"
+  },
+  {
+    "id": "83260977-63ca-40a6-bd57-4f16ba46ee0c",
+    "hanzi": "书籍",
+    "pinyin": "shū jí",
+    "meaning_vi": "sách vở"
+  },
+  {
+    "id": "f58da3a7-95dc-457b-b190-942f993da4ab",
+    "hanzi": "书面",
+    "pinyin": "shū miàn",
+    "meaning_vi": "văn bản, viết trên giấy"
+  },
+  {
+    "id": "5909d4e1-7891-449b-9ba6-782432bb800c",
+    "hanzi": "衰老",
+    "pinyin": "shuāilǎo",
+    "meaning_vi": "già yếu, lão hóa"
+  },
+  {
+    "id": "012b515d-aeb3-442e-880d-217ed6036f1c",
+    "hanzi": "率领",
+    "pinyin": "shuàilǐng",
+    "meaning_vi": "dẫn dắt, thống lĩnh"
+  },
+  {
+    "id": "93219522-fea0-4cfc-b6b9-465e531dd8d2",
+    "hanzi": "水泥",
+    "pinyin": "shuǐní",
+    "meaning_vi": "xi măng"
+  },
+  {
+    "id": "f771207c-c85e-4099-99fa-172575131c2c",
+    "hanzi": "树立",
+    "pinyin": "shùlì",
+    "meaning_vi": "xây dựng, thiết lập"
+  },
+  {
+    "id": "d08a265b-a8db-47c7-ac24-54c0f18b8b1b",
+    "hanzi": "瞬间",
+    "pinyin": "shùnjiān",
+    "meaning_vi": "khoảnh khắc, trong nháy mắt"
+  },
+  {
+    "id": "13a3b5a2-2767-4ce7-b876-9baf819f52d9",
+    "hanzi": "思念",
+    "pinyin": "sī niàn",
+    "meaning_vi": "nhớ nhung"
+  },
+  {
+    "id": "53185a70-6956-4b70-be47-95974ed50026",
+    "hanzi": "死亡",
+    "pinyin": "sǐwáng",
+    "meaning_vi": "tử vong, cái chết"
+  },
+  {
+    "id": "4a5d4076-104a-4de3-a7a4-6bd466cba4e5",
+    "hanzi": "艘",
+    "pinyin": "sōu",
+    "meaning_vi": "chiếc, con (tàu)"
+  },
+  {
+    "id": "210033e4-89b9-433a-b2fc-6a189620fe71",
+    "hanzi": "岁月",
+    "pinyin": "suì yuè",
+    "meaning_vi": "năm tháng, thời gian"
+  },
+  {
+    "id": "95419f11-245c-4329-8521-7c63ba08c67b",
+    "hanzi": "损坏",
+    "pinyin": "sǔn huài",
+    "meaning_vi": "hư hại, làm hỏng"
+  },
+  {
+    "id": "ae57d3ec-cb7e-4c4a-be87-baeee0b37818",
+    "hanzi": "塑造",
+    "pinyin": "sùzào",
+    "meaning_vi": "nhào nặn, đắp nặn, xây dựng hình tượng"
+  },
+  {
+    "id": "e875b0d1-9dd6-4f4e-8b7b-d0fd928eef5a",
+    "hanzi": "素质",
+    "pinyin": "sùzhì",
+    "meaning_vi": "tố chất, phẩm chất"
+  },
+  {
+    "id": "667186a2-b17b-4726-976a-258291b82bc3",
+    "hanzi": "塔",
+    "pinyin": "tǎ",
+    "meaning_vi": "tháp, chùa tháp"
+  },
+  {
+    "id": "bc2333e5-344d-481e-a359-6a77f6bd4c17",
+    "hanzi": "台风",
+    "pinyin": "táifēng",
+    "meaning_vi": "bão nhiệt đới"
+  },
+  {
+    "id": "171bc715-06ea-449c-af06-088371fea38d",
+    "hanzi": "太空",
+    "pinyin": "tàikōng",
+    "meaning_vi": "vũ trụ, không gian vũ trụ"
+  },
+  {
+    "id": "e759856d-c3d7-4c31-aba7-4af2757036c6",
+    "hanzi": "探索",
+    "pinyin": "tàn suǒ",
+    "meaning_vi": "khám phá, tìm tòi"
+  },
+  {
+    "id": "55b6aaa3-a29d-4b43-9bd1-60a878ec295e",
+    "hanzi": "探讨",
+    "pinyin": "tàn tǎo",
+    "meaning_vi": "thảo luận, bàn luận"
+  },
+  {
+    "id": "d48f3669-e446-4d49-9cae-3aeaa34cadc6",
+    "hanzi": "弹性",
+    "pinyin": "tán xìng",
+    "meaning_vi": "tính đàn hồi, co giãn"
+  },
+  {
+    "id": "0b0554ab-d552-42ab-84cf-31c78b26a6a0",
+    "hanzi": "烫",
+    "pinyin": "tàng",
+    "meaning_vi": "bỏng, nóng, ủi"
+  },
+  {
+    "id": "1dd85d74-9ce4-499b-9e5d-ba212144466b",
+    "hanzi": "谈判",
+    "pinyin": "tánpàn",
+    "meaning_vi": "đàm phán"
+  },
+  {
+    "id": "96f39a30-e58b-4f34-8b4e-317575855a20",
+    "hanzi": "逃",
+    "pinyin": "táo",
+    "meaning_vi": "trốn, chạy trốn"
+  },
+  {
+    "id": "d4a9a44e-b856-4b09-81cd-ae181257af96",
+    "hanzi": "掏",
+    "pinyin": "tāo",
+    "meaning_vi": "móc, rút ra"
+  },
+  {
+    "id": "bc6ab8e6-2e76-4bab-863a-9243808a62ff",
+    "hanzi": "淘气",
+    "pinyin": "táoqì",
+    "meaning_vi": "nghịch ngợm"
+  },
+  {
+    "id": "b68e7c0f-cec8-4a1e-b29d-5bda320b4626",
+    "hanzi": "淘汰",
+    "pinyin": "táotài",
+    "meaning_vi": "đào thải, loại bỏ"
+  },
+  {
+    "id": "27b7760a-9aa2-4849-af2a-5efcae534a9c",
+    "hanzi": "踏实",
+    "pinyin": "tāshi",
+    "meaning_vi": "yên tâm, vững vàng"
+  },
+  {
+    "id": "abefbd58-6305-4e9c-a7c7-63ec73045653",
+    "hanzi": "特长",
+    "pinyin": "tècháng",
+    "meaning_vi": "sở trường, điểm mạnh"
+  },
+  {
+    "id": "7b65d5f8-3bf9-48b6-bdbf-dea751bdf26d",
+    "hanzi": "特定",
+    "pinyin": "tèdìng",
+    "meaning_vi": "cụ thể, đặc định"
+  },
+  {
+    "id": "f8bebb22-a080-4b4f-aee8-0253b98343de",
+    "hanzi": "特意",
+    "pinyin": "tèyì",
+    "meaning_vi": "đặc biệt, có ý riêng"
+  },
+  {
+    "id": "a3db81f2-8e0f-4c17-80de-81e0ac522eee",
+    "hanzi": "提示",
+    "pinyin": "tí shì",
+    "meaning_vi": "gợi ý, nhắc nhở"
+  },
+  {
+    "id": "9fdb60a8-a97c-4e44-8fe6-29d3f0e2174d",
+    "hanzi": "天才",
+    "pinyin": "tiāncái",
+    "meaning_vi": "thiên tài"
+  },
+  {
+    "id": "fa261f05-4886-45e1-8b41-a220a21abe21",
+    "hanzi": "田径",
+    "pinyin": "tiánjìng",
+    "meaning_vi": "điền kinh"
+  },
+  {
+    "id": "a3d89979-4212-463c-b3c6-41475823b916",
+    "hanzi": "天然气",
+    "pinyin": "tiānránqì",
+    "meaning_vi": "khí đốt thiên nhiên"
+  },
+  {
+    "id": "242a714a-136f-470f-b000-2e7349c12b26",
+    "hanzi": "天文",
+    "pinyin": "tiānwén",
+    "meaning_vi": "thiên văn"
+  },
+  {
+    "id": "b060f64f-bae5-48c8-a8ce-e7cbb35a13ac",
+    "hanzi": "天真",
+    "pinyin": "tiānzhēn",
+    "meaning_vi": "ngây thơ, hồn nhiên"
+  },
+  {
+    "id": "0b3fab5c-8188-4b5d-ad4d-7acbb6c3f1b8",
+    "hanzi": "调节",
+    "pinyin": "tiáojié",
+    "meaning_vi": "điều chỉnh, điều tiết"
+  },
+  {
+    "id": "a02f98a7-46e7-4fb0-98b8-ce66d963a25a",
+    "hanzi": "题材",
+    "pinyin": "tícái",
+    "meaning_vi": "đề tài"
+  },
+  {
+    "id": "949a0a1e-af59-4660-8399-f763b54aefb2",
+    "hanzi": "体积",
+    "pinyin": "tǐjī",
+    "meaning_vi": "thể tích"
+  },
+  {
+    "id": "aa2695e8-017b-4bf0-ac24-136444ae6a93",
+    "hanzi": "体系",
+    "pinyin": "tǐxì",
+    "meaning_vi": "hệ thống, thể hệ"
+  },
+  {
+    "id": "ef6f399d-5ead-49d9-9a4b-7ed673539ec5",
+    "hanzi": "铜",
+    "pinyin": "tóng",
+    "meaning_vi": "đồng (kim loại)"
+  },
+  {
+    "id": "49d83668-1614-409d-bbc8-1ba70201ee4b",
+    "hanzi": "童话",
+    "pinyin": "tónghuà",
+    "meaning_vi": "truyện cổ tích"
+  },
+  {
+    "id": "2f6e70a0-0bc3-4773-8b81-072ac6c8a599",
+    "hanzi": "痛快",
+    "pinyin": "tòngkuai",
+    "meaning_vi": "sảng khoái, vui sướng"
+  },
+  {
+    "id": "6e9422c0-27cd-48b8-9d02-bca897d36d32",
+    "hanzi": "通讯",
+    "pinyin": "tōngxùn",
+    "meaning_vi": "thông tin, viễn thông"
+  },
+  {
+    "id": "708bc38d-eae7-447e-bbf9-4bfb38a75464",
+    "hanzi": "通用",
+    "pinyin": "tōngyòng",
+    "meaning_vi": "thông dụng, dùng chung"
+  },
+  {
+    "id": "041ab754-fb05-464c-8e72-42e67cf79ba7",
+    "hanzi": "偷",
+    "pinyin": "tōu",
+    "meaning_vi": "trộm, cắp"
+  },
+  {
+    "id": "0759a078-9d3e-4db7-b8cf-e9272e159115",
+    "hanzi": "透露",
+    "pinyin": "tòulù",
+    "meaning_vi": "tiết lộ, để lộ"
+  },
+  {
+    "id": "979217f0-324c-4518-99f7-e368d7c2970e",
+    "hanzi": "透明",
+    "pinyin": "tòumíng",
+    "meaning_vi": "trong suốt, minh bạch"
+  },
+  {
+    "id": "2ed108fd-41b7-4f05-935a-507447380558",
+    "hanzi": "投票",
+    "pinyin": "tóupiào",
+    "meaning_vi": "bỏ phiếu"
+  },
+  {
+    "id": "a2529b7a-89b8-4d12-a945-d981ad0b48ad",
+    "hanzi": "投诉",
+    "pinyin": "tóusù",
+    "meaning_vi": "khiếu nại, than phiền"
+  },
+  {
+    "id": "9433f31b-71ed-411a-b5bb-c76fe1037f2a",
+    "hanzi": "投资",
+    "pinyin": "tóuzī",
+    "meaning_vi": "đầu tư"
+  },
+  {
+    "id": "a69a3278-0438-41ba-9349-c42f020a15a6",
+    "hanzi": "吐",
+    "pinyin": "tù",
+    "meaning_vi": "nôn mửa, nhả ra"
+  },
+  {
+    "id": "fd2ca17e-d4e3-4293-99a1-22fcc77c2582",
+    "hanzi": "徒弟",
+    "pinyin": "tú dì",
+    "meaning_vi": "đồ đệ, học trò"
+  },
+  {
+    "id": "48258a42-79c3-4813-9a55-de9e3cdb0fa7",
+    "hanzi": "图案",
+    "pinyin": "tú'àn",
+    "meaning_vi": "hoa văn, họa tiết"
+  },
+  {
+    "id": "744cb41b-1573-4403-8dd1-652d5b729822",
+    "hanzi": "团结",
+    "pinyin": "tuánjié",
+    "meaning_vi": "đoàn kết"
+  },
+  {
+    "id": "a6d912e4-b3d0-408a-813f-75539160b7c8",
+    "hanzi": "团体",
+    "pinyin": "tuántǐ",
+    "meaning_vi": "đoàn thể, tập thể"
+  },
+  {
+    "id": "e3c975b8-e252-4770-a312-4bf315650ed8",
+    "hanzi": "团圆",
+    "pinyin": "tuányuán",
+    "meaning_vi": "đoàn viên, sum họp"
+  },
+  {
+    "id": "fabf91cd-cb2a-42a4-a5b8-fff0cf9d7d0c",
+    "hanzi": "推测",
+    "pinyin": "tuī cè",
+    "meaning_vi": "suy đoán, phỏng đoán"
+  },
+  {
+    "id": "b23ff246-9740-4e3e-b902-646d3a6bfaa7",
+    "hanzi": "推销",
+    "pinyin": "tuī xiāo",
+    "meaning_vi": "tiếp thị, chào hàng"
+  },
+  {
+    "id": "efe73951-5ff1-460e-be4f-d49a0655c04c",
+    "hanzi": "途径",
+    "pinyin": "tújìng",
+    "meaning_vi": "con đường, biện pháp"
+  },
+  {
+    "id": "4855c3d7-4f09-429d-8e63-e3a2ca47d4e2",
+    "hanzi": "拖延",
+    "pinyin": "tuōyán",
+    "meaning_vi": "trì hoãn, kéo dài thời gian"
+  },
+  {
+    "id": "f6510cbb-716d-49af-91d9-0b7b10453c58",
+    "hanzi": "托运",
+    "pinyin": "tuōyùn",
+    "meaning_vi": "ký gửi, gửi vận chuyển"
+  },
+  {
+    "id": "369849b0-a2bc-4c0a-8a1e-6f9ea1f4e1f8",
+    "hanzi": "突破",
+    "pinyin": "tūpò",
+    "meaning_vi": "đột phá, chọc thủng"
+  },
+  {
+    "id": "ccc3ee61-6432-4720-9ad5-4d460b76dd6c",
+    "hanzi": "土壤",
+    "pinyin": "tǔrǎng",
+    "meaning_vi": "thổ nhưỡng, đất đai"
+  },
+  {
+    "id": "21c5897c-7cfe-4170-8de3-fc79f2baa0a8",
+    "hanzi": "哇",
+    "pinyin": "wā",
+    "meaning_vi": "oa (khóc), chà (thán từ)"
+  },
+  {
+    "id": "16380856-6eeb-4630-bd14-a61029aa0639",
+    "hanzi": "歪",
+    "pinyin": "wāi",
+    "meaning_vi": "nghiêng, lệch"
+  },
+  {
+    "id": "3d6a9ad7-5b8b-4403-a36c-447bc176204d",
+    "hanzi": "外表",
+    "pinyin": "wàibiǎo",
+    "meaning_vi": "bề ngoài, diện mạo"
+  },
+  {
+    "id": "83bb70cb-41d3-48cc-b9ea-c0f9754a6481",
+    "hanzi": "外交",
+    "pinyin": "wàijiāo",
+    "meaning_vi": "ngoại giao"
+  },
+  {
+    "id": "e880e557-0e75-4d5d-92f1-f68a7c23ac23",
+    "hanzi": "外界",
+    "pinyin": "wàijiè",
+    "meaning_vi": "thế giới bên ngoài"
+  },
+  {
+    "id": "f201a265-7105-41eb-a753-f7e184ce8998",
+    "hanzi": "王子",
+    "pinyin": "wángzǐ",
+    "meaning_vi": "hoàng tử"
+  },
+  {
+    "id": "8b3ecbe2-1480-40d9-99bc-911ee0bba3e8",
+    "hanzi": "顽强",
+    "pinyin": "wánqiáng",
+    "meaning_vi": "kiên cường, ngoan cường"
+  },
+  {
+    "id": "958354aa-5b5c-4d81-b2f6-1f983572a303",
+    "hanzi": "娃娃",
+    "pinyin": "wáwa",
+    "meaning_vi": "em bé, búp bê"
+  },
+  {
+    "id": "71507b58-425a-494f-aa98-3f71e05aa577",
+    "hanzi": "维护",
+    "pinyin": "wéi hù",
+    "meaning_vi": "bảo vệ, giữ gìn"
+  },
+  {
+    "id": "848778c4-e112-47c9-a4b6-21b40fdc0cf7",
+    "hanzi": "为难",
+    "pinyin": "wéi nán",
+    "meaning_vi": "khó xử, làm khó"
+  },
+  {
+    "id": "6face3f1-f6f6-4655-83e9-6b5d50767bb3",
+    "hanzi": "为期",
+    "pinyin": "wéi qī",
+    "meaning_vi": "có thời hạn là, kỳ hạn"
+  },
+  {
+    "id": "b732fbf9-75a5-447e-8c1a-bd89c4c47118",
+    "hanzi": "维生素",
+    "pinyin": "wéi shēng sù",
+    "meaning_vi": "vitamin"
+  },
+  {
+    "id": "2bc4f161-c7cb-421f-9102-cc38394ec069",
+    "hanzi": "未必",
+    "pinyin": "wèibì",
+    "meaning_vi": "chưa chắc, chưa hẳn"
+  },
+  {
+    "id": "8a7aa631-5f34-46eb-9139-ff23c23f7f1e",
+    "hanzi": "危机",
+    "pinyin": "wēijī",
+    "meaning_vi": "khủng hoảng, nguy cơ"
+  },
+  {
+    "id": "c6a6f84e-e868-4855-9d79-6fd3a58820f5",
+    "hanzi": "胃口",
+    "pinyin": "wèikǒu",
+    "meaning_vi": "khẩu vị, sự thèm ăn"
+  },
+  {
+    "id": "4f561f05-6e09-4950-b50b-56d0dacdfb50",
+    "hanzi": "委屈",
+    "pinyin": "wěiqu",
+    "meaning_vi": "oan ức, tủi thân"
+  },
+  {
+    "id": "a67b6807-fae8-4856-89c1-de886e36c2f5",
+    "hanzi": "委托",
+    "pinyin": "wěituō",
+    "meaning_vi": "ủy thác, nhờ cậy"
+  },
+  {
+    "id": "abffaa19-6f8a-4f1b-85c3-5c55f0000e73",
+    "hanzi": "温和",
+    "pinyin": "wēnhé",
+    "meaning_vi": "ôn hòa, dịu dàng"
+  },
+  {
+    "id": "56291c28-8c3b-42bf-93fd-258300f06db7",
+    "hanzi": "文具",
+    "pinyin": "wénjù",
+    "meaning_vi": "văn phòng phẩm"
+  },
+  {
+    "id": "3fad96c3-efff-428c-ae3a-ea073e3f0b20",
+    "hanzi": "文明",
+    "pinyin": "wénmíng",
+    "meaning_vi": "văn minh"
+  },
+  {
+    "id": "4aaebff9-abae-46a1-9975-8ff59912d38a",
+    "hanzi": "温柔",
+    "pinyin": "wēnróu",
+    "meaning_vi": "dịu dàng"
+  },
+  {
+    "id": "c43e5df9-97a3-418a-8382-a6ca5800de3a",
+    "hanzi": "文物",
+    "pinyin": "wénwù",
+    "meaning_vi": "di vật, cổ vật"
+  },
+  {
+    "id": "e5ed9a57-f52d-44a4-ae5d-386f88714539",
+    "hanzi": "文献",
+    "pinyin": "wénxiàn",
+    "meaning_vi": "văn kiện, tài liệu tham khảo"
+  },
+  {
+    "id": "2d0e98f7-b929-40fb-aace-33b9549f1b43",
+    "hanzi": "文艺",
+    "pinyin": "wényì",
+    "meaning_vi": "văn nghệ"
+  },
+  {
+    "id": "4966fcde-7a79-4811-b1d5-f71790f01090",
+    "hanzi": "误解",
+    "pinyin": "wùjiě",
+    "meaning_vi": "hiểu lầm"
+  },
+  {
+    "id": "2e25f899-c8f7-4237-8ec3-8dde1d3f8c47",
+    "hanzi": "武器",
+    "pinyin": "wǔqì",
+    "meaning_vi": "vũ khí"
+  },
+  {
+    "id": "db37d250-5400-4dce-97b7-9e29610ab723",
+    "hanzi": "无所谓",
+    "pinyin": "wúsuǒwèi",
+    "meaning_vi": "không sao cả, không bận tâm"
+  },
+  {
+    "id": "029915ae-a6dd-4d95-85c0-341d6f1ae790",
+    "hanzi": "习俗",
+    "pinyin": "xí sú",
+    "meaning_vi": "phong tục, tập quán"
+  },
+  {
+    "id": "7dfcdf55-6040-40bc-8818-a4b53d1727aa",
+    "hanzi": "吓",
+    "pinyin": "xià",
+    "meaning_vi": "dọa, sợ hãi"
+  },
+  {
+    "id": "12b157b5-ab0a-4122-a2b2-db19e0e80e12",
+    "hanzi": "夏令营",
+    "pinyin": "xiàlìngyíng",
+    "meaning_vi": "trại hè"
+  },
+  {
+    "id": "14f89c97-611e-4e9b-87d2-7dfd7167df13",
+    "hanzi": "嫌",
+    "pinyin": "xián",
+    "meaning_vi": "chê, ghét, nghi ngờ"
+  },
+  {
+    "id": "1a9e5749-9df0-4220-a3a4-94f9a520be9c",
+    "hanzi": "相差",
+    "pinyin": "xiāngchà",
+    "meaning_vi": "chênh lệch, khác nhau"
+  },
+  {
+    "id": "fbcb2cf8-09f1-46e3-bd61-f6af4a35bf91",
+    "hanzi": "香肠",
+    "pinyin": "xiāngcháng",
+    "meaning_vi": "xúc xích, lạp xưởng"
+  },
+  {
+    "id": "a2a8f2cb-7bee-4da8-8880-1b9a889567c4",
+    "hanzi": "相等",
+    "pinyin": "xiāngděng",
+    "meaning_vi": "bằng nhau, tương đương"
+  },
+  {
+    "id": "3e4eed6f-d291-474e-9b77-4be13b363cee",
+    "hanzi": "项链",
+    "pinyin": "xiàngliàn",
+    "meaning_vi": "dây chuyền, vòng cổ"
+  },
+  {
+    "id": "8f3203ec-a232-4aee-b77d-25f812364fa7",
+    "hanzi": "象棋",
+    "pinyin": "xiàngqí",
+    "meaning_vi": "cờ tướng"
+  },
+  {
+    "id": "811ac7c0-2ca9-4e6d-a18c-519d452b4dea",
+    "hanzi": "相声",
+    "pinyin": "xiàngsheng",
+    "meaning_vi": "tướng thanh (hài độc thoại/đối thoại)"
+  },
+  {
+    "id": "14c6a8a1-baba-424a-bf17-3774950e7ed6",
+    "hanzi": "向往",
+    "pinyin": "xiàngwǎng",
+    "meaning_vi": "hướng tới, khao khát"
+  },
+  {
+    "id": "0064185b-17df-49e8-a669-927fcd239d79",
+    "hanzi": "相应",
+    "pinyin": "xiāngyìng",
+    "meaning_vi": "tương ứng"
+  },
+  {
+    "id": "0e0d5f1d-773c-4897-971a-d36732c17aa6",
+    "hanzi": "鲜明",
+    "pinyin": "xiānmíng",
+    "meaning_vi": "rõ nét, tươi sáng"
+  },
+  {
+    "id": "d39dec9e-ee3f-48c5-81b1-b5eff7f8741b",
+    "hanzi": "先前",
+    "pinyin": "xiānqián",
+    "meaning_vi": "trước kia, trước đây"
+  },
+  {
+    "id": "9b1e3e30-d8ae-405a-9af7-8bb34aeca81f",
+    "hanzi": "陷入",
+    "pinyin": "xiànrù",
+    "meaning_vi": "rơi vào, lún sâu"
+  },
+  {
+    "id": "5e3eeb00-fbc3-4727-91ae-0f827d2c3053",
+    "hanzi": "线索",
+    "pinyin": "xiànsuǒ",
+    "meaning_vi": "manh mối"
+  },
+  {
+    "id": "e3b22cdc-97a4-4ed4-812f-7d091308d7ea",
+    "hanzi": "鲜艳",
+    "pinyin": "xiānyàn",
+    "meaning_vi": "tươi sáng, rực rỡ"
+  },
+  {
+    "id": "3db63b0f-5a70-4ae1-b086-a8a2bb3193fd",
+    "hanzi": "显著",
+    "pinyin": "xiǎnzhù",
+    "meaning_vi": "rõ rệt, nổi bật"
+  },
+  {
+    "id": "873fda25-7e34-4e49-a840-240442e0e277",
+    "hanzi": "消除",
+    "pinyin": "xiāochú",
+    "meaning_vi": "xóa bỏ, loại trừ"
+  },
+  {
+    "id": "6747db81-0019-42f1-bee7-3d3db4f0f5f7",
+    "hanzi": "消毒",
+    "pinyin": "xiāodú",
+    "meaning_vi": "khử trùng, tiêu độc"
+  },
+  {
+    "id": "f37a1b63-57bf-468b-9e68-6502197782b9",
+    "hanzi": "消防",
+    "pinyin": "xiāofáng",
+    "meaning_vi": "phòng cháy chữa cháy"
+  },
+  {
+    "id": "f3166cfc-e28b-45a2-81f7-bb971ed5c1ff",
+    "hanzi": "消耗",
+    "pinyin": "xiāohào",
+    "meaning_vi": "tiêu hao"
+  },
+  {
+    "id": "371d9864-3f97-42b9-b66d-583b945c4a6a",
+    "hanzi": "小麦",
+    "pinyin": "xiǎomài",
+    "meaning_vi": "lúa mì"
+  },
+  {
+    "id": "96672561-8a1d-4774-b19c-0efcd083600f",
+    "hanzi": "消灭",
+    "pinyin": "xiāomiè",
+    "meaning_vi": "tiêu diệt"
+  },
+  {
+    "id": "895d9584-10ca-4f62-a191-5ed177179b93",
+    "hanzi": "小气",
+    "pinyin": "xiǎoqi",
+    "meaning_vi": "keo kiệt, hẹp hòi"
+  },
+  {
+    "id": "14a7c4f1-2e47-406e-800a-62bab0beb697",
+    "hanzi": "细胞",
+    "pinyin": "xìbāo",
+    "meaning_vi": "tế bào"
+  },
+  {
+    "id": "7a1ec0f4-87b9-44e7-bb9e-6ecbcba207a4",
+    "hanzi": "歇",
+    "pinyin": "xiē",
+    "meaning_vi": "nghỉ ngơi"
+  },
+  {
+    "id": "13ec341b-cc3d-46dc-ad32-86837e0cfdb1",
+    "hanzi": "携带",
+    "pinyin": "xié dài",
+    "meaning_vi": "mang theo"
+  },
+  {
+    "id": "fbada768-d18d-4502-9ecb-36a4135cb1c8",
+    "hanzi": "协会",
+    "pinyin": "xiéhuì",
+    "meaning_vi": "hiệp hội"
+  },
+  {
+    "id": "c4ed45b1-00af-4266-a1db-58772d1e8775",
+    "hanzi": "协调",
+    "pinyin": "xiétiáo",
+    "meaning_vi": "hài hòa, điều phối"
+  },
+  {
+    "id": "a7f031f2-70f4-4461-a172-3d6704420cd7",
+    "hanzi": "协助",
+    "pinyin": "xiézhù",
+    "meaning_vi": "giúp đỡ, hỗ trợ"
+  },
+  {
+    "id": "15bbf804-0881-43df-afd1-4752fdd4df71",
+    "hanzi": "媳妇",
+    "pinyin": "xífù",
+    "meaning_vi": "con dâu, vợ"
+  },
+  {
+    "id": "99507cc2-b4ff-4d26-97c1-e2ae850515a5",
+    "hanzi": "细菌",
+    "pinyin": "xìjūn",
+    "meaning_vi": "vi khuẩn"
+  },
+  {
+    "id": "f31d4d7c-3e45-4407-9c07-554bdfd418ae",
+    "hanzi": "系列",
+    "pinyin": "xìliè",
+    "meaning_vi": "chuỗi, loạt, series"
+  },
+  {
+    "id": "7629a6aa-bf09-4ec7-9f37-a23dd6ccc844",
+    "hanzi": "心灵",
+    "pinyin": "xīn líng",
+    "meaning_vi": "tâm hồn, tâm linh"
+  },
+  {
+    "id": "5b023c21-0150-4581-a42d-e83be97efb12",
+    "hanzi": "心疼",
+    "pinyin": "xīn téng",
+    "meaning_vi": "đau lòng, xót xa"
+  },
+  {
+    "id": "a3f0cb49-bc91-4378-9cde-bd35d27663e7",
+    "hanzi": "性能",
+    "pinyin": "xìng néng",
+    "meaning_vi": "tính năng, hiệu năng"
+  },
+  {
+    "id": "d2d3f4e9-2331-474a-af9a-247852762f2b",
+    "hanzi": "形态",
+    "pinyin": "xíng tài",
+    "meaning_vi": "hình thái"
+  },
+  {
+    "id": "557fd945-3a58-4bc4-9ecf-717ef7c22e44",
+    "hanzi": "信赖",
+    "pinyin": "xìnlài",
+    "meaning_vi": "tin cậy, tín nhiệm"
+  },
+  {
+    "id": "bde82186-56ad-41db-b544-1ea3bcb82601",
+    "hanzi": "信念",
+    "pinyin": "xìnniàn",
+    "meaning_vi": "lòng tin, niềm tin"
+  },
+  {
+    "id": "55c67234-46e4-4b18-90a9-bf75140b7884",
+    "hanzi": "薪水",
+    "pinyin": "xīnshui",
+    "meaning_vi": "tiền lương"
+  },
+  {
+    "id": "3445a702-9645-4d60-9b54-9dfd51b5051f",
+    "hanzi": "新颖",
+    "pinyin": "xīnyǐng",
+    "meaning_vi": "mới mẻ, mới lạ"
+  },
+  {
+    "id": "4d2cdf1b-7f31-40c8-b566-42000242c464",
+    "hanzi": "心脏",
+    "pinyin": "xīnzàng",
+    "meaning_vi": "trái tim"
+  },
+  {
+    "id": "dfc93b0d-bd87-432d-952f-a368e8451a49",
+    "hanzi": "胸",
+    "pinyin": "xiōng",
+    "meaning_vi": "ngực"
+  },
+  {
+    "id": "62dee053-a32a-4ccc-8e9a-b6bb6fd4a5aa",
+    "hanzi": "吸取",
+    "pinyin": "xīqǔ",
+    "meaning_vi": "hút lấy, rút ra (kinh nghiệm)"
+  },
+  {
+    "id": "bd835187-2f06-4caf-9146-87d75995b5ac",
+    "hanzi": "修复",
+    "pinyin": "xiūfù",
+    "meaning_vi": "phục hồi, tu sửa"
+  },
+  {
+    "id": "447662a1-3c0f-4855-b0e1-70f54509df18",
+    "hanzi": "细致",
+    "pinyin": "xìzhì",
+    "meaning_vi": "tỉ mỉ, kỹ lưỡng"
+  },
+  {
+    "id": "c32a9a01-28bc-4e59-b818-859b6d016d04",
+    "hanzi": "选拔",
+    "pinyin": "xuǎnbá",
+    "meaning_vi": "tuyển chọn"
+  },
+  {
+    "id": "6216b3db-b1ca-4996-8ea7-59361a25a53f",
+    "hanzi": "旋转",
+    "pinyin": "xuánzhuǎn",
+    "meaning_vi": "xoay quanh, quay tròn"
+  },
+  {
+    "id": "9952d8cd-b20a-41dc-9e2e-d2b895aaaa29",
+    "hanzi": "学位",
+    "pinyin": "xuéwèi",
+    "meaning_vi": "học vị"
+  },
+  {
+    "id": "288ae17d-8d8f-4c1a-9802-1f9850ca9f63",
+    "hanzi": "学问",
+    "pinyin": "xuéwen",
+    "meaning_vi": "học vấn, kiến thức"
+  },
+  {
+    "id": "9def950b-043c-48c7-8783-8878b9a6e5cc",
+    "hanzi": "血压",
+    "pinyin": "xuèyā",
+    "meaning_vi": "huyết áp"
+  },
+  {
+    "id": "4b478efc-a5c8-43d8-bd86-cb11022b92e7",
+    "hanzi": "许可",
+    "pinyin": "xǔkě",
+    "meaning_vi": "cho phép"
+  },
+  {
+    "id": "383794c6-6026-418b-8363-4d75c32a29b2",
+    "hanzi": "循环",
+    "pinyin": "xún huán",
+    "meaning_vi": "tuần hoàn"
+  },
+  {
+    "id": "2d910af8-3004-4f16-a49a-4c9b063fe341",
+    "hanzi": "叙述",
+    "pinyin": "xùshù",
+    "meaning_vi": "kể lại, thuật lại"
+  },
+  {
+    "id": "3b7daa9e-d850-4f0a-ae5c-b239981b24d8",
+    "hanzi": "亚军",
+    "pinyin": "yàjūn",
+    "meaning_vi": "á quân, giải nhì"
+  },
+  {
+    "id": "d016778c-d91b-47f7-83a5-35f1f8277307",
+    "hanzi": "严寒",
+    "pinyin": "yán hán",
+    "meaning_vi": "giá rét, rét đậm"
+  },
+  {
+    "id": "c7f24268-35e7-4f58-8471-c36e81bd50cc",
+    "hanzi": "严禁",
+    "pinyin": "yán jìn",
+    "meaning_vi": "nghiêm cấm"
+  },
+  {
+    "id": "2dec6488-757b-43e2-9285-35afad9a087a",
+    "hanzi": "严厉",
+    "pinyin": "yán lì",
+    "meaning_vi": "nghiêm khắc, nghiêm trị"
+  },
+  {
+    "id": "6358313f-0ec8-43cf-9f0a-5eea69060c1d",
+    "hanzi": "延期",
+    "pinyin": "yán qī",
+    "meaning_vi": "hoãn lại, gia hạn"
+  },
+  {
+    "id": "64e7d59d-2e28-4bae-b047-3e84f1697b6d",
+    "hanzi": "延伸",
+    "pinyin": "yán shēn",
+    "meaning_vi": "kéo dài, mở rộng"
+  },
+  {
+    "id": "d97122f2-432c-4337-88c4-f1723830e5ea",
+    "hanzi": "延续",
+    "pinyin": "yán xù",
+    "meaning_vi": "kéo dài liên tục, tiếp nối"
+  },
+  {
+    "id": "ee4d5a02-423d-4d0a-846a-dedfc6843c77",
+    "hanzi": "痒",
+    "pinyin": "yǎng",
+    "meaning_vi": "ngứa"
+  },
+  {
+    "id": "c0869a9c-d611-4b80-ab46-b062fdf26d75",
+    "hanzi": "氧气",
+    "pinyin": "yǎngqì",
+    "meaning_vi": "khí oxy"
+  },
+  {
+    "id": "96b7b114-aa38-4c46-8e4b-f4f7cd891164",
+    "hanzi": "眼光",
+    "pinyin": "yǎnguāng",
+    "meaning_vi": "ánh mắt, tầm nhìn"
+  },
+  {
+    "id": "ac3b7955-cee1-4065-b107-00fed7fc50c7",
+    "hanzi": "沿海",
+    "pinyin": "yánhǎi",
+    "meaning_vi": "ven biển, duyên hải"
+  },
+  {
+    "id": "f5525966-d318-4a8d-a713-b976c34e94aa",
+    "hanzi": "宴会",
+    "pinyin": "yànhuì",
+    "meaning_vi": "yến tiệc, tiệc"
+  },
+  {
+    "id": "74c45691-459e-4404-8bda-832240035bc0",
+    "hanzi": "淹没",
+    "pinyin": "yānmò",
+    "meaning_vi": "chìm ngập, nhấn chìm"
+  },
+  {
+    "id": "73e09a1f-6e05-4887-b95d-4378d01f42b1",
+    "hanzi": "炎热",
+    "pinyin": "yánrè",
+    "meaning_vi": "nóng bức, oi ả"
+  },
+  {
+    "id": "e242de6e-f747-47e0-9c82-c77ea976fcd7",
+    "hanzi": "验证",
+    "pinyin": "yànzhèng",
+    "meaning_vi": "kiểm chứng, xác minh"
+  },
+  {
+    "id": "65691b6c-abd1-4d1c-bb1a-ad479d77bfdb",
+    "hanzi": "演奏",
+    "pinyin": "yǎnzòu",
+    "meaning_vi": "diễn tấu, trình diễn nhạc"
+  },
+  {
+    "id": "14fc9098-72f9-49f0-b9a1-c9dffb2590a3",
+    "hanzi": "要点",
+    "pinyin": "yàodiǎn",
+    "meaning_vi": "điểm trọng yếu, điểm chính"
+  },
+  {
+    "id": "42875f3e-174b-4386-b709-da1998a6e523",
+    "hanzi": "要素",
+    "pinyin": "yàosù",
+    "meaning_vi": "yếu tố"
+  },
+  {
+    "id": "6b0d178f-4660-4cb4-8666-3fc9a107e6da",
+    "hanzi": "遥远",
+    "pinyin": "yáoyuǎn",
+    "meaning_vi": "xa xôi"
+  },
+  {
+    "id": "7ad44a08-5457-4f69-9442-5c04611864c3",
+    "hanzi": "压缩",
+    "pinyin": "yāsuō",
+    "meaning_vi": "nén, rút gọn"
+  },
+  {
+    "id": "d158ec46-fb91-40ab-9ca6-67479734e3a1",
+    "hanzi": "液体",
+    "pinyin": "yètǐ",
+    "meaning_vi": "chất lỏng"
+  },
+  {
+    "id": "e5df6282-da92-4ac6-99ac-4acecaf3f413",
+    "hanzi": "异常",
+    "pinyin": "yì cháng",
+    "meaning_vi": "bất thường, vô cùng"
+  },
+  {
+    "id": "69efaa2e-41eb-4ad3-9e1a-98c5a4097a30",
+    "hanzi": "一帆风顺",
+    "pinyin": "yì fān fēng shùn",
+    "meaning_vi": "thuận buồm xuôi gió"
+  },
+  {
+    "id": "57fc7819-b3e5-4dfc-bf19-aef113ff8413",
+    "hanzi": "一贯",
+    "pinyin": "yí guàn",
+    "meaning_vi": "nhất quán, trước sau như một"
+  },
+  {
+    "id": "a6dd753d-bb09-4283-a2ba-69f3f2b63d6a",
+    "hanzi": "一流",
+    "pinyin": "yī liú",
+    "meaning_vi": "hàng đầu, bậc nhất"
+  },
+  {
+    "id": "0c2fdfde-f146-4e24-b2e2-d231d3d32354",
+    "hanzi": "一向",
+    "pinyin": "yí xiàng",
+    "meaning_vi": "từ trước đến nay, xưa nay"
+  },
+  {
+    "id": "d6911fca-e301-4cba-b4e6-4806d7ef7487",
+    "hanzi": "一辈子",
+    "pinyin": "yíbèizi",
+    "meaning_vi": "cả đời, suốt đời"
+  },
+  {
+    "id": "ab51c900-2820-4977-ab39-cc43eafc7cde",
+    "hanzi": "以便",
+    "pinyin": "yǐbiàn",
+    "meaning_vi": "để, nhằm thuận tiện"
+  },
+  {
+    "id": "dafd81f3-ce5b-451f-8258-59eef97185a8",
+    "hanzi": "遗产",
+    "pinyin": "yíchǎn",
+    "meaning_vi": "di sản"
+  },
+  {
+    "id": "766abba8-91d8-4335-ae21-996b71754521",
+    "hanzi": "遗传",
+    "pinyin": "yíchuán",
+    "meaning_vi": "di truyền"
+  },
+  {
+    "id": "324b6caa-4c54-4bef-9269-e599482235a3",
+    "hanzi": "疑惑",
+    "pinyin": "yíhuò",
+    "meaning_vi": "nghi ngờ, hoài nghi"
+  },
+  {
+    "id": "07f437fc-6a11-4a94-b390-90311fb513d7",
+    "hanzi": "依旧",
+    "pinyin": "yījiù",
+    "meaning_vi": "vẫn như cũ, như xưa"
+  },
+  {
+    "id": "9bc7400a-0a22-4e3b-9500-5e566bd1246e",
+    "hanzi": "依赖",
+    "pinyin": "yīlài",
+    "meaning_vi": "phụ thuộc, ỷ lại"
+  },
+  {
+    "id": "ecce46c2-911a-4b9a-b4b0-82e8acbcd13c",
+    "hanzi": "一律",
+    "pinyin": "yílǜ",
+    "meaning_vi": "đồng loạt, như nhau"
+  },
+  {
+    "id": "842b1599-ae58-4e75-ade9-d620e2a78bbe",
+    "hanzi": "议论",
+    "pinyin": "yìlùn",
+    "meaning_vi": "bàn luận, thảo luận"
+  },
+  {
+    "id": "071f1d80-bf3e-4606-b505-ec870962afb6",
+    "hanzi": "以免",
+    "pinyin": "yǐmiǎn",
+    "meaning_vi": "để tránh, nhằm tránh"
+  },
+  {
+    "id": "558d661a-f6b1-4a1f-858c-0ff2088ddb32",
+    "hanzi": "移民",
+    "pinyin": "yímín",
+    "meaning_vi": "di dân, nhập cư"
+  },
+  {
+    "id": "32c1f522-51b7-49fc-9376-db649ac701e6",
+    "hanzi": "引导",
+    "pinyin": "yǐn dǎo",
+    "meaning_vi": "hướng dẫn, dẫn dắt"
+  },
+  {
+    "id": "a5c70adc-ded8-450d-b93c-c40f19c120bc",
+    "hanzi": "婴儿",
+    "pinyin": "yīng'ér",
+    "meaning_vi": "trẻ sơ sinh"
+  },
+  {
+    "id": "5cdf1ead-53e1-46fb-9c4e-1f14c022f2a3",
+    "hanzi": "英雄",
+    "pinyin": "yīngxióng",
+    "meaning_vi": "anh hùng"
+  },
+  {
+    "id": "f2d0baca-29dc-46ff-9654-34c0f739464b",
+    "hanzi": "影子",
+    "pinyin": "yǐngzi",
+    "meaning_vi": "cái bóng"
+  },
+  {
+    "id": "2e5e780d-12ba-4c8f-972b-b92ffd1eaba8",
+    "hanzi": "隐私",
+    "pinyin": "yǐnsī",
+    "meaning_vi": "đời tư, sự riêng tư"
+  },
+  {
+    "id": "9ee7c9a2-9811-4785-a714-bbd408b75e25",
+    "hanzi": "仪器",
+    "pinyin": "yíqì",
+    "meaning_vi": "khí cụ, thiết bị, dụng cụ đo"
+  },
+  {
+    "id": "f89ab022-fd86-4931-865e-17dbae751063",
+    "hanzi": "仪式",
+    "pinyin": "yíshì",
+    "meaning_vi": "nghi thức, buổi lễ"
+  },
+  {
+    "id": "038dee83-d8aa-493a-98e8-7fb1112473e9",
+    "hanzi": "以往",
+    "pinyin": "yǐwǎng",
+    "meaning_vi": "trước đây, trước kia"
+  },
+  {
+    "id": "2f70b49e-eea0-4212-b366-86d50c97768a",
+    "hanzi": "一再",
+    "pinyin": "yízài",
+    "meaning_vi": "lặp đi lặp lại"
+  },
+  {
+    "id": "ec349c33-cf0e-4b05-b403-da22ad628fe0",
+    "hanzi": "用功",
+    "pinyin": "yònggōng",
+    "meaning_vi": "chăm chỉ, nỗ lực"
+  },
+  {
+    "id": "aefb864b-836b-4a7e-b176-5c439f2f02a8",
+    "hanzi": "拥挤",
+    "pinyin": "yōngjǐ",
+    "meaning_vi": "chen chúc, đông đúc"
+  },
+  {
+    "id": "8650e074-cbe7-4d41-a104-1f2bb76595e2",
+    "hanzi": "涌现",
+    "pinyin": "yǒngxiàn",
+    "meaning_vi": "xuất hiện dồn dập, trào ra"
+  },
+  {
+    "id": "dc538617-6d82-447b-af3c-00528998d6aa",
+    "hanzi": "勇于",
+    "pinyin": "yǒngyú",
+    "meaning_vi": "dũng cảm, dám"
+  },
+  {
+    "id": "78286fcf-5edc-4e52-b64d-eeb608f5d32f",
+    "hanzi": "犹如",
+    "pinyin": "yóurú",
+    "meaning_vi": "giống như, tựa như"
+  },
+  {
+    "id": "6d1ce70b-932c-4205-8b62-8622f80a0cdb",
+    "hanzi": "优先",
+    "pinyin": "yōuxiān",
+    "meaning_vi": "ưu tiên"
+  },
+  {
+    "id": "953a6598-46ef-47f5-be4f-3b055e90775a",
+    "hanzi": "优异",
+    "pinyin": "yōuyì",
+    "meaning_vi": "xuất sắc, vượt trội"
+  },
+  {
+    "id": "e7b34b46-89a2-4529-b30d-507e99f40155",
+    "hanzi": "羽绒服",
+    "pinyin": "yǔ róng fú",
+    "meaning_vi": "áo lông vũ"
+  },
+  {
+    "id": "9418e054-e126-421f-b48e-e7ec4c6c1414",
+    "hanzi": "原理",
+    "pinyin": "yuánlǐ",
+    "meaning_vi": "nguyên lý"
+  },
+  {
+    "id": "5a99101f-bf5d-4de0-83fc-55b901efe65c",
+    "hanzi": "原料",
+    "pinyin": "yuánliào",
+    "meaning_vi": "nguyên liệu"
+  },
+  {
+    "id": "12769c0a-b885-4da3-9e15-39d1c3664599",
+    "hanzi": "园林",
+    "pinyin": "yuánlín",
+    "meaning_vi": "vườn hoa, lâm viên"
+  },
+  {
+    "id": "0b60a7bd-1d14-48ff-a9eb-55375ad07e3c",
+    "hanzi": "圆满",
+    "pinyin": "yuánmǎn",
+    "meaning_vi": "viên mãn, hoàn hảo"
+  },
+  {
+    "id": "0c3c9d18-b824-4780-80c5-e13ba104f5d0",
+    "hanzi": "原始",
+    "pinyin": "yuánshǐ",
+    "meaning_vi": "nguyên thủy, ban sơ"
+  },
+  {
+    "id": "6b17b148-1a1d-42cc-b287-86586817a75a",
+    "hanzi": "元素",
+    "pinyin": "yuánsù",
+    "meaning_vi": "nguyên tố, yếu tố"
+  },
+  {
+    "id": "ff82afc9-348b-429d-9761-4f20cb494bee",
+    "hanzi": "原先",
+    "pinyin": "yuánxiān",
+    "meaning_vi": "ban đầu, trước kia"
+  },
+  {
+    "id": "67eb8501-794b-4546-bae0-39dae65749bb",
+    "hanzi": "乐器",
+    "pinyin": "yuèqì",
+    "meaning_vi": "nhạc cụ"
+  },
+  {
+    "id": "85f70447-8254-4d69-827d-b31cd5bb4206",
+    "hanzi": "约束",
+    "pinyin": "yuēshù",
+    "meaning_vi": "ràng buộc, kiềm chế"
+  },
+  {
+    "id": "61dd947e-7bf9-4c36-be62-aa0077cec768",
+    "hanzi": "预料",
+    "pinyin": "yùliào",
+    "meaning_vi": "dự liệu, đoán trước"
+  },
+  {
+    "id": "afb16f85-c0e3-4f28-9505-bf922a266f05",
+    "hanzi": "晕",
+    "pinyin": "yūn",
+    "meaning_vi": "chóng mặt, ngất xỉu"
+  },
+  {
+    "id": "b66e9b75-8823-412e-910b-5eb620fcf18b",
+    "hanzi": "运行",
+    "pinyin": "yùnxíng",
+    "meaning_vi": "vận hành, chuyển động"
+  },
+  {
+    "id": "e365f81e-4b0e-4689-a48f-8d2db3cff8b5",
+    "hanzi": "预期",
+    "pinyin": "yùqī",
+    "meaning_vi": "dự kiến, kỳ vọng"
+  },
+  {
+    "id": "03b27e22-7766-4a64-821e-c90907f4f50b",
+    "hanzi": "与其",
+    "pinyin": "yǔqí",
+    "meaning_vi": "thay vì, thà rằng"
+  },
+  {
+    "id": "044f78e5-cb8d-44f7-969d-db2ada0b30ce",
+    "hanzi": "欲望",
+    "pinyin": "yùwàng",
+    "meaning_vi": "dục vọng, ham muốn"
+  },
+  {
+    "id": "c0f07afd-c137-46f9-9d7b-8218d4b30010",
+    "hanzi": "灾害",
+    "pinyin": "zāihài",
+    "meaning_vi": "tai họa, thảm họa"
+  },
+  {
+    "id": "114209f0-a77e-4cdc-80b9-ad0692705b55",
+    "hanzi": "灾难",
+    "pinyin": "zāinàn",
+    "meaning_vi": "tai họa, thảm họa"
+  },
+  {
+    "id": "d6a54def-5aa4-4388-a20f-2e429b535cf9",
+    "hanzi": "再三",
+    "pinyin": "zàisān",
+    "meaning_vi": "nhiều lần, lặp đi lặp lại"
+  },
+  {
+    "id": "2ad899d5-f22b-4b41-976d-47110d869761",
+    "hanzi": "在意",
+    "pinyin": "zàiyì",
+    "meaning_vi": "để ý, bận tâm"
+  },
+  {
+    "id": "d727347a-109a-4ea5-aeea-13313facd48e",
+    "hanzi": "遭受",
+    "pinyin": "zāoshòu",
+    "meaning_vi": "chịu đựng, gặp phải"
+  },
+  {
+    "id": "2db23ec0-e7e9-4a07-a776-b7a15a961d21",
+    "hanzi": "造型",
+    "pinyin": "zàoxíng",
+    "meaning_vi": "tạo hình, kiểu dáng"
+  },
+  {
+    "id": "2a6ed424-fe27-426a-a33a-a4bde3b65c61",
+    "hanzi": "遭遇",
+    "pinyin": "zāoyù",
+    "meaning_vi": "gặp phải, cảnh ngộ"
+  },
+  {
+    "id": "0155c434-074b-4c8d-8bc9-0b4616ea3acb",
+    "hanzi": "则",
+    "pinyin": "zé",
+    "meaning_vi": "thì, quy tắc, bài/mẩu"
+  },
+  {
+    "id": "2dba889c-e79d-4cf6-909a-2bb015efec9b",
+    "hanzi": "扎",
+    "pinyin": "zhā",
+    "meaning_vi": "châm, đâm, cắm"
+  },
+  {
+    "id": "d3cfa923-f192-466b-b213-3cf171d09cb2",
+    "hanzi": "崭新",
+    "pinyin": "zhǎn xīn",
+    "meaning_vi": "mới tinh, hoàn toàn mới"
+  },
+  {
+    "id": "2d433c8c-7730-4cd0-adb3-9322c636ff26",
+    "hanzi": "战斗",
+    "pinyin": "zhàndòu",
+    "meaning_vi": "chiến đấu"
+  },
+  {
+    "id": "7afba4cf-2f7d-41de-ab6e-4ea7cad94e5f",
+    "hanzi": "障碍",
+    "pinyin": "zhàng'ài",
+    "meaning_vi": "chướng ngại, rào cản"
+  },
+  {
+    "id": "6cc3d2e7-6f61-4c76-b106-ee3620c2150a",
+    "hanzi": "占据",
+    "pinyin": "zhànjù",
+    "meaning_vi": "chiếm cứ, chiếm giữ"
+  },
+  {
+    "id": "0038611a-e4e0-4666-82c8-eb29b86b5f93",
+    "hanzi": "粘贴",
+    "pinyin": "zhāntiē",
+    "meaning_vi": "dán"
+  },
+  {
+    "id": "cdd1806a-c80e-4cdf-a32e-6d5e2096c823",
+    "hanzi": "战争",
+    "pinyin": "zhànzhēng",
+    "meaning_vi": "chiến tranh"
+  },
+  {
+    "id": "6cc8bbb5-6d38-43aa-8cda-38f31873483b",
+    "hanzi": "招待",
+    "pinyin": "zhāodài",
+    "meaning_vi": "chiêu đãi, tiếp đãi"
+  },
+  {
+    "id": "a5aca4e9-67db-4fdb-8453-5306fef5a7e5",
+    "hanzi": "招收",
+    "pinyin": "zhāoshōu",
+    "meaning_vi": "chiêu sinh, tuyển nhận"
+  },
+  {
+    "id": "ecb5152c-254e-4939-bc84-2115127c916d",
+    "hanzi": "折",
+    "pinyin": "zhé",
+    "meaning_vi": "gập, gãy, chiết khấu"
+  },
+  {
+    "id": "7b5e9ba0-908b-465d-95cf-1a180000e814",
+    "hanzi": "睁",
+    "pinyin": "zhēng",
+    "meaning_vi": "mở (mắt)"
+  },
+  {
+    "id": "be2d9d51-66b9-455a-972c-1bc4f3269584",
+    "hanzi": "争夺",
+    "pinyin": "zhēng duó",
+    "meaning_vi": "tranh đoạt, giành giật"
+  },
+  {
+    "id": "bc9f8e8c-869b-4802-b6f8-a6f615d1bc64",
+    "hanzi": "争议",
+    "pinyin": "zhēng yì",
+    "meaning_vi": "tranh cãi, bất đồng ý kiến"
+  },
+  {
+    "id": "b0e4a6e9-2ef6-4af0-a96a-d1fd798b280f",
+    "hanzi": "政策",
+    "pinyin": "zhèngcè",
+    "meaning_vi": "chính sách"
+  },
+  {
+    "id": "1f4dd95a-3f6d-4d73-99c1-89825854d4d4",
+    "hanzi": "正规",
+    "pinyin": "zhèngguī",
+    "meaning_vi": "chính quy"
+  },
+  {
+    "id": "3197638f-4c8d-452c-baab-8c816c4e846b",
+    "hanzi": "争论",
+    "pinyin": "zhēnglùn",
+    "meaning_vi": "tranh luận"
+  },
+  {
+    "id": "d2f38937-e0ab-4a89-9393-6836fe7de7c6",
+    "hanzi": "征求",
+    "pinyin": "zhēngqiú",
+    "meaning_vi": "trưng cầu, xin ý kiến"
+  },
+  {
+    "id": "b404b106-0a97-4505-ade0-76953e41caa2",
+    "hanzi": "证实",
+    "pinyin": "zhèngshí",
+    "meaning_vi": "chứng thực, xác nhận"
+  },
+  {
+    "id": "71ff245e-a859-49fc-9442-7131bb3d6075",
+    "hanzi": "正义",
+    "pinyin": "zhèngyì",
+    "meaning_vi": "chính nghĩa, công lý"
+  },
+  {
+    "id": "2e7e74b4-a0ee-4f73-9f0a-8b9a3df98811",
+    "hanzi": "症状",
+    "pinyin": "zhèngzhuàng",
+    "meaning_vi": "triệu chứng"
+  },
+  {
+    "id": "08ddcdee-3b13-40c1-9cd1-310426e054d6",
+    "hanzi": "枕头",
+    "pinyin": "zhěntou",
+    "meaning_vi": "cái gối"
+  },
+  {
+    "id": "640a8322-b288-4d39-9a2f-2b6e950e2f22",
+    "hanzi": "真相",
+    "pinyin": "zhēnxiàng",
+    "meaning_vi": "chân tướng, sự thật"
+  },
+  {
+    "id": "4795601f-863a-4b05-9f5f-bf3f5305aa9e",
+    "hanzi": "珍珠",
+    "pinyin": "zhēnzhū",
+    "meaning_vi": "ngọc trai, trân châu"
+  },
+  {
+    "id": "b02f7867-ee75-4589-910b-7c23a8bbb4a0",
+    "hanzi": "枝",
+    "pinyin": "zhī",
+    "meaning_vi": "cành, nhánh"
+  },
+  {
+    "id": "65573f55-e315-407a-8f06-329a4a670ee4",
+    "hanzi": "指定",
+    "pinyin": "zhǐ dìng",
+    "meaning_vi": "chỉ định"
+  },
+  {
+    "id": "0a854068-59c3-4dc2-927e-989d13594e8d",
+    "hanzi": "脂肪",
+    "pinyin": "zhī fáng",
+    "meaning_vi": "chất béo, mỡ"
+  },
+  {
+    "id": "e68f2421-8b9c-4e7d-82ee-aa626269c4f9",
+    "hanzi": "指示",
+    "pinyin": "zhǐ shì",
+    "meaning_vi": "chỉ thị, hướng dẫn"
+  },
+  {
+    "id": "0dff6ae5-6a75-4004-bc38-7dd82f41e75d",
+    "hanzi": "职位",
+    "pinyin": "zhí wèi",
+    "meaning_vi": "chức vị, vị trí làm việc"
+  },
+  {
+    "id": "9e62d988-3071-4e52-ba5c-28a9afeb9a33",
+    "hanzi": "职务",
+    "pinyin": "zhí wù",
+    "meaning_vi": "chức vụ"
+  },
+  {
+    "id": "8beb8e44-22ae-4c25-8275-01d035b0b6cb",
+    "hanzi": "指责",
+    "pinyin": "zhǐ zé",
+    "meaning_vi": "chỉ trích, khiển trách"
+  },
+  {
+    "id": "04e7f8b1-7010-4bed-a2a1-be573c2bc08e",
+    "hanzi": "值班",
+    "pinyin": "zhíbān",
+    "meaning_vi": "trực ban, trực ca"
+  },
+  {
+    "id": "3ba2f788-1a92-4486-ac42-2ffbcbf21f39",
+    "hanzi": "支撑",
+    "pinyin": "zhīchēng",
+    "meaning_vi": "chống đỡ, nâng đỡ"
+  },
+  {
+    "id": "c32a6d13-bc9c-4348-9a7e-528035fb33b3",
+    "hanzi": "支出",
+    "pinyin": "zhīchū",
+    "meaning_vi": "chi tiêu, chi ra"
+  },
+  {
+    "id": "36a9a586-44bf-46d0-a0b9-1742f75f6e18",
+    "hanzi": "指挥",
+    "pinyin": "zhǐhuī",
+    "meaning_vi": "chỉ huy"
+  },
+  {
+    "id": "bc24dd10-14d4-4b00-8f4b-1f64ce66c7e8",
+    "hanzi": "智力",
+    "pinyin": "zhìlì",
+    "meaning_vi": "trí tuệ, trí lực"
+  },
+  {
+    "id": "c7fe3364-ec66-4e61-952c-28d0490d3e52",
+    "hanzi": "治理",
+    "pinyin": "zhìlǐ",
+    "meaning_vi": "quản lý, xử lý, trị vì"
+  },
+  {
+    "id": "ea085838-5daf-461f-a2e6-384ba2a42ccd",
+    "hanzi": "秩序",
+    "pinyin": "zhìxù",
+    "meaning_vi": "trật tự"
+  },
+  {
+    "id": "75b1c256-895d-44c0-8fbe-5e33a17fb3a0",
+    "hanzi": "至于",
+    "pinyin": "zhìyú",
+    "meaning_vi": "còn về, đến mức"
+  },
+  {
+    "id": "ad2e35ba-aee5-4dcf-a5ab-dfc3ed1d7d3b",
+    "hanzi": "侄子",
+    "pinyin": "zhízi",
+    "meaning_vi": "cháu trai (con của anh/em trai)"
+  },
+  {
+    "id": "15c675a5-2357-439e-86ec-b409b59b208d",
+    "hanzi": "中断",
+    "pinyin": "zhōng duàn",
+    "meaning_vi": "gián đoạn, đứt quãng"
+  },
+  {
+    "id": "f1a2e8e8-9676-41d3-954a-5f69a1555b47",
+    "hanzi": "中央",
+    "pinyin": "zhōng yāng",
+    "meaning_vi": "trung ương, trung tâm"
+  },
+  {
+    "id": "48258f7b-615c-4539-b4c2-67d07712cb41",
+    "hanzi": "终点",
+    "pinyin": "zhōngdiǎn",
+    "meaning_vi": "điểm đích, vạch đích"
+  },
+  {
+    "id": "29b06ad9-7bcf-40c8-8c3e-128f0666d938",
+    "hanzi": "终身",
+    "pinyin": "zhōngshēn",
+    "meaning_vi": "cả đời, suốt đời"
+  },
+  {
+    "id": "10b35b40-8d7e-4bd5-aa1c-73691e6e8c36",
+    "hanzi": "众所周知",
+    "pinyin": "zhòngsuǒzhōuzhī",
+    "meaning_vi": "mọi người đều biết, ai cũng biết"
+  },
+  {
+    "id": "69481eae-0ea2-4fb7-9239-a8a4cf941e3a",
+    "hanzi": "重心",
+    "pinyin": "zhòngxīn",
+    "meaning_vi": "trọng tâm"
+  },
+  {
+    "id": "c2c53ac7-3c02-46f4-b9c1-3a33f776418e",
+    "hanzi": "中旬",
+    "pinyin": "zhōngxún",
+    "meaning_vi": "trung tuần (từ ngày 11-20)"
+  },
+  {
+    "id": "5f3631b6-1143-44be-899d-e33060756c07",
+    "hanzi": "粥",
+    "pinyin": "zhōu",
+    "meaning_vi": "cháo"
+  },
+  {
+    "id": "a520abde-c998-4eed-840e-2ff3235b9810",
+    "hanzi": "州",
+    "pinyin": "zhōu",
+    "meaning_vi": "châu, bang"
+  },
+  {
+    "id": "589c1c25-047b-4e64-bda3-553121dd5618",
+    "hanzi": "周边",
+    "pinyin": "zhōubiān",
+    "meaning_vi": "xung quanh, vùng ven"
+  },
+  {
+    "id": "b016b3e7-f483-4606-a3cf-f01c351e59a0",
+    "hanzi": "周到",
+    "pinyin": "zhōudào",
+    "meaning_vi": "chu đáo"
+  },
+  {
+    "id": "d8d463c3-b660-41c0-8548-0fc3f5a62838",
+    "hanzi": "周期",
+    "pinyin": "zhōuqī",
+    "meaning_vi": "chu kỳ"
+  },
+  {
+    "id": "66739e63-a0e4-4b3d-934f-60522f0256a4",
+    "hanzi": "株",
+    "pinyin": "zhū",
+    "meaning_vi": "cây, gốc (lượng từ)"
+  },
+  {
+    "id": "e3467cdb-5ca8-482a-af69-41c9cdf66e9b",
+    "hanzi": "主办",
+    "pinyin": "zhǔ bàn",
+    "meaning_vi": "chủ trì, tổ chức"
+  },
+  {
+    "id": "e0dd4add-398f-48ef-aced-77fc9ab94638",
+    "hanzi": "主导",
+    "pinyin": "zhǔ dǎo",
+    "meaning_vi": "chủ đạo, vai trò quyết định"
+  },
+  {
+    "id": "6c9a1768-ddd3-4b17-8cfd-ef3ed6113634",
+    "hanzi": "主管",
+    "pinyin": "zhǔ guǎn",
+    "meaning_vi": "quản lý, phụ trách, chủ quản"
+  },
+  {
+    "id": "63cb8815-d99c-4739-bec7-a7dfdeab3874",
+    "hanzi": "主流",
+    "pinyin": "zhǔ liú",
+    "meaning_vi": "dòng chính, xu thế chủ đạo"
+  },
+  {
+    "id": "e9a693d6-0fd4-49a2-93d9-901601eb9342",
+    "hanzi": "砖",
+    "pinyin": "zhuān",
+    "meaning_vi": "viên gạch"
+  },
+  {
+    "id": "286dcb07-7327-4195-a161-1edffaa3f152",
+    "hanzi": "专利",
+    "pinyin": "zhuān lì",
+    "meaning_vi": "bằng sáng chế, độc quyền"
+  },
+  {
+    "id": "a012f5d6-eb50-4b38-9fe6-dcdeeef982be",
+    "hanzi": "专题",
+    "pinyin": "zhuān tí",
+    "meaning_vi": "chuyên đề"
+  },
+  {
+    "id": "921be5b6-0cfc-4fb7-99d3-055a1c075640",
+    "hanzi": "庄稼",
+    "pinyin": "zhuāng jia",
+    "meaning_vi": "hoa màu, cây trồng"
+  },
+  {
+    "id": "6de2c21b-f08e-4790-8817-36efeae8b910",
+    "hanzi": "装备",
+    "pinyin": "zhuāngbèi",
+    "meaning_vi": "trang bị"
+  },
+  {
+    "id": "0f3a9efd-408f-4b53-a8e5-d6a4632ae75b",
+    "hanzi": "转让",
+    "pinyin": "zhuǎnràng",
+    "meaning_vi": "chuyển nhượng"
+  },
+  {
+    "id": "f0133a43-9c0d-40e9-85ad-6bc150021f55",
+    "hanzi": "转移",
+    "pinyin": "zhuǎnyí",
+    "meaning_vi": "chuyển dịch, di dời"
+  },
+  {
+    "id": "f15b4c30-33c2-4785-8114-93519afb0466",
+    "hanzi": "祝福",
+    "pinyin": "zhùfú",
+    "meaning_vi": "chúc phúc, cầu chúc"
+  },
+  {
+    "id": "bc0f9d01-ced9-4e46-a66a-a7f63e30f9c2",
+    "hanzi": "追究",
+    "pinyin": "zhuījiū",
+    "meaning_vi": "truy cứu, điều tra"
+  },
+  {
+    "id": "78c1080a-e612-4deb-9b74-c9deee1c2a34",
+    "hanzi": "助理",
+    "pinyin": "zhùlǐ",
+    "meaning_vi": "trợ lý"
+  },
+  {
+    "id": "33fc22f2-aac1-4489-a904-ce144def5416",
+    "hanzi": "助手",
+    "pinyin": "zhùshǒu",
+    "meaning_vi": "trợ thủ, người giúp việc"
+  },
+  {
+    "id": "6a1358dc-54f6-4a19-9ded-d71c985af8d0",
+    "hanzi": "住宅",
+    "pinyin": "zhùzhái",
+    "meaning_vi": "nhà ở, nơi cư trú"
+  },
+  {
+    "id": "c19ab951-68dd-4868-92d1-daefe185bf06",
+    "hanzi": "主张",
+    "pinyin": "zhǔzhāng",
+    "meaning_vi": "chủ trương, quan điểm"
+  },
+  {
+    "id": "afbc2211-0fd9-4d42-90fd-1edcd6848eb0",
+    "hanzi": "著作",
+    "pinyin": "zhùzuò",
+    "meaning_vi": "tác phẩm, trước tác"
+  },
+  {
+    "id": "a43a5942-02a0-4706-a9eb-217ed2c1aa28",
+    "hanzi": "资本",
+    "pinyin": "zīběn",
+    "meaning_vi": "vốn, tư bản"
+  },
+  {
+    "id": "65b3cc3b-60bf-47a6-9fbc-c8d8d73f9d60",
+    "hanzi": "资产",
+    "pinyin": "zīchǎn",
+    "meaning_vi": "tài sản"
+  },
+  {
+    "id": "8a983bec-9582-44fe-a1b5-8acf3b0353b2",
+    "hanzi": "自豪",
+    "pinyin": "zìháo",
+    "meaning_vi": "tự hào"
+  },
+  {
+    "id": "fc8fbde6-ab24-4780-87c5-88a74920869f",
+    "hanzi": "字幕",
+    "pinyin": "zìmù",
+    "meaning_vi": "phụ đề"
+  },
+  {
+    "id": "5bc37cf0-50aa-4d79-a662-57183d64180f",
+    "hanzi": "自愿",
+    "pinyin": "zìyuàn",
+    "meaning_vi": "tự nguyện"
+  },
+  {
+    "id": "a5aea389-88d7-4c01-bfc9-56c39ab0e95c",
+    "hanzi": "总裁",
+    "pinyin": "zǒngcái",
+    "meaning_vi": "tổng giám đốc, chủ tịch"
+  },
+  {
+    "id": "1e560e04-25f6-4028-8566-27506b50e4fc",
+    "hanzi": "总理",
+    "pinyin": "zǒnglǐ",
+    "meaning_vi": "thủ tướng"
+  },
+  {
+    "id": "ca91b56a-8c15-491a-8247-1a9a82a7bc37",
+    "hanzi": "棕色",
+    "pinyin": "zōngsè",
+    "meaning_vi": "màu nâu"
+  },
+  {
+    "id": "d856ed5d-42a3-4433-87f2-384b99857396",
+    "hanzi": "总算",
+    "pinyin": "zǒngsuàn",
+    "meaning_vi": "cuối cùng cũng"
+  },
+  {
+    "id": "3c9ee2b0-9f44-4faa-8312-85703eace44b",
+    "hanzi": "走廊",
+    "pinyin": "zǒuláng",
+    "meaning_vi": "hành lang"
+  },
+  {
+    "id": "293c6f93-3f73-4d74-8061-6d4deffdf25c",
+    "hanzi": "阻碍",
+    "pinyin": "zǔ'ài",
+    "meaning_vi": "cản trở, trở ngại"
+  },
+  {
+    "id": "19ecee2e-30f0-45e8-a803-e0764526c919",
+    "hanzi": "祖国",
+    "pinyin": "zǔguó",
+    "meaning_vi": "tổ quốc"
+  },
+  {
+    "id": "f14870a4-0deb-43d8-9dcc-aa44134ceb84",
+    "hanzi": "祖先",
+    "pinyin": "zǔxiān",
+    "meaning_vi": "tổ tiên"
+  },
+  {
+    "id": "f2800dad-8651-475c-bf85-19c4413b64cc",
+    "hanzi": "足以",
+    "pinyin": "zúyǐ",
+    "meaning_vi": "đủ để"
+  }
+]

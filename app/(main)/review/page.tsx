@@ -1,6 +1,6 @@
 import { createClient, getCachedAuthUser } from '@/lib/supabase/server'
 import FlashcardReviewer from './flashcard-reviewer'
-import { BookOpen, Sparkles, BrainCircuit, ArrowRight, GraduationCap, Compass } from 'lucide-react'
+import { BookOpen, CheckCircle2, BrainCircuit, ArrowRight, GraduationCap, Compass } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { MascotAvatar } from '@/components/mascot/mascot-avatar'
@@ -67,7 +67,7 @@ export default async function ReviewPage() {
         {/* Guest Banner */}
         <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 text-xs font-serif text-amber-900 dark:text-amber-200">
           <div className="flex items-center gap-2.5">
-            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <BrainCircuit className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
               Bạn đang ở chế độ xem thử mẫu Flashcard HSK 1. <strong>Đăng nhập</strong> để lưu kho từ vựng cá nhân.
             </span>
@@ -193,7 +193,7 @@ export default async function ReviewPage() {
           </div>
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-jade-soft text-jade text-xs font-serif font-bold border border-jade/20">
-              <Sparkles className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Đã hoàn thành xuất sắc mục tiêu hôm nay!</span>
             </div>
             <h3 className="text-xl md:text-2xl font-serif text-title font-bold">

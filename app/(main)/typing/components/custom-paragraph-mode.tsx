@@ -57,7 +57,7 @@ import {
   ArrowLeft,
   Check,
   AlertTriangle,
-  Sparkles,
+  NotebookPen,
   HelpCircle,
   Sliders,
   Volume2,
@@ -605,10 +605,22 @@ export default function CustomParagraphMode({
           // Lấy danh sách từ của câu này để ánh xạ charIndex
           const sentenceWords = tokenizedBlocks[index]?.words || segmentChineseText(item.text)
 
+          let boundaryCount = 0
+          let boundaryFallbackTimer: ReturnType<typeof setTimeout> | null = null
+
           utterance.onstart = () => {
             if (currentUtteranceId !== utteranceIdRef.current) return
             setSpeechStatus('playing')
             startKeepAlive()
+
+            // Cơ chế phòng vệ Mobile WebKit: Nếu sau 600ms không nhận thêm boundary (hoặc chỉ nhận boundary 0 duy nhất),
+            // tự động chuyển về sentence fallback để không kẹt chữ đầu tiên
+            boundaryFallbackTimer = setTimeout(() => {
+              if (currentUtteranceId !== utteranceIdRef.current) return
+              if (boundaryCount <= 1 && item.text.length > 2) {
+                setSpeakingWordIndex(null)
+              }
+            }, 600)
           }
 
           // Đồng bộ từ ngữ theo thời gian thực qua sự kiện onboundary nếu hỗ trợ
@@ -616,6 +628,7 @@ export default function CustomParagraphMode({
             if (currentUtteranceId !== utteranceIdRef.current) return
             if (event.name === 'sentence') return
 
+            boundaryCount++
             const charIndex = typeof event.charIndex === 'number' ? event.charIndex : 0
             const wordIdx = findWordIndexByCharIndex(sentenceWords, charIndex)
             if (wordIdx !== -1) {
@@ -624,6 +637,7 @@ export default function CustomParagraphMode({
           }
 
           utterance.onend = () => {
+            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -673,6 +687,7 @@ export default function CustomParagraphMode({
           }
 
           utterance.onerror = (e) => {
+            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -1276,7 +1291,7 @@ export default function CustomParagraphMode({
           <div className="bg-card border border-border rounded-2xl p-5 md:p-8 space-y-6 shadow-2xs">
             <div className="space-y-1">
               <h3 className="font-serif font-bold text-lg text-title flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-app-accent" />
+                <NotebookPen className="w-5 h-5 text-app-accent" />
                 <span>Nhập văn bản mục tiêu cần luyện đánh máy</span>
               </h3>
               <p className="text-xs text-muted font-serif">
@@ -1407,7 +1422,7 @@ export default function CustomParagraphMode({
                   className="font-serif text-xs rounded-xl border-app-accent/40 text-app-accent hover:bg-app-accent-soft/30 hover:border-app-accent gap-1.5"
                   title="Dùng Gemini cá nhân tạo Pinyin và nghĩa tiếng Việt không tốn API quota"
                 >
-                  <Sparkles className="w-4 h-4 text-app-accent" />
+                  <Languages className="w-4 h-4 text-app-accent" />
                   <span>{editorHasPinyinAndMeaning ? 'Cập nhật Pinyin & Nghĩa' : 'Bổ sung Pinyin & nghĩa bằng Gemini'}</span>
                 </Button>
 
@@ -1554,7 +1569,7 @@ export default function CustomParagraphMode({
                           className="font-serif text-xs rounded-xl border-border text-muted hover:text-title hover:border-app-accent/40 gap-1 h-8"
                           title="Bổ sung hoặc cập nhật Pinyin & Nghĩa"
                         >
-                          <Sparkles className="w-3.5 h-3.5 text-app-accent" />
+                          <Languages className="w-3.5 h-3.5 text-app-accent" />
                           <span>{ex.hasPinyinAndMeaning ? 'Pinyin & Nghĩa' : 'Bổ sung Pinyin'}</span>
                         </Button>
 
@@ -1705,7 +1720,7 @@ export default function CustomParagraphMode({
               }`}
               title="Sử dụng Gemini cá nhân tạo Pinyin & Nghĩa"
             >
-              <Sparkles className="w-3.5 h-3.5 text-app-accent" />
+              <Languages className="w-3.5 h-3.5 text-app-accent" />
               <span>{currentHasPinyinAndMeaning ? 'Cập nhật Pinyin/Nghĩa' : 'Bổ sung Pinyin & Nghĩa'}</span>
             </Button>
           </div>
@@ -1855,7 +1870,11 @@ export default function CustomParagraphMode({
               const gapChars = currentText.slice(prevEnd, block.startIndex)
 
               return (
-                <div key={bIdx} className="space-y-1">
+                <div
+                  key={bIdx}
+                  className="space-y-1"
+                  style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
+                >
                   {/* Ký tự khoảng trắng / ngắt dòng giữa các đoạn */}
                   {gapChars && (
                     <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1">

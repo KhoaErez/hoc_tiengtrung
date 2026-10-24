@@ -8,7 +8,6 @@ import {
   ArrowUpDown,
   X,
   BookOpen,
-  Sparkles,
   Brain,
   Layers,
   LayoutGrid,
@@ -172,7 +171,7 @@ export default function RadicalGrid() {
               href="/radicals/flashcard"
               className="flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border rounded-lg text-sm font-serif text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-xs"
             >
-              <Sparkles className="w-4 h-4 text-app-accent" />
+              <Layers className="w-4 h-4 text-app-accent" />
               Flashcard
             </Link>
             <Link
@@ -390,7 +389,11 @@ export default function RadicalGrid() {
       {strokeSections.length > 0 ? (
         <div className="space-y-8">
           {strokeSections.map((section) => (
-            <div key={section.strokes} className="space-y-3.5">
+            <div
+              key={section.strokes}
+              className="space-y-3.5"
+              style={{ contentVisibility: 'auto', containIntrinsicSize: '240px' }}
+            >
               {/* Tiêu đề nhóm số nét chuẩn như hình mẫu */}
               <div className="flex items-center gap-2 pt-2">
                 {/* Tag số nét phong cách mộc/con dấu vàng cam */}

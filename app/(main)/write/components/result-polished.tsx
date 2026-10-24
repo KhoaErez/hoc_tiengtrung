@@ -7,7 +7,6 @@ import {
   Check, 
   Columns, 
   FileText, 
-  Sparkles,
   ArrowRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -99,7 +98,10 @@ export function ResultPolished({ originalText, correctedText }: ResultPolishedPr
         /* Single Polished View */
         <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-2xl p-5 sm:p-7 shadow-2xs relative">
           <div className="flex items-center justify-between mb-3 text-xs text-emerald-800 font-sans font-semibold">
-            <span>✨ Văn phong đã được AI tinh chỉnh chuẩn xác:</span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 inline" />
+              <span>Văn phong đã được AI tinh chỉnh chuẩn xác:</span>
+            </span>
           </div>
           <div className="text-base sm:text-lg font-serif leading-loose text-title whitespace-pre-wrap select-text">
             {correctedText}

@@ -7,7 +7,8 @@ import {
   CheckCircle2, 
   ChevronRight, 
   ChevronLeft,
-  Sparkles, 
+  NotebookPen,
+  BookMarked,
   BookType, 
   GraduationCap, 
   WholeWord,
@@ -66,6 +67,9 @@ interface HskDashboardClientProps {
   globalVocabs?: GlobalVocab[]
   totalLevelVocabCount?: number
   isLoggedIn: boolean
+  initialVocabPage?: number
+  initialTab?: 'lessons' | 'vocab'
+  initialVocabSearch?: string
 }
 
 export default function HskDashboardClient({
@@ -77,12 +81,15 @@ export default function HskDashboardClient({
   globalVocabs = [],
   totalLevelVocabCount,
   isLoggedIn,
+  initialVocabPage = 1,
+  initialTab = 'lessons',
+  initialVocabSearch = '',
 }: HskDashboardClientProps) {
   const { openLoginForm } = useAuthModal()
-  const [activeTab, setActiveTab] = useState<'lessons' | 'vocab'>('lessons')
+  const [activeTab, setActiveTab] = useState<'lessons' | 'vocab'>(initialTab)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'completed' | 'not_started'>('all')
-  const [vocabSearchQuery, setVocabSearchQuery] = useState('')
+  const [vocabSearchQuery, setVocabSearchQuery] = useState(initialVocabSearch)
   const [visibleLessonsCount, setVisibleLessonsCount] = useState(24)
   const vocabTopRef = useRef<HTMLDivElement>(null)
 
@@ -165,30 +172,58 @@ export default function HskDashboardClient({
     return result
   }, [lessons, searchQuery, statusFilter, isLoggedIn])
 
-  // On-demand Vocabulary states
+  // On-demand Vocabulary states (Chuẩn hóa 20 từ/trang theo yêu cầu)
+  const VOCAB_PAGE_SIZE = 20
   const [vocabList, setVocabList] = useState<TopicVocabItem[]>(globalVocabs)
-  const [vocabPage, setVocabPage] = useState(1)
+  const [vocabPage, setVocabPage] = useState(initialVocabPage)
   const [vocabTotalCount, setVocabTotalCount] = useState(actualVocabCount)
   const [isLoadingVocabs, setIsLoadingVocabs] = useState(false)
   const [hasMoreVocabs, setHasMoreVocabs] = useState(false)
-  const [debouncedVocabSearch, setDebouncedVocabSearch] = useState('')
+  const [debouncedVocabSearch, setDebouncedVocabSearch] = useState(initialVocabSearch)
 
   // Debounce vocab search input (300ms)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedVocabSearch(vocabSearchQuery)
+      setVocabPage(1) // Reset về trang 1 khi thay đổi từ khóa tìm kiếm
     }, 300)
     return () => clearTimeout(timer)
   }, [vocabSearchQuery])
 
-  // Load vocabs on demand from server action
+  // Đồng bộ trạng thái tab và trang từ vựng lên URL query params
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    params.set('q', currentHsk)
+    if (activeTab === 'vocab') {
+      params.set('tab', 'vocab')
+      if (vocabPage > 1) {
+        params.set('page', String(vocabPage))
+      } else {
+        params.delete('page')
+      }
+      if (debouncedVocabSearch.trim()) {
+        params.set('vq', debouncedVocabSearch.trim())
+      } else {
+        params.delete('vq')
+      }
+    } else {
+      params.delete('tab')
+      params.delete('page')
+      params.delete('vq')
+    }
+    const newUrl = `/topics?${params.toString()}`
+    window.history.replaceState(null, '', newUrl)
+  }, [activeTab, currentHsk, vocabPage, debouncedVocabSearch])
+
+  // Load vocabs on demand from server action (chuẩn 20 từ/trang)
   const loadVocabs = useCallback(async () => {
     setIsLoadingVocabs(true)
     try {
       const res = await getTopicVocabulariesAction({
         hskLevel: currentHsk,
         page: vocabPage,
-        pageSize: 30,
+        pageSize: VOCAB_PAGE_SIZE,
         search: debouncedVocabSearch,
       })
       if (res.success) {
@@ -383,7 +418,7 @@ export default function HskDashboardClient({
                 </div>
               ) : auditData?.status === 'partial' ? (
                 <div className="flex items-center gap-2 text-xs font-serif text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
-                  <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <Clock className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span>
                     Hệ thống hiện có <strong>{formatNumber(actualVocabCount)}</strong> từ vựng mới và <strong>{lessons.length}</strong> bài học thực tế. Nội dung đang tiếp tục được bổ sung theo khung chuẩn HSK 3.0 (mục tiêu {formatNumber(levelInfo?.newVocab || standardVocabTarget)} từ mới, tích lũy {formatNumber(standardVocabTarget)} từ).
                   </span>
@@ -661,7 +696,7 @@ export default function HskDashboardClient({
                               )}
                               {isLoggedIn && isInProgress && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-amber-50 text-amber-700 border border-amber-200/50">
-                                  <Sparkles className="w-2.5 h-2.5" />
+                                  <NotebookPen className="w-2.5 h-2.5" />
                                   Đang học ({learnedCount}/{lesson.vocab_count})
                                 </span>
                               )}
@@ -776,9 +811,25 @@ export default function HskDashboardClient({
               </div>
 
               {isLoadingVocabs ? (
-                <div className="p-12 rounded-2xl border border-border bg-card/60 text-center space-y-3">
-                  <Loader2 className="w-8 h-8 text-app-accent animate-spin mx-auto opacity-70" />
-                  <p className="text-xs sm:text-sm font-serif text-muted">Đang tải danh sách từ vựng...</p>
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div 
+                      key={`vocab-skel-${idx}`}
+                      className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border/60 bg-card/40 animate-pulse flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 min-h-[92px]"
+                    >
+                      <div className="flex items-center gap-3 sm:w-44 shrink-0">
+                        <div className="w-5 h-4 bg-muted/20 rounded" />
+                        <div className="space-y-2">
+                          <div className="w-16 h-7 bg-muted/20 rounded-md" />
+                          <div className="w-20 h-3 bg-muted/15 rounded" />
+                        </div>
+                      </div>
+                      <div className="flex-1 space-y-2.5">
+                        <div className="w-48 h-4 bg-muted/20 rounded" />
+                        <div className="w-full max-w-md h-3.5 bg-muted/15 rounded" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : vocabList.length === 0 ? (
                 <div className="p-10 rounded-2xl border border-dashed border-border bg-card/60 text-center space-y-2">
@@ -790,7 +841,7 @@ export default function HskDashboardClient({
                 <>
                   <div className="space-y-3">
                     {vocabList.map((v, i) => {
-                      const itemIndex = (vocabPage - 1) * 30 + i + 1
+                      const itemIndex = (vocabPage - 1) * VOCAB_PAGE_SIZE + i + 1
                       return (
                         <div 
                           key={v.id} 
@@ -912,7 +963,7 @@ export default function HskDashboardClient({
                                 </div>
                               ) : (
                                 <div className="p-2.5 rounded-xl bg-page/40 border border-dashed border-border/60 text-xs text-muted font-serif italic mt-2 flex items-center gap-1.5">
-                                  <Sparkles className="w-3.5 h-3.5 text-muted/60 shrink-0" />
+                                  <Clock className="w-3.5 h-3.5 text-muted/60 shrink-0" />
                                   <span>Câu ví dụ thực tế đang được đồng bộ hóa...</span>
                                 </div>
                               )}
@@ -924,44 +975,97 @@ export default function HskDashboardClient({
                     })}
                   </div>
 
-                  {/* Thanh phân trang từ vựng (Pagination Bar) */}
-                  {vocabTotalCount > 30 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-card border border-border mt-4 shadow-2xs">
-                      <span className="text-xs font-serif text-muted text-center sm:text-left">
-                        Trang <strong>{vocabPage}</strong> / <strong>{Math.ceil(vocabTotalCount / 30)}</strong> ({vocabTotalCount} từ)
-                      </span>
+                  {/* Thanh phân trang từ vựng nâng cao (20 từ/trang + Chọn số trang) */}
+                  {vocabTotalCount > VOCAB_PAGE_SIZE && (() => {
+                    const totalPages = Math.ceil(vocabTotalCount / VOCAB_PAGE_SIZE)
+                    const startItem = (vocabPage - 1) * VOCAB_PAGE_SIZE + 1
+                    const endItem = Math.min(vocabPage * VOCAB_PAGE_SIZE, vocabTotalCount)
 
-                      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={vocabPage <= 1 || isLoadingVocabs}
-                          onClick={() => {
-                            setVocabPage((p) => Math.max(1, p - 1))
-                            vocabTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }}
-                          className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center justify-center gap-1 flex-1 sm:flex-initial min-h-[38px] px-3 active:scale-[0.98] touch-manipulation cursor-pointer"
-                        >
-                          <ChevronLeft className="w-3.5 h-3.5" />
-                          <span>Trang trước</span>
-                        </Button>
+                    // Tính dải số trang hiển thị thông minh (Desktop)
+                    const getPageNumbers = () => {
+                      if (totalPages <= 7) return Array.from({ length: totalPages }, (_, idx) => idx + 1)
+                      if (vocabPage <= 4) return [1, 2, 3, 4, 5, '...', totalPages]
+                      if (vocabPage >= totalPages - 3) return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+                      return [1, '...', vocabPage - 1, vocabPage, vocabPage + 1, '...', totalPages]
+                    }
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={!hasMoreVocabs || vocabPage >= Math.ceil(vocabTotalCount / 30) || isLoadingVocabs}
-                          onClick={() => {
-                            setVocabPage((p) => p + 1)
-                            vocabTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                          }}
-                          className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center justify-center gap-1 flex-1 sm:flex-initial min-h-[38px] px-3 active:scale-[0.98] touch-manipulation cursor-pointer"
-                        >
-                          <span>Trang tiếp</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </Button>
+                    const handlePageChange = (newPage: number) => {
+                      if (newPage < 1 || newPage > totalPages || newPage === vocabPage) return
+                      setVocabPage(newPage)
+                      vocabTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    }
+
+                    return (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-3.5 p-4 rounded-2xl bg-card border border-border mt-5 shadow-2xs">
+                        {/* Thông tin số lượng hiển thị */}
+                        <div className="text-xs font-serif text-muted text-center sm:text-left">
+                          Đang hiển thị <strong>{startItem}–{endItem}</strong> trong tổng số <strong>{formatNumber(vocabTotalCount)}</strong> từ hợp lệ (Trang <strong>{vocabPage}</strong> / {totalPages})
+                        </div>
+
+                        {/* Điều khiển phân trang */}
+                        <div className="flex items-center gap-2 flex-wrap justify-center sm:justify-end w-full sm:w-auto">
+                          {/* Nút Trang trước (Mobile >= 44px) */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={vocabPage <= 1 || isLoadingVocabs}
+                            onClick={() => handlePageChange(vocabPage - 1)}
+                            className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center gap-1.5 min-h-[44px] px-4 py-2.5 active:scale-[0.98] cursor-pointer touch-manipulation shadow-2xs rounded-xl"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            <span>Trước</span>
+                          </Button>
+
+                          {/* Danh sách các số trang (Desktop) */}
+                          <div className="hidden md:flex items-center gap-1.5">
+                            {getPageNumbers().map((pNum, idx) => {
+                              if (pNum === '...') {
+                                return (
+                                  <span key={`ellipsis-${idx}`} className="px-2 text-xs text-muted font-mono select-none">
+                                    ...
+                                  </span>
+                                )
+                              }
+                              const p = pNum as number
+                              const isCurrent = p === vocabPage
+                              return (
+                                <button
+                                  key={`page-${p}`}
+                                  type="button"
+                                  onClick={() => handlePageChange(p)}
+                                  disabled={isLoadingVocabs}
+                                  className={`min-w-[40px] h-[40px] rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                                    isCurrent
+                                      ? 'bg-app-accent text-white shadow-2xs'
+                                      : 'bg-page/60 text-muted hover:text-title hover:bg-page border border-border/80'
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              )
+                            })}
+                          </div>
+
+                          {/* Nhãn trang trên Mobile */}
+                          <div className="md:hidden flex items-center px-3 min-h-[44px] text-xs font-mono font-bold text-title">
+                            {vocabPage} / {totalPages}
+                          </div>
+
+                          {/* Nút Trang tiếp (Mobile >= 44px) */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={vocabPage >= totalPages || isLoadingVocabs}
+                            onClick={() => handlePageChange(vocabPage + 1)}
+                            className="font-serif text-xs border-[#E9DDD1] hover:bg-[#FFF9F3] flex items-center gap-1.5 min-h-[44px] px-4 py-2.5 active:scale-[0.98] cursor-pointer touch-manipulation shadow-2xs rounded-xl"
+                          >
+                            <span>Tiếp</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )
+                  })()}
                 </>
               )}
             </div>
@@ -973,7 +1077,7 @@ export default function HskDashboardClient({
           <section className="space-y-4 pt-4 border-t border-border">
             <div className="flex items-center justify-between">
               <h2 className="text-base sm:text-lg font-serif font-bold text-title flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-app-accent" />
+                <BookMarked className="w-4 h-4 text-app-accent" />
                 Từ vựng mới lưu trong cấp độ này
               </h2>
             </div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { 
-  Sparkles, 
+  BrainCircuit, 
   Loader2, 
   Copy, 
   Trash2, 
@@ -188,7 +188,7 @@ export function WritingCanvas({
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-gold animate-pulse" />
+                <BrainCircuit className="w-4 h-4 text-gold" />
                 <span>Phân tích bài viết (AI sửa)</span>
               </>
             )}

@@ -16,7 +16,7 @@ import {
   ValidationReport,
 } from '@/lib/typing-gemini-validator'
 import {
-  Sparkles,
+  Languages,
   Copy,
   Check,
   ExternalLink,
@@ -151,7 +151,7 @@ export default function TypingGeminiModal({
       <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 md:p-7 bg-card">
         <DialogHeader className="border-b border-border pb-3">
           <DialogTitle className="font-serif font-bold text-lg md:text-xl text-title flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-app-accent flex-shrink-0" />
+            <Languages className="w-5 h-5 text-app-accent flex-shrink-0" />
             <span>Bổ sung Pinyin & Nghĩa tiếng Việt bằng Gemini cá nhân</span>
           </DialogTitle>
           <DialogDescription className="font-serif text-xs text-muted">

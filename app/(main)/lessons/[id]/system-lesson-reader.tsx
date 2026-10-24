@@ -11,7 +11,6 @@ import {
   XCircle,
   BrainCircuit,
   Search,
-  Sparkles,
   RotateCcw,
   Check,
   ChevronRight,
@@ -274,7 +273,7 @@ export default function SystemLessonReader({
 
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-jade-soft text-jade text-xs font-serif font-bold border border-jade/20">
-              <Sparkles className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Hoàn thành xuất sắc bài học!</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold text-title">Xuất sắc hoàn thành!</h2>

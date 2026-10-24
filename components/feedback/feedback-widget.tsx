@@ -12,7 +12,7 @@ import {
   BookOpen, 
   HelpCircle,
   Loader2,
-  Sparkles
+  CheckCircle2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { submitFeedbackAction, FeedbackCategory } from '@/app/actions/feedback'
@@ -247,7 +247,7 @@ export function FeedbackWidget() {
                 </div>
                 <div className="space-y-1.5">
                   <h3 className="text-lg font-bold text-title flex items-center justify-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-gold" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     <span>Tiểu Bút đã nhận được tin nhắn!</span>
                   </h3>
                   <p className="text-xs text-muted leading-relaxed max-w-xs mx-auto">
@@ -425,9 +425,9 @@ export function FeedbackWidget() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble) */}
+        {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble - chỉ hiển thị trên tablet/desktop sm:block để không che màn hình mobile nhỏ) */}
         {!isOpen && showTooltip && (
-          <div className={`absolute bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-56 sm:w-60 text-xs text-title font-serif animate-in fade-in duration-200 z-50 ${
+          <div className={`hidden sm:block absolute bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-56 sm:w-60 text-xs text-title font-serif animate-in fade-in duration-200 z-50 ${
             pathname.startsWith('/typing')
               ? 'left-full ml-3 slide-in-from-left-2'
               : 'right-full mr-3 slide-in-from-right-2'

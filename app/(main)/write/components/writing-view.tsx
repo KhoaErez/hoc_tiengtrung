@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { 
   PenTool, 
-  Sparkles, 
+  NotebookPen, 
   Award, 
   CheckCircle2, 
   FileText, 
@@ -239,7 +239,7 @@ export function WritingView() {
       {!result && !isSubmitting && (
         <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xs space-y-3.5">
           <div className="flex items-center gap-2 border-b border-border pb-2.5">
-            <Sparkles className="w-4 h-4 text-gold" />
+            <NotebookPen className="w-4 h-4 text-gold" />
             <h3 className="font-bold text-xs sm:text-sm text-title">
               Quy trình 3 bước nâng cao kỹ năng viết cùng AI
             </h3>

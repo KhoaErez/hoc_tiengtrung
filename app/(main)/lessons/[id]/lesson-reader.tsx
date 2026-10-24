@@ -4,12 +4,18 @@ import { useState, useTransition } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { saveVocabularyAction, updateLessonAiDataAction } from '../actions'
-import { PlusCircle, ArrowLeft, Edit, Sparkles, BookOpen, Trash2, Loader2 } from 'lucide-react'
-import HanziWriterComponent from '@/components/hanzi-writer-comp'
+import { PlusCircle, ArrowLeft, Edit, BrainCircuit, BookOpen, Trash2, Loader2 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { AudioButton } from '@/components/ui/audio-button'
 import { PassageAudioPlayer } from '@/components/ui/passage-audio-player'
+
+// Tải trễ HanziWriter (112 KB) bằng next/dynamic để giảm tải JS ban đầu
+const HanziWriterComponent = dynamic(() => import('@/components/hanzi-writer-comp'), {
+  ssr: false,
+  loading: () => <div className="w-[100px] h-[100px] bg-slate-100 dark:bg-slate-800 animate-pulse rounded border border-slate-200 dark:border-slate-700" />,
+})
 
 type Word = { hanzi: string, pinyin: string, vi: string, example_hanzi?: string, example_pinyin?: string, example_vi?: string }
 type Grammar = { structure: string, explanation: string }
@@ -157,7 +163,7 @@ export default function LessonReader({ lesson, aiData, originalText, runAiAction
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4 mr-2 group-hover:text-amber-300 transition-colors shrink-0" /> <span>{hasAiData ? "Phân tích lại AI" : "Phân tích AI"}</span>
+                <BrainCircuit className="h-4 w-4 mr-2 group-hover:text-amber-300 transition-colors shrink-0" /> <span>{hasAiData ? "Phân tích lại AI" : "Phân tích AI"}</span>
               </>
             )}
           </Button>

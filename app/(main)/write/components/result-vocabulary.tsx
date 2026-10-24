@@ -1,6 +1,6 @@
 'use client'
 
-import { BookOpen, Lightbulb, Sparkles, Volume2 } from 'lucide-react'
+import { BookOpen, Lightbulb, Volume2 } from 'lucide-react'
 import { AudioButton } from '@/components/ui/audio-button'
 
 export interface VocabularySuggestionItem {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { XCircle, AlertCircle, CheckCircle, Volume2, Sparkles, Filter } from 'lucide-react'
+import { XCircle, AlertCircle, CheckCircle, Volume2, Filter } from 'lucide-react'
 import { AudioButton } from '@/components/ui/audio-button'
 
 export interface WritingErrorItem {

@@ -1,14 +1,16 @@
-name: CD - Tự động Triển khai Vercel (Production)
+name: CD - Triển khai Vercel Dự phòng (Manual Fallback)
 
+# Luồng triển khai Production chính thức do Vercel Git Integration đảm nhiệm tự động khi push/merge vào main.
+# Workflow này chỉ dùng làm phương án dự phòng khi cần kích hoạt thủ công qua GitHub Actions.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
   group: vercel-deploy-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   deploy-production:

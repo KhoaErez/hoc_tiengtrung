@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Sparkles, ChevronRight, BookOpen, Compass, Check, X } from 'lucide-react'
+import { NotebookPen, ChevronRight, BookOpen, Compass, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export interface WritingTopic {
@@ -220,7 +220,7 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
               onClick={handleApplyTopic}
               className="font-serif text-xs h-8 bg-title hover:bg-app-accent text-white rounded-xl gap-1.5"
             >
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
+              <NotebookPen className="w-3.5 h-3.5 text-gold" />
               <span>Chèn khung gợi ý vào bài viết</span>
             </Button>
           </div>

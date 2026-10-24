@@ -87,7 +87,6 @@ import {
   EyeOff,
   History,
   BookOpen,
-  Sparkles,
   X,
   Volume2,
   VolumeX,
@@ -578,11 +577,24 @@ export default function TypingClient() {
           activeUtteranceRef.current = utterance
           retainUtterance(utterance)
 
+          let boundaryCount = 0
+          let boundaryFallbackTimer: ReturnType<typeof setTimeout> | null = null
+
           utterance.onstart = () => {
             if (currentUtteranceId !== utteranceIdRef.current) return
             if (thisEpoch !== currentCardEpochRef.current) return
             setSpeechStatus('playing')
             startKeepAlive()
+
+            // Cơ chế phòng vệ Mobile WebKit: Nếu sau 600ms không nhận thêm boundary (hoặc chỉ nhận boundary 0 duy nhất),
+            // tự động chuyển về sentence fallback để không kẹt chữ đầu tiên
+            boundaryFallbackTimer = setTimeout(() => {
+              if (currentUtteranceId !== utteranceIdRef.current) return
+              if (thisEpoch !== currentCardEpochRef.current) return
+              if (boundaryCount <= 1 && item.text.length > 2) {
+                setSpeakingWordIndex(null)
+              }
+            }, 600)
           }
 
           // Lắng nghe sự kiện boundary để tô sáng từng từ nếu trình duyệt/giọng đọc hỗ trợ
@@ -593,6 +605,7 @@ export default function TypingClient() {
             // Bỏ qua boundary cấp độ sentence (chỉ nhận diện word boundary thực tế)
             if (event.name === 'sentence') return
 
+            boundaryCount++
             const charIndex = typeof event.charIndex === 'number' ? event.charIndex : 0
             const globalCharIndex = item.startIndex + charIndex
 
@@ -607,6 +620,7 @@ export default function TypingClient() {
           }
 
           utterance.onend = () => {
+            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -665,6 +679,7 @@ export default function TypingClient() {
           }
 
           utterance.onerror = (e) => {
+            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -1543,8 +1558,11 @@ export default function TypingClient() {
       const actions = keyActionsRef.current
       if (actions.showHistoryModal) return
 
+      // Bỏ qua hoàn toàn nếu người dùng đang nhập IME tiếng Trung
+      if (e.isComposing || e.keyCode === 229 || actions.isComposing) return
+
       // Enter khi đã hoàn thành -> sang câu kế tiếp
-      if (e.key === 'Enter' && actions.isCompleted && !actions.isComposing) {
+      if (e.key === 'Enter' && actions.isCompleted) {
         e.preventDefault()
         actions.handleNext()
       }
@@ -1555,8 +1573,8 @@ export default function TypingClient() {
         setExerciseEpoch((prev) => prev + 1)
         actions.resetExercise()
       }
-      // Ctrl + Space hoặc Alt + S -> Phát lại âm thanh câu hiện tại (đặc biệt hữu ích khi ẩn chữ Hán)
-      if ((e.ctrlKey && e.code === 'Space') || (e.altKey && (e.key === 's' || e.key === 'S'))) {
+      // Alt + S -> Phát lại âm thanh câu hiện tại (tránh dùng Ctrl + Space vì trùng phím tắt chuyển IME trên Windows)
+      if (e.altKey && (e.key === 's' || e.key === 'S')) {
         e.preventDefault()
         actions.handlePlayCurrentSentence()
       }
@@ -1780,7 +1798,7 @@ export default function TypingClient() {
                 : 'text-muted hover:text-title hover:bg-page'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <FileText className="w-4 h-4" />
             <span>Tự tạo bài luyện từ văn bản cá nhân</span>
           </button>
         </div>

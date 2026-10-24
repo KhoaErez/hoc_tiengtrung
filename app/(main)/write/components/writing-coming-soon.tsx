@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { PenTool, Sparkles, Clock, ArrowLeft, Keyboard, BookOpen, CheckCircle2 } from 'lucide-react'
+import { PenTool, BrainCircuit, NotebookPen, Clock, ArrowLeft, Keyboard, BookOpen, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function WritingComingSoon() {
@@ -25,7 +25,7 @@ export function WritingComingSoon() {
             <PenTool className="w-8 h-8" />
           </div>
           <span className="absolute -top-1 -right-1 p-1 rounded-full bg-gold-soft text-gold border border-gold/30 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5" />
+            <BrainCircuit className="w-3.5 h-3.5" />
           </span>
         </div>
 
@@ -48,7 +48,7 @@ export function WritingComingSoon() {
         {/* Khung giới thiệu những trải nghiệm sắp tới (Teaser thuần thông tin, không nút giả) */}
         <div className="bg-page/70 border border-border/80 rounded-2xl p-5 sm:p-6 text-left max-w-xl mx-auto space-y-3.5 shadow-2xs">
           <div className="flex items-center gap-2 text-xs font-bold text-title">
-            <Sparkles className="w-4 h-4 text-app-accent" />
+            <NotebookPen className="w-4 h-4 text-app-accent" />
             <span>Những khả năng sẽ có trong phiên bản hoàn thiện:</span>
           </div>
 

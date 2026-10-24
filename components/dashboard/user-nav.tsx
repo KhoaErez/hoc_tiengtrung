@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { User, LogOut, ChevronDown, GraduationCap, Keyboard, Sparkles, LogIn, UserPlus, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { User, LogOut, ChevronDown, GraduationCap, Keyboard, Component, LogIn, UserPlus, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { logout } from '@/app/auth/actions'
 
 import { useAuthModal } from '@/components/auth/auth-modal-context'
@@ -161,7 +161,7 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-body hover:text-title hover:bg-page transition-colors"
             >
-              <Sparkles className="w-4 h-4 text-app-accent" />
+              <Component className="w-4 h-4 text-app-accent" />
               <span>214 Bộ thủ</span>
             </Link>
           </div>

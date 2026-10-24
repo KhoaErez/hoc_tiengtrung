@@ -21,7 +21,6 @@ import {
   CheckCircle2,
   XCircle,
   RotateCcw,
-  Sparkles,
   ArrowRight,
   ArrowLeft,
   Volume2,

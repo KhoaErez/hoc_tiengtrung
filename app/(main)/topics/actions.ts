@@ -30,13 +30,14 @@ export interface GetTopicVocabulariesResponse {
   totalCount: number
   page: number
   pageSize: number
+  totalPages: number
   hasMore: boolean
   error?: string
 }
 
 /**
  * Tải danh sách từ vựng theo phân trang và tìm kiếm cho cấp độ HSK
- * Giúp triệt tiêu tải hàng ngàn từ vựng cùng lúc vào payload SSR ban đầu
+ * Mặc định 20 từ/trang, loại bỏ từ vựng legacy HSK 2.0 khỏi HSK 6 mục tiêu
  */
 export async function getTopicVocabulariesAction(params: {
   hskLevel: string
@@ -47,7 +48,7 @@ export async function getTopicVocabulariesAction(params: {
   try {
     const supabase = await createClient()
     const page = Math.max(1, params.page || 1)
-    const pageSize = Math.max(10, Math.min(100, params.pageSize || 30))
+    const pageSize = Math.max(10, Math.min(100, params.pageSize || 20))
     const from = (page - 1) * pageSize
     const to = from + pageSize - 1
 
@@ -55,6 +56,11 @@ export async function getTopicVocabulariesAction(params: {
       .from('vocabularies')
       .select('id, hanzi, pinyin, meaning_vi, word_type, hsk_level, example_hanzi, example_pinyin, example_vi', { count: 'exact' })
       .eq('hsk_level', params.hskLevel)
+
+    // Lọc loại bỏ toàn bộ từ legacy HSK 2.0 unmapped khỏi danh sách HSK 6 mục tiêu
+    if (params.hskLevel === 'HSK 6') {
+      query = query.in('validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+    }
 
     if (params.search && params.search.trim()) {
       const q = params.search.trim()
@@ -65,6 +71,9 @@ export async function getTopicVocabulariesAction(params: {
       .order('pinyin', { ascending: true })
       .range(from, to)
 
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pageSize) || 1
+
     if (error) {
       return {
         success: false,
@@ -72,6 +81,7 @@ export async function getTopicVocabulariesAction(params: {
         totalCount: 0,
         page,
         pageSize,
+        totalPages: 0,
         hasMore: false,
         error: error.message,
       }
@@ -109,7 +119,6 @@ export async function getTopicVocabulariesAction(params: {
       }
     }
 
-    const totalCount = count || 0
     return {
       success: true,
       vocabs: vocabList.map((row) => {
@@ -143,15 +152,19 @@ export async function getTopicVocabulariesAction(params: {
       totalCount,
       page,
       pageSize,
+      totalPages,
       hasMore: totalCount > to + 1,
     }
   } catch (err: any) {
+    const page = params.page || 1
+    const pageSize = params.pageSize || 20
     return {
       success: false,
       vocabs: [],
       totalCount: 0,
-      page: params.page || 1,
-      pageSize: params.pageSize || 30,
+      page,
+      pageSize,
+      totalPages: 0,
       hasMore: false,
       error: err?.message || 'Lỗi khi tải từ vựng',
     }

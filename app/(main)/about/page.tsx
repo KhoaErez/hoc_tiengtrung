@@ -8,7 +8,7 @@ import {
   Scale, 
   Layers, 
   CheckCircle2, 
-  Sparkles,
+  Target,
   ArrowLeft,
   ExternalLink
 } from 'lucide-react'
@@ -81,7 +81,7 @@ export default function AboutPage() {
 
         <div className="space-y-2">
           <h3 className="text-sm font-serif font-semibold text-title flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-app-accent" />
+            <Target className="w-4 h-4 text-app-accent" />
             <span>Mục đích & Sứ mệnh</span>
           </h3>
           <p className="text-sm font-serif text-body leading-relaxed text-justify">

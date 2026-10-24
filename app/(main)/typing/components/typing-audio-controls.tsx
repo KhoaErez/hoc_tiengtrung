@@ -8,7 +8,6 @@ import {
   Pause,
   Square,
   Headphones,
-  Sparkles,
   Info,
   ChevronDown,
   ChevronLeft,
@@ -511,7 +510,7 @@ export default function TypingAudioControls({
             }`}
             title="Tự động phát âm thanh khi hiển thị câu mới hoặc chuyển câu"
           >
-            <Sparkles className="w-3.5 h-3.5 text-gold" />
+            <Headphones className="w-3.5 h-3.5 text-gold" />
             <span>Tự động đọc câu mới</span>
           </button>
         </div>

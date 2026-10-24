@@ -9,7 +9,7 @@ import {
   ArrowRight, 
   CheckCircle2, 
   Flame, 
-  Sparkles,
+  GraduationCap,
   Award,
   PlayCircle,
   RotateCcw,
@@ -138,7 +138,7 @@ export default async function HomePage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 relative z-10">
             <div className="max-w-2xl space-y-3.5 sm:space-y-4 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-app-accent-soft text-app-accent text-xs font-serif font-medium border border-app-accent/30">
-                <Sparkles className="w-3.5 h-3.5" />
+                <GraduationCap className="w-3.5 h-3.5" />
                 <span>Không gian học tiếng Trung hiện đại & bản sắc</span>
               </div>
               
@@ -191,7 +191,6 @@ export default async function HomePage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs sm:text-sm font-serif text-muted">Xin chào,</span>
                   <span className="text-lg sm:text-xl md:text-2xl font-serif font-bold text-title truncate">{displayName}</span>
-                  <span className="inline-block text-amber-500">✨</span>
                 </div>
                 <p className="text-xs sm:text-sm text-muted font-serif">
                   Hôm nay bạn muốn tiếp tục lộ trình học tập nào?

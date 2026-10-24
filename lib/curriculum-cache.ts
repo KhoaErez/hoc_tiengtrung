@@ -125,10 +125,16 @@ export const getCachedTotalVocabCountByLevel = unstable_cache(
       const supabase = getStaticSupabaseClient()
       if (!supabase) return 0
 
-      const { count, error } = await supabase
+      let query = supabase
         .from('vocabularies')
         .select('id', { count: 'exact', head: true })
         .eq('hsk_level', hskLevel)
+
+      if (hskLevel === 'HSK 6') {
+        query = query.in('validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+      }
+
+      const { count, error } = await query
 
       if (error || typeof count !== 'number') return 0
       return count
@@ -187,10 +193,16 @@ export const getCachedAllVocabCounts = unstable_cache(
 
       const results = await Promise.all(
         SUPPORTED_VOCAB_LEVELS.map(async (lvl) => {
-          const { count, error } = await supabase
+          let query = supabase
             .from('vocabularies')
             .select('*', { count: 'exact', head: true })
             .eq('hsk_level', lvl)
+
+          if (lvl === 'HSK 6') {
+            query = query.in('validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+          }
+
+          const { count, error } = await query
 
           if (error) {
             console.error(`Lỗi đếm số lượng từ vựng ${lvl}:`, error.message)

@@ -1,27 +1,32 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback, useId } from 'react'
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { 
-  Home, 
-  BookOpen, 
-  Component, 
-  Keyboard, 
-  BrainCircuit, 
-  ShieldCheck, 
-  MessageSquare,
-  PenTool,
-  GraduationCap,
+import {
   ChevronDown,
-  Sparkles,
   Clock,
-  X
+  X,
+  ShieldCheck,
 } from 'lucide-react'
 import { ProtectedLink } from '@/components/protected-link'
-import { HSK_AUDIT_DATA } from '@/data/hsk-curriculum'
 import { formatNumber } from '@/lib/utils'
 import { getLiveVocabCountsAction } from '@/app/actions/vocab-counts'
+import {
+  CORE_LEARNING_ITEMS,
+  HSK_GROUP_CONFIG,
+  HSK_STAGES_CONFIG,
+  APPLIED_GROUP_CONFIG,
+  APPLIED_ITEMS_CONFIG,
+  FOUNDATION_GROUP_CONFIG,
+  FOUNDATION_ITEMS_CONFIG,
+  TOOLS_GROUP_CONFIG,
+  TOOLS_ITEMS_CONFIG,
+  ADMIN_ITEMS_CONFIG,
+  isNavigationItemActive,
+  getActiveGroupId,
+  type NavItemConfig,
+} from './navigation-config'
 
 interface SidebarNavProps {
   isLoggedIn: boolean
@@ -34,25 +39,23 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
   const searchParams = useSearchParams()
   const qParam = searchParams?.get('q')
 
-  // Trạng thái lưu trữ số lượng từ vựng thực tế theo thời gian thực từ Supabase
+  // Unique ID prefix for ARIA attributes
+  const accordionId = useId()
+
+  // 1. Trạng thái số lượng từ vựng thực tế theo thời gian thực từ Supabase
   const [vocabCounts, setVocabCounts] = useState<Record<string, number | null> | undefined>(initialVocabCounts)
   const [isLoadingCounts, setIsLoadingCounts] = useState<boolean>(!initialVocabCounts)
 
-  // Tải dữ liệu số lượng thực tế nếu chưa có initialVocabCounts (hoặc khi component mount)
-  React.useEffect(() => {
+  useEffect(() => {
     if (!initialVocabCounts) {
       let isMounted = true
       setIsLoadingCounts(true)
       getLiveVocabCountsAction()
         .then((res) => {
-          if (isMounted) {
-            setVocabCounts(res.counts)
-          }
+          if (isMounted) setVocabCounts(res.counts)
         })
         .catch(() => {
-          if (isMounted) {
-            setVocabCounts(undefined)
-          }
+          if (isMounted) setVocabCounts(undefined)
         })
         .finally(() => {
           if (isMounted) setIsLoadingCounts(false)
@@ -63,8 +66,7 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
     }
   }, [initialVocabCounts])
 
-  // Lắng nghe sự kiện cập nhật từ vựng (ví dụ khi admin mutation xảy ra)
-  React.useEffect(() => {
+  useEffect(() => {
     const handleUpdate = () => {
       getLiveVocabCountsAction().then((res) => {
         setVocabCounts(res.counts)
@@ -74,133 +76,95 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
     return () => window.removeEventListener('vocab-counts-updated', handleUpdate)
   }, [])
 
-  // Xác định liệu người dùng có đang ở trong một mục HSK hay không
-  const isCurrentlyInHsk = 
-    pathname.startsWith('/hsk') || 
-    pathname === '/topics' || 
-    pathname.startsWith('/topics/')
+  // 2. Xác định nhóm active dựa trên URL hiện tại
+  const activeGroupId = getActiveGroupId(pathname, qParam)
 
-  // Trạng thái thu gọn/mở rộng nhóm Lộ trình HSK (Khởi tạo mở nếu đang ở trang HSK)
-  const [isHskExpanded, setIsHskExpanded] = useState<boolean>(() => isCurrentlyInHsk || true)
+  // 3. Quản lý trạng thái đóng/mở của 4 nhóm Accordion
+  // MẶC ĐỊNH THU GỌN: Chỉ mở nhóm có chứa mục đang được học viên truy cập
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => ({
+    hsk: activeGroupId === 'hsk',
+    applied: activeGroupId === 'applied',
+    foundation: activeGroupId === 'foundation',
+    tools: activeGroupId === 'tools',
+  }))
 
-  // Trạng thái modal thông báo hoàn thiện nội dung (cho các cấp HSK coming_soon)
+  // Tự động mở nhóm khi học viên chuyển trang đến mục con thuộc nhóm đó
+  useEffect(() => {
+    if (activeGroupId) {
+      setExpandedGroups((prev) => {
+        if (!prev[activeGroupId]) {
+          return { ...prev, [activeGroupId]: true }
+        }
+        return prev
+      })
+    }
+  }, [activeGroupId])
+
+  // Hàm toggle nhóm thủ công khi click tiêu đề
+  const toggleGroup = useCallback((groupId: string) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }))
+  }, [])
+
+  // 4. Modal thông báo lộ trình đang hoàn thiện (HSK 7–9)
   const [comingSoonModal, setComingSoonModal] = useState<{
     title: string
     message: string
   } | null>(null)
 
-  // Nhóm 1: Học tập (Core Learning)
-  const coreLearningItems = [
-    {
-      label: 'Trang chủ',
-      href: '/',
-      icon: Home,
-      isProtected: false,
-      isActive: pathname === '/',
-    },
-    {
-      label: 'Chủ đề sưu tầm',
-      href: '/lessons',
-      icon: BookOpen,
-      isProtected: false,
-      isActive: pathname === '/lessons' || pathname.startsWith('/lessons/'),
-    },
-    {
-      label: 'Ôn tập thẻ nhớ',
-      href: '/review',
-      icon: BrainCircuit,
-      isProtected: true,
-      isActive: pathname === '/review' || pathname.startsWith('/review/'),
-    },
-  ]
-
-  // Nhóm 2: Lộ trình HSK 3.0 (Số lượng từ thực tế đối soát từ CSDL & Tiêu chuẩn GF 0025-2021)
-  const hskStages = [
-    {
-      stage: 'Sơ cấp (初等)',
-      levels: [
-        { label: 'HSK 1', level: '1', data: HSK_AUDIT_DATA['HSK 1'] },
-        { label: 'HSK 2', level: '2', data: HSK_AUDIT_DATA['HSK 2'] },
-        { label: 'HSK 3', level: '3', data: HSK_AUDIT_DATA['HSK 3'] },
-      ],
-    },
-    {
-      stage: 'Trung cấp (中等)',
-      levels: [
-        { label: 'HSK 4', level: '4', data: HSK_AUDIT_DATA['HSK 4'] },
-        { label: 'HSK 5', level: '5', data: HSK_AUDIT_DATA['HSK 5'] },
-        { label: 'HSK 6', level: '6', data: HSK_AUDIT_DATA['HSK 6'] },
-      ],
-    },
-    {
-      stage: 'Cao cấp (高等)',
-      levels: [
-        { label: 'HSK 7-9', level: '7', data: HSK_AUDIT_DATA['HSK 7-9'] },
-      ],
-    },
-  ]
-
-  const practicalTopics = [
-    { label: 'Giao tiếp thực tế', topic: 'Giao tiếp', data: HSK_AUDIT_DATA['Giao tiếp'] },
-    { label: 'Tiếng Trung công xưởng', topic: 'Công xưởng', data: HSK_AUDIT_DATA['Công xưởng'] },
-  ]
-
-  // Nhóm 3: Công cụ luyện tập (Practice & Tools)
-  const practiceTools = [
-    {
-      label: 'Luyện đánh máy',
-      href: '/typing',
-      icon: Keyboard,
-      isProtected: false,
-      isActive: pathname === '/typing' || pathname.startsWith('/typing/'),
-    },
-    {
-      label: '214 Bộ thủ Khang Hy',
-      href: '/radicals',
-      icon: Component,
-      isProtected: false,
-      isActive: pathname === '/radicals' || pathname.startsWith('/radicals/'),
-    },
-    {
-      label: 'Luyện Viết AI',
-      href: '/write',
-      icon: PenTool,
-      isProtected: false,
-      isActive: pathname === '/write' || pathname.startsWith('/write/'),
-      badge: 'Sắp ra mắt',
-    },
-  ]
-
-  // Kiểm tra trạng thái Active của từng mục HSK
-  const isHskItemActive = (topic: string) => {
-    if (topic.startsWith('HSK ')) {
-      const level = topic.replace('HSK ', '').trim()
-      if (pathname === `/hsk/${level}` || pathname.startsWith(`/hsk/${level}/`)) {
-        return true
-      }
-      if (pathname === '/topics') {
-        if (qParam === topic) return true
-        if (!qParam && topic === 'HSK 1') return true
-      }
-      return false
+  // 5. Hàm hiển thị badge số lượng từ vựng hoặc nhãn đặc biệt
+  const renderBadge = (tag: string, defaultStatus?: string) => {
+    if (isLoadingCounts && !vocabCounts) {
+      return (
+        <span className="inline-block w-10 h-3.5 bg-black/5 dark:bg-white/10 rounded animate-pulse" />
+      )
     }
-    if (pathname === '/topics') {
-      return qParam === topic
+
+    const count = vocabCounts ? vocabCounts[tag] : undefined
+
+    if (count === null) {
+      return (
+        <span 
+          className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-red-500/10 text-red-600 font-medium"
+          title="Không thể tải số lượng từ vựng từ cơ sở dữ liệu lúc này"
+        >
+          Chưa tải được
+        </span>
+      )
     }
-    return false
+
+    if (tag === 'HSK 7-9' || (count === 0 && defaultStatus === 'coming_soon')) {
+      return (
+        <span className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+          Sắp có
+        </span>
+      )
+    }
+
+    if (typeof count === 'number') {
+      const active = isNavigationItemActive(pathname, qParam, { topic: tag })
+      return (
+        <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 font-medium ${
+          active
+            ? 'bg-app-accent/15 text-app-accent'
+            : 'bg-black/[0.03] text-muted'
+        }`}>
+          {formatNumber(count)} từ
+        </span>
+      )
+    }
+
+    return (
+      <span className="inline-block w-10 h-3.5 bg-black/5 dark:bg-white/10 rounded animate-pulse" />
+    )
   }
 
-  // Render navigation item chuẩn hóa
-  const renderNavItem = (item: {
-    label: string
-    href: string
-    icon: React.ComponentType<{ className?: string }>
-    isProtected: boolean
-    isActive: boolean
-    badge?: string
-  }) => {
+  // 6. Render mục đơn thông thường
+  const renderSingleItem = (item: NavItemConfig) => {
     const Icon = item.icon
-    const active = item.isActive
+    const active = isNavigationItemActive(pathname, qParam, item)
 
     const linkClassName = `flex items-center justify-between gap-2.5 px-3 py-1.5 text-xs sm:text-sm rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
       active
@@ -211,7 +175,9 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
     const content = (
       <>
         <div className="flex items-center gap-2.5 min-w-0">
-          <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
+          {Icon && (
+            <Icon className={`h-4 w-4 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
+          )}
           <span className="truncate">{item.label}</span>
         </div>
         {item.badge && (
@@ -246,149 +212,163 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
     )
   }
 
-  // Hàm hiển thị badge số lượng từ vựng thực tế theo CSDL Supabase
-  const renderBadge = (tag: string, defaultStatus?: string) => {
-    // 1. Khi đang tải và chưa có dữ liệu: hiển thị skeleton (không giật layout)
-    if (isLoadingCounts && !vocabCounts) {
-      return (
-        <span className="inline-block w-10 h-3.5 bg-black/5 dark:bg-white/10 rounded animate-pulse" />
-      )
-    }
-
-    const count = vocabCounts ? vocabCounts[tag] : undefined
-
-    // 2. Truy vấn lỗi (null): hiển thị "Chưa tải được", không hiển thị số giả hay 0 từ
-    if (count === null) {
-      return (
-        <span 
-          className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-red-500/10 text-red-600 dark:text-red-400 font-medium"
-          title="Không thể tải số lượng từ vựng từ cơ sở dữ liệu lúc này"
-        >
-          Chưa tải được
-        </span>
-      )
-    }
-
-    // 3. Chưa có nội dung hoặc HSK 7-9 (0 từ trong DB): hiển thị "Sắp có"
-    if (tag === 'HSK 7-9' || (count === 0 && defaultStatus === 'coming_soon')) {
-      return (
-        <span className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
-          Sắp có
-        </span>
-      )
-    }
-
-    // 4. Có số lượng thực tế: hiển thị chính xác số từ thực tế trong Supabase
-    if (typeof count === 'number') {
-      const active = isHskItemActive(tag)
-      return (
-        <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 font-medium ${
-          active
-            ? 'bg-app-accent/15 text-app-accent'
-            : 'bg-black/[0.03] text-muted'
-        }`}>
-          {formatNumber(count)} từ
-        </span>
-      )
-    }
-
-    // Fallback skeleton
-    return (
-      <span className="inline-block w-10 h-3.5 bg-black/5 dark:bg-white/10 rounded animate-pulse" />
-    )
-  }
-
   return (
-    <div className="flex-1 overflow-y-auto py-3 px-3 space-y-4 no-scrollbar">
+    <div className="flex-1 overflow-y-auto py-3 px-3 space-y-3.5 no-scrollbar">
       
-      {/* 1. KHU VỰC HỌC TẬP (Core Learning) */}
+      {/* ================================================================== */}
+      {/* KHU VỰC TỔNG QUAN (CORE LEARNING) */}
+      {/* ================================================================== */}
       <div className="space-y-0.5">
         <div className="px-3 pb-1 text-[10px] font-semibold text-muted/60 uppercase tracking-wider font-sans">
-          Học tập
+          Tổng quan
         </div>
-        <nav className="space-y-0.5" aria-label="Menu học tập chính">
-          {coreLearningItems.map(renderNavItem)}
+        <nav className="space-y-0.5" aria-label="Menu tổng quan">
+          {CORE_LEARNING_ITEMS.map(renderSingleItem)}
         </nav>
       </div>
 
-      {/* 2. KHU VỰC LỘ TRÌNH HSK (HSK Curriculum Accordion) */}
-      <div className="space-y-0.5 pt-1">
+      {/* ================================================================== */}
+      {/* NHÓM 1: LỘ TRÌNH HSK 3.0 (ACCORDION) */}
+      {/* ================================================================== */}
+      <div className="space-y-0.5 pt-0.5">
         <button
+          id={`${accordionId}-header-hsk`}
           type="button"
-          onClick={() => setIsHskExpanded((prev) => !prev)}
-          className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted/70 hover:text-title transition-colors rounded-md group cursor-pointer select-none"
-          aria-expanded={isHskExpanded}
+          onClick={() => toggleGroup('hsk')}
+          className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg group cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 ${
+            expandedGroups.hsk || activeGroupId === 'hsk'
+              ? 'text-title bg-black/[0.02] dark:bg-white/[0.03]'
+              : 'text-muted/80 hover:text-title hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+          }`}
+          aria-expanded={expandedGroups.hsk}
+          aria-controls={`${accordionId}-content-hsk`}
         >
-          <span className="flex items-center gap-1.5 font-sans">
-            <GraduationCap className="w-3.5 h-3.5 text-app-accent" />
-            <span>Lộ trình HSK 3.0</span>
+          <span className="flex items-center gap-2 font-sans">
+            <HSK_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.hsk || activeGroupId === 'hsk' ? 'text-app-accent' : 'text-muted'}`} />
+            <span className="font-bold tracking-wide">{HSK_GROUP_CONFIG.title}</span>
           </span>
-          <ChevronDown
-            className={`w-3.5 h-3.5 text-muted transition-transform duration-200 group-hover:text-title ${
-              isHskExpanded ? 'rotate-180' : ''
-            }`}
-          />
+          <span className="flex items-center gap-1.5">
+            {!expandedGroups.hsk && (
+              <span className="text-[10px] font-mono text-muted/70 font-medium px-1.5 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06]">
+                HSK 1–9
+              </span>
+            )}
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out group-hover:text-title ${
+                expandedGroups.hsk ? 'rotate-180 text-app-accent' : ''
+              }`}
+            />
+          </span>
         </button>
 
-        {/* Danh sách HSK 3.0 khi mở Accordion */}
-        {isHskExpanded && (
-          <nav className="space-y-1.5 pl-1 pt-0.5" aria-label="Danh sách cấp độ HSK 3.0">
-            {hskStages.map((stageGroup) => (
-              <div key={stageGroup.stage} className="space-y-0.5">
-                <div className="px-3 pt-1 pb-0.5 text-[9px] font-semibold text-muted/60 uppercase tracking-wider font-sans">
-                  {stageGroup.stage}
+        {/* Danh sách cấp độ HSK 1–9 */}
+        <div
+          id={`${accordionId}-content-hsk`}
+          role="region"
+          aria-labelledby={`${accordionId}-header-hsk`}
+          className={`grid transition-[grid-template-rows,opacity] duration-250 ease-in-out ${
+            expandedGroups.hsk ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <nav className="space-y-1.5 pl-1 pt-1 pb-1" aria-label="Danh sách cấp độ HSK 3.0">
+              {HSK_STAGES_CONFIG.map((stageGroup) => (
+                <div key={stageGroup.stage} className="space-y-0.5">
+                  <div className="px-3 pt-1 pb-0.5 text-[9px] font-semibold text-muted/60 uppercase tracking-wider font-sans">
+                    {stageGroup.stage} ({stageGroup.stageZh})
+                  </div>
+                  {stageGroup.levels.map((hsk) => {
+                    const active = isNavigationItemActive(pathname, qParam, { topic: hsk.topic })
+                    const count = vocabCounts ? vocabCounts[hsk.data.tag] : undefined
+                    const isComingSoon = hsk.isComingSoon || hsk.data.status === 'coming_soon' || (count === 0 && hsk.data.tag === 'HSK 7-9')
+
+                    return (
+                      <Link
+                        key={hsk.topic}
+                        href={hsk.href}
+                        onClick={(e) => {
+                          if (isComingSoon) {
+                            e.preventDefault()
+                            setComingSoonModal({
+                              title: hsk.label,
+                              message: hsk.data.friendlyNotice,
+                            })
+                          }
+                        }}
+                        className={`flex items-center justify-between px-3 py-1.5 text-xs rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
+                          active
+                            ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
+                            : 'border-transparent text-body hover:text-app-accent hover:bg-black/[0.03]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
+                              active ? 'bg-app-accent' : isComingSoon ? 'bg-amber-400' : 'bg-border-strong'
+                            }`}
+                          />
+                          <span className="font-serif font-semibold">{hsk.label}</span>
+                        </div>
+                        {renderBadge(hsk.data.tag, hsk.data.status)}
+                      </Link>
+                    )
+                  })}
                 </div>
-                {stageGroup.levels.map((hsk) => {
-                  const topicName = hsk.label
-                  const active = isHskItemActive(topicName)
-                  const count = vocabCounts ? vocabCounts[hsk.data.tag] : undefined
-                  const isComingSoon = hsk.data.status === 'coming_soon' || (count === 0 && hsk.data.tag === 'HSK 7-9')
+              ))}
+            </nav>
+          </div>
+        </div>
+      </div>
 
-                  return (
-                    <Link
-                      key={topicName}
-                      href={`/topics?q=${encodeURIComponent(topicName)}`}
-                      onClick={(e) => {
-                        if (isComingSoon) {
-                          e.preventDefault()
-                          setComingSoonModal({
-                            title: hsk.label,
-                            message: hsk.data.friendlyNotice,
-                          })
-                        }
-                      }}
-                      className={`flex items-center justify-between px-3 py-1.5 text-xs rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
-                        active
-                          ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
-                          : 'border-transparent text-body hover:text-app-accent hover:bg-black/[0.03]'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full shrink-0 transition-colors ${
-                            active ? 'bg-app-accent' : isComingSoon ? 'bg-amber-400' : 'bg-border-strong'
-                          }`}
-                        />
-                        <span className="font-serif font-semibold">{hsk.label}</span>
-                      </div>
-                      {renderBadge(hsk.data.tag, hsk.data.status)}
-                    </Link>
-                  )
-                })}
-              </div>
-            ))}
+      {/* ================================================================== */}
+      {/* NHÓM 2: GIAO TIẾP & ỨNG DỤNG (ACCORDION) */}
+      {/* ================================================================== */}
+      <div className="space-y-0.5 pt-0.5">
+        <button
+          id={`${accordionId}-header-applied`}
+          type="button"
+          onClick={() => toggleGroup('applied')}
+          className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg group cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 ${
+            expandedGroups.applied || activeGroupId === 'applied'
+              ? 'text-title bg-black/[0.02] dark:bg-white/[0.03]'
+              : 'text-muted/80 hover:text-title hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+          }`}
+          aria-expanded={expandedGroups.applied}
+          aria-controls={`${accordionId}-content-applied`}
+        >
+          <span className="flex items-center gap-2 font-sans">
+            <APPLIED_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.applied || activeGroupId === 'applied' ? 'text-app-accent' : 'text-muted'}`} />
+            <span className="font-bold tracking-wide">{APPLIED_GROUP_CONFIG.title}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out group-hover:text-title ${
+                expandedGroups.applied ? 'rotate-180 text-app-accent' : ''
+              }`}
+            />
+          </span>
+        </button>
 
-            {/* Chủ đề mở rộng */}
-            <div className="pt-1.5 space-y-0.5 border-t border-border/40">
-              <div className="px-3 pb-0.5 text-[9px] font-semibold text-muted/60 uppercase tracking-wider font-sans">
-                Chuyên đề ứng dụng
-              </div>
-              {practicalTopics.map((item) => {
-                const active = isHskItemActive(item.topic)
+        {/* Danh sách mục con Giao tiếp & Công xưởng */}
+        <div
+          id={`${accordionId}-content-applied`}
+          role="region"
+          aria-labelledby={`${accordionId}-header-applied`}
+          className={`grid transition-[grid-template-rows,opacity] duration-250 ease-in-out ${
+            expandedGroups.applied ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <nav className="space-y-0.5 pl-1 pt-1 pb-1" aria-label="Menu giao tiếp & ứng dụng">
+              {APPLIED_ITEMS_CONFIG.map((item) => {
+                const Icon = item.icon
+                const active = isNavigationItemActive(pathname, qParam, item)
+                const countTag = item.topic || ''
+
                 return (
                   <Link
-                    key={item.topic}
-                    href={`/topics?q=${encodeURIComponent(item.topic)}`}
+                    key={item.href}
+                    href={item.href}
                     className={`flex items-center justify-between px-3 py-1.5 text-xs rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
                       active
                         ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
@@ -396,64 +376,188 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <Sparkles className={`w-3 h-3 shrink-0 ${active ? 'text-app-accent' : 'text-muted'}`} />
+                      {Icon && (
+                        <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted'}`} />
+                      )}
                       <span className="font-serif truncate">{item.label}</span>
                     </div>
-                    {renderBadge(item.topic, item.data.status)}
+                    {item.data && renderBadge(countTag, item.data.status)}
                   </Link>
                 )
               })}
-            </div>
-          </nav>
-        )}
-      </div>
-
-      {/* 3. KHU VỰC CÔNG CỤ LUYỆN TẬP (Tools & Practice) */}
-      <div className="space-y-0.5 pt-1">
-        <div className="px-3 pb-1 text-[10px] font-semibold text-muted/60 uppercase tracking-wider font-sans">
-          Công cụ & Kỹ năng
+            </nav>
+          </div>
         </div>
-        <nav className="space-y-0.5" aria-label="Menu công cụ luyện tập">
-          {practiceTools.map(renderNavItem)}
-        </nav>
       </div>
 
-      {/* 4. KHU VỰC QUẢN TRỊ VIÊN (Chỉ hiển thị khi có quyền Admin) */}
+      {/* ================================================================== */}
+      {/* NHÓM 3: NỀN TẢNG TIẾNG TRUNG (ACCORDION) */}
+      {/* ================================================================== */}
+      <div className="space-y-0.5 pt-0.5">
+        <button
+          id={`${accordionId}-header-foundation`}
+          type="button"
+          onClick={() => toggleGroup('foundation')}
+          className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg group cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 ${
+            expandedGroups.foundation || activeGroupId === 'foundation'
+              ? 'text-title bg-black/[0.02] dark:bg-white/[0.03]'
+              : 'text-muted/80 hover:text-title hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+          }`}
+          aria-expanded={expandedGroups.foundation}
+          aria-controls={`${accordionId}-content-foundation`}
+        >
+          <span className="flex items-center gap-2 font-sans">
+            <FOUNDATION_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.foundation || activeGroupId === 'foundation' ? 'text-app-accent' : 'text-muted'}`} />
+            <span className="font-bold tracking-wide">{FOUNDATION_GROUP_CONFIG.title}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out group-hover:text-title ${
+                expandedGroups.foundation ? 'rotate-180 text-app-accent' : ''
+              }`}
+            />
+          </span>
+        </button>
+
+        {/* Danh sách mục con Ngữ pháp HSK & 214 Bộ thủ */}
+        <div
+          id={`${accordionId}-content-foundation`}
+          role="region"
+          aria-labelledby={`${accordionId}-header-foundation`}
+          className={`grid transition-[grid-template-rows,opacity] duration-250 ease-in-out ${
+            expandedGroups.foundation ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <nav className="space-y-0.5 pl-1 pt-1 pb-1" aria-label="Menu nền tảng tiếng Trung">
+              {FOUNDATION_ITEMS_CONFIG.map((item) => {
+                const Icon = item.icon
+                const active = isNavigationItemActive(pathname, qParam, item)
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-between px-3 py-1.5 text-xs rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
+                      active
+                        ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
+                        : 'border-transparent text-body hover:text-app-accent hover:bg-black/[0.03]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {Icon && (
+                        <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted'}`} />
+                      )}
+                      <span className="font-serif truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded font-medium border ${
+                        active
+                          ? 'bg-app-accent/15 text-app-accent border-app-accent/30'
+                          : 'bg-black/[0.03] text-muted border-border/60'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* NHÓM 4: CÔNG CỤ & KỸ NĂNG (ACCORDION) */}
+      {/* ================================================================== */}
+      <div className="space-y-0.5 pt-0.5">
+        <button
+          id={`${accordionId}-header-tools`}
+          type="button"
+          onClick={() => toggleGroup('tools')}
+          className={`w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg group cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 ${
+            expandedGroups.tools || activeGroupId === 'tools'
+              ? 'text-title bg-black/[0.02] dark:bg-white/[0.03]'
+              : 'text-muted/80 hover:text-title hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
+          }`}
+          aria-expanded={expandedGroups.tools}
+          aria-controls={`${accordionId}-content-tools`}
+        >
+          <span className="flex items-center gap-2 font-sans">
+            <TOOLS_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.tools || activeGroupId === 'tools' ? 'text-app-accent' : 'text-muted'}`} />
+            <span className="font-bold tracking-wide">{TOOLS_GROUP_CONFIG.title}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <ChevronDown
+              className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out group-hover:text-title ${
+                expandedGroups.tools ? 'rotate-180 text-app-accent' : ''
+              }`}
+            />
+          </span>
+        </button>
+
+        {/* Danh sách mục con Luyện đánh máy & Luyện Viết AI */}
+        <div
+          id={`${accordionId}-content-tools`}
+          role="region"
+          aria-labelledby={`${accordionId}-header-tools`}
+          className={`grid transition-[grid-template-rows,opacity] duration-250 ease-in-out ${
+            expandedGroups.tools ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="overflow-hidden">
+            <nav className="space-y-0.5 pl-1 pt-1 pb-1" aria-label="Menu công cụ & kỹ năng">
+              {TOOLS_ITEMS_CONFIG.map((item) => {
+                const Icon = item.icon
+                const active = isNavigationItemActive(pathname, qParam, item)
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center justify-between px-3 py-1.5 text-xs rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
+                      active
+                        ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
+                        : 'border-transparent text-body hover:text-app-accent hover:bg-black/[0.03]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {Icon && (
+                        <Icon className={`w-3.5 h-3.5 shrink-0 transition-colors ${active ? 'text-app-accent' : 'text-muted'}`} />
+                      )}
+                      <span className="font-serif truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================== */}
+      {/* KHU VỰC QUẢN TRỊ VIÊN (CHỈ HIỂN THỊ KHI CÓ QUYỀN ADMIN) */}
+      {/* ================================================================== */}
       {isAdmin && (
-        <div className="space-y-0.5 pt-1">
+        <div className="space-y-0.5 pt-1 border-t border-border/40">
           <div className="px-3 pb-1 text-[10px] font-semibold text-app-accent uppercase tracking-wider font-sans flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-app-accent shrink-0" />
             <span>Quản trị hệ thống</span>
           </div>
           <nav className="space-y-0.5" aria-label="Menu quản trị viên">
-            <Link
-              href="/admin"
-              className={`flex items-center gap-2.5 px-3 py-1.5 text-xs sm:text-sm rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
-                pathname === '/admin'
-                  ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
-                  : 'border-transparent text-body hover:text-app-accent hover:bg-black/[0.03]'
-              }`}
-            >
-              <ShieldCheck className={`h-4 w-4 shrink-0 transition-colors ${pathname === '/admin' ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
-              <span className="truncate">Phân quyền tài khoản</span>
-            </Link>
-
-            <Link
-              href="/admin/feedback"
-              className={`flex items-center gap-2.5 px-3 py-1.5 text-xs sm:text-sm rounded-lg border-l-[3px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
-                pathname.startsWith('/admin/feedback')
-                  ? 'border-app-accent bg-app-accent-soft/80 text-app-accent font-medium shadow-2xs'
-                  : 'border-transparent text-body hover:text-app-accent hover:bg-black/[0.03]'
-              }`}
-            >
-              <MessageSquare className={`h-4 w-4 shrink-0 transition-colors ${pathname.startsWith('/admin/feedback') ? 'text-app-accent' : 'text-muted group-hover:text-title'}`} />
-              <span className="truncate">Góp ý & Báo lỗi</span>
-            </Link>
+            {ADMIN_ITEMS_CONFIG.map(renderSingleItem)}
           </nav>
         </div>
       )}
 
-      {/* 5. MODAL THÔNG BÁO HOÀN THIỆN NỘI DUNG (CHO CẤP HSK COMING_SOON) */}
+      {/* ================================================================== */}
+      {/* MODAL THÔNG BÁO HOÀN THIỆN NỘI DUNG (CHO CẤP HSK COMING_SOON) */}
+      {/* ================================================================== */}
       {comingSoonModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in-0 duration-150">
           <div className="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-lg space-y-4">
@@ -485,7 +589,7 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
                 {comingSoonModal.message}
               </p>
               <p className="text-[11px] text-muted">
-                Theo tiêu chuẩn HSK 3.0 (GF 0025-2021), khối thi Cao cấp HSK 7–9 gồm 11,092 từ vựng, 3,000 chữ Hán và 572 điểm ngữ pháp. Dữ liệu đang được biên soạn và kiểm duyệt kỹ lưỡng.
+                Theo tiêu chuẩn HSK 3.0 (GF 0025-2021), khối thi Cao cấp HSK 7–9 gồm 11.092 từ vựng, 3.000 chữ Hán và 572 điểm ngữ pháp. Dữ liệu đang được biên soạn và kiểm duyệt kỹ lưỡng.
               </p>
             </div>
 

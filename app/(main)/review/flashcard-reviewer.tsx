@@ -7,7 +7,6 @@ import { updateReviewStatusAction, revalidateReviewSessionAction } from './actio
 import { 
   CheckCircle2, 
   XCircle, 
-  Sparkles, 
   RotateCcw, 
   ArrowRight, 
   GraduationCap, 
@@ -192,7 +191,7 @@ export default function FlashcardReviewer({
 
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-jade-soft text-jade text-xs font-serif font-bold border border-jade/20">
-            <Sparkles className="w-3.5 h-3.5" />
+            <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Hoàn thành xuất sắc phiên ôn tập!</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif text-title font-bold">

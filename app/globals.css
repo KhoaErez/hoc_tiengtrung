@@ -378,14 +378,14 @@
   transform: rotateY(180deg);
 }
 
-/* Tuân thủ prefers-reduced-motion của người dùng */
+/* Tuân thủ toàn diện prefers-reduced-motion (WCAG 2.2 AA standard) */
 @media (prefers-reduced-motion: reduce) {
-  .mascot-animated,
-  .animate-scarf-wave,
-  .animate-hand-wave,
-  .animate-wiggle-left,
-  .animate-wiggle-right {
-    animation: none !important;
-    transform: none !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

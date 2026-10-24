@@ -476,8 +476,8 @@ export async function getHskTypingExercisesAction(
   target: 'word' | 'example' = 'example'
 ) {
   try {
-    // 1. Đối với HSK 1 đến HSK 5: Ưu tiên truy vấn trực tiếp từ Supabase
-    if (hskLevel >= 1 && hskLevel <= 5) {
+    // 1. Đối với HSK 1 đến HSK 6: Ưu tiên truy vấn trực tiếp từ Supabase
+    if (hskLevel >= 1 && hskLevel <= 6) {
       let lessonId: string | undefined = undefined
 
       if (lessonNumber && lessonNumber > 0) {
@@ -819,6 +819,9 @@ export async function getTypingExercisesFromDBAction(params: {
 
     if (hskTag) {
       query = query.eq('vocabularies.hsk_level', hskTag)
+      if (hskTag === 'HSK 6') {
+        query = query.in('vocabularies.validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+      }
     }
 
     const { data: exData } = await query
@@ -855,12 +858,17 @@ export async function getTypingExercisesFromDBAction(params: {
     // Nếu số lượng câu từ bảng ví dụ chưa đủ limit, bù đắp từ câu ví dụ inline trong bảng vocabularies
     if (exercises.length < limit && hskTag) {
       const existingVocabIds = new Set(exercises.map(e => e.vocabId))
-      const { data: fallbackVocabs } = await supabase
+      let fbQuery = supabase
         .from('vocabularies')
         .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
         .eq('hsk_level', hskTag)
         .not('example_hanzi', 'is', null)
-        .limit(limit * 2)
+
+      if (hskTag === 'HSK 6') {
+        fbQuery = fbQuery.in('validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+      }
+
+      const { data: fallbackVocabs } = await fbQuery.limit(limit * 2)
 
       if (fallbackVocabs) {
         for (const fv of fallbackVocabs) {
@@ -1005,8 +1013,7 @@ export async function getTranslationExercisesAction(params: {
       return { success: exercises.length > 0, data: exercises }
     }
 
-    // 2. Mặc định theo Cấp độ HSK (HSK 1 - 5)
-    const { data: exData, error: exErr } = await supabase
+    let query = supabase
       .from('vocabulary_examples')
       .select(`
         id,
@@ -1027,7 +1034,12 @@ export async function getTranslationExercisesAction(params: {
       .not('meaning_vi', 'is', null)
       .not('chinese', 'is', null)
       .order('order_index', { ascending: true })
-      .limit(limit)
+
+    if (hskTag === 'HSK 6') {
+      query = query.in('vocabularies.validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+    }
+
+    const { data: exData, error: exErr } = await query.limit(limit)
 
     const exercises: TranslationExerciseItem[] = []
 
@@ -1055,13 +1067,18 @@ export async function getTranslationExercisesAction(params: {
     // Nếu số lượng câu từ bảng ví dụ chưa đủ limit, bù đắp từ câu ví dụ inline trong bảng vocabularies
     if (exercises.length < limit) {
       const existingVocabIds = new Set(exercises.map((e) => e.vocabId))
-      const { data: fallbackVocabs } = await supabase
+      let fbQuery = supabase
         .from('vocabularies')
         .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
         .eq('hsk_level', hskTag)
         .not('example_hanzi', 'is', null)
         .not('example_vi', 'is', null)
-        .limit(limit * 2)
+
+      if (hskTag === 'HSK 6') {
+        fbQuery = fbQuery.in('validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
+      }
+
+      const { data: fallbackVocabs } = await fbQuery.limit(limit * 2)
 
       if (fallbackVocabs) {
         for (const fv of fallbackVocabs) {

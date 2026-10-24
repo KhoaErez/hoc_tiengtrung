@@ -1,6 +1,6 @@
 'use client'
 
-import { Award, CheckCircle2, AlertTriangle, Quote, Check, Sparkles } from 'lucide-react'
+import { Award, CheckCircle2, AlertTriangle, Quote, Check } from 'lucide-react'
 
 export interface ResultOverviewProps {
   score: number

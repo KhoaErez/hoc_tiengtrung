@@ -5,7 +5,7 @@ import { BrandSymbol } from '@/components/ui/brand-logo'
 
 export function SiteFooter() {
   return (
-    <footer 
+    <footer
       className="w-full border-t border-border/50 bg-page/75 backdrop-blur-xs select-none transition-colors"
       role="contentinfo"
       aria-label="Thông tin bản quyền và tác giả"
@@ -44,18 +44,18 @@ export function SiteFooter() {
 
         {/* Các liên kết phụ trợ */}
         <div className="pt-1 flex items-center justify-center gap-3 text-[11px] font-sans text-muted/80">
-          <Link 
-            href="/about" 
+          {/* <Link
+            href="/about"
             className="hover:text-title hover:underline transition-colors"
           >
             Về Chinese Notebook
-          </Link>
+          </Link> */}
           <span className="text-border-strong/70" aria-hidden="true">•</span>
-          <Link 
-            href="/about#intellectual-property" 
+          <Link
+            href="/about#intellectual-property"
             className="hover:text-title hover:underline transition-colors"
           >
-            Quyền sở hữu & Giấy phép
+            Tài liệu này được tham khảo và biên dịch với sự hỗ trợ của công cụ trí tuệ nhân tạo nên khó tránh khỏi một số sai sót về ngữ nghĩa. Rất mong nhận được sự thông cảm và những ý kiến đóng góp từ mọi người để nội dung ngày càng hoàn thiện hơn.
           </Link>
         </div>
       </div>

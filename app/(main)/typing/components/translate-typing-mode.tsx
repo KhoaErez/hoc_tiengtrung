@@ -34,7 +34,6 @@ import {
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
   Lightbulb,
   HelpCircle,
   Clock,
@@ -280,7 +279,7 @@ export default function TranslateTypingMode({
   // Xử lý phím Enter: Nếu đang composition -> không submit; Nếu không -> submit hoặc chuyển câu
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // Nếu IME đang chọn chữ -> bỏ qua hoàn toàn sự kiện Enter
-    if (isComposing || isComposingRef.current) {
+    if (isComposing || isComposingRef.current || e.nativeEvent?.isComposing || e.keyCode === 229) {
       return
     }
 
@@ -742,7 +741,7 @@ export default function TranslateTypingMode({
                 }`}
                 title="Mở thêm gợi ý từ vựng, phiên âm hoặc câu mẫu"
               >
-                <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
                 <span>
                   {hintLevel === 0 ? 'Xem gợi ý' : `Gợi ý (${hintLevel}/3)`}
                 </span>

@@ -141,7 +141,7 @@ export const AudioButton = React.memo(function AudioButton({
       onClick={handleClick}
       title={currentTitle}
       aria-label={currentTitle}
-      className={`inline-flex items-center justify-center gap-1.5 transition-all select-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 shrink-0 ${
+      className={`inline-flex items-center justify-center gap-1.5 transition-all select-none cursor-pointer touch-manipulation relative before:absolute before:-inset-2.5 sm:before:-inset-1 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 shrink-0 ${
         showLabel ? 'w-auto px-2.5' : sizeClasses
       } ${variantClasses} ${className}`}
     >
