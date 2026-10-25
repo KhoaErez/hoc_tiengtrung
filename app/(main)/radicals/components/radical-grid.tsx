@@ -154,14 +154,14 @@ export default function RadicalGrid() {
   return (
     <div className="space-y-6">
       {/* Tiêu đề & Giới thiệu */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-serif text-title tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-serif text-title tracking-tight font-bold">
               214 Bộ thủ Khang Hy
             </h1>
-            <p className="text-muted font-serif text-sm md:text-base mt-1">
-              Phân loại theo 17 nhóm số nét chuẩn, tra cứu chữ Hán theo bộ thủ truyền thống.
+            <p className="text-muted font-sans text-sm md:text-base mt-1">
+              Phân loại theo 17 nhóm số nét chuẩn, nền tảng cốt lõi để ghi nhớ chữ Hán.
             </p>
           </div>
 
@@ -169,25 +169,42 @@ export default function RadicalGrid() {
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/radicals/flashcard"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border rounded-lg text-sm font-serif text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] bg-card border border-[#E9DDD1] rounded-xl text-sm font-sans font-medium text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-2xs"
             >
               <Layers className="w-4 h-4 text-app-accent" />
               Flashcard
             </Link>
             <Link
               href="/radicals/quiz"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border rounded-lg text-sm font-serif text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] bg-card border border-[#E9DDD1] rounded-xl text-sm font-sans font-medium text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-2xs"
             >
               <Brain className="w-4 h-4 text-gold" />
               Quiz
             </Link>
             <Link
               href="/radicals/progress"
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border rounded-lg text-sm font-serif text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] bg-card border border-[#E9DDD1] rounded-xl text-sm font-sans font-medium text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-2xs"
             >
               <BookOpen className="w-4 h-4 text-jade" />
               Tiến độ
             </Link>
+          </div>
+        </div>
+
+        {/* Banner hướng dẫn người mới */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF9F3] border border-[#E9DDD1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <span className="p-2.5 rounded-xl bg-app-accent/10 text-app-accent shrink-0 mt-0.5">
+              <BookOpen className="w-5 h-5" />
+            </span>
+            <div className="space-y-1">
+              <h3 className="font-semibold text-title text-sm sm:text-base">
+                Bộ thủ là gì và tại sao nên học?
+              </h3>
+              <p className="text-body text-xs sm:text-sm leading-relaxed">
+                214 bộ thủ Khang Hy là các thành phần cốt lõi cấu tạo nên toàn bộ chữ Hán. Nắm vững bộ thủ giúp bạn hiểu ý nghĩa, nhớ mặt chữ sâu hơn và tra cứu từ điển chuẩn xác. Bắt đầu ngay bằng cách bấm vào các nhóm 1–3 nét bên dưới.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -202,12 +219,12 @@ export default function RadicalGrid() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Tìm theo tên Hán Việt (Nhất, Khẩu, Mộc...), chữ Hán, pinyin hoặc nghĩa..."
-            className="w-full pl-10 pr-10 py-2.5 bg-card border border-border rounded-xl text-body placeholder:text-muted text-sm font-serif focus:outline-none focus:border-app-accent shadow-xs transition-colors"
+            className="w-full pl-10 pr-10 min-h-[44px] py-2.5 bg-card border border-[#E9DDD1] rounded-xl text-body placeholder:text-muted text-sm sm:text-base font-sans focus:outline-none focus:border-app-accent focus:ring-4 focus:ring-app-accent/10 shadow-2xs transition-all"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted hover:text-title transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-title transition-colors cursor-pointer"
               title="Xóa tìm kiếm"
             >
               <X className="w-4 h-4" />
@@ -310,15 +327,15 @@ export default function RadicalGrid() {
           <button
             ref={strokeFilter === 'all' ? activeChipRef : null}
             onClick={() => handleSelectGroup('all')}
-            className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-serif transition-all ${
+            className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-sans transition-all cursor-pointer touch-manipulation ${
               strokeFilter === 'all'
-                ? 'bg-title text-white font-medium shadow-xs ring-2 ring-title/15'
-                : 'bg-page border border-border text-body hover:border-app-accent/50 hover:text-title hover:bg-card'
+                ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+                : 'bg-page border border-[#E9DDD1] text-body hover:border-app-accent/50 hover:text-title hover:bg-[#FFF9F3]'
             }`}
           >
             <span>Tất cả</span>
             <span
-              className={`text-[11px] px-1.5 py-0.2 rounded-full font-sans ${
+              className={`text-xs px-2 py-0.5 rounded-full font-sans font-bold ${
                 strokeFilter === 'all' ? 'bg-white/20 text-white' : 'bg-card border border-border/80 text-muted'
               }`}
             >
@@ -334,17 +351,17 @@ export default function RadicalGrid() {
                 key={group.strokes}
                 ref={isSelected ? activeChipRef : null}
                 onClick={() => handleSelectGroup(group.strokes)}
-                className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-serif transition-all ${
+                className={`flex-shrink-0 flex items-center justify-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl text-xs sm:text-sm font-sans transition-all cursor-pointer touch-manipulation ${
                   isSelected
-                    ? 'bg-app-accent text-white font-semibold shadow-xs ring-2 ring-app-accent/25 border-transparent'
-                    : 'bg-page border border-border text-body hover:border-app-accent/40 hover:text-title hover:bg-card'
+                    ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+                    : 'bg-page border border-[#E9DDD1] text-body hover:border-app-accent/40 hover:text-title hover:bg-[#FFF9F3]'
                 }`}
                 title={`Bộ thủ ${group.strokes} nét (${group.count} bộ thủ)`}
               >
                 <span>{group.label}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-sans ${
-                    isSelected ? 'bg-white/25 text-white font-medium' : 'bg-card border border-border/70 text-muted'
+                  className={`text-xs px-1.5 py-0.5 rounded-full font-sans font-bold ${
+                    isSelected ? 'bg-white/25 text-white' : 'bg-card border border-border/70 text-muted'
                   }`}
                 >
                   {group.count}

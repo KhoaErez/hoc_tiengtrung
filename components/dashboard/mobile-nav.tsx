@@ -279,8 +279,8 @@ export function MobileNav({
                   )}
                 </div>
                 <span
-                  className={`text-[10px] tracking-tight truncate max-w-full text-center px-0.5 transition-colors duration-200 ${
-                    isActive ? 'font-semibold font-serif text-app-accent' : 'font-normal font-serif text-muted'
+                  className={`text-[10px] sm:text-[11px] font-sans tracking-normal leading-tight text-center whitespace-nowrap px-0.5 transition-colors duration-200 ${
+                    isActive ? 'font-bold text-app-accent' : 'font-medium text-muted'
                   }`}
                 >
                   {item.label}
@@ -289,7 +289,7 @@ export function MobileNav({
             )
 
             const containerClasses =
-              'flex flex-col items-center justify-center w-full h-full gap-0.5 transition-colors outline-none cursor-pointer touch-manipulation min-h-[44px]'
+              'flex flex-col items-center justify-center w-full h-full gap-0.5 transition-colors outline-none cursor-pointer touch-manipulation min-h-[48px]'
 
             if (item.isProtected) {
               return (
@@ -315,7 +315,7 @@ export function MobileNav({
           <button
             type="button"
             onClick={toggleDrawer}
-            className="flex flex-col items-center justify-center w-full h-full gap-0.5 transition-colors outline-none cursor-pointer touch-manipulation min-h-[44px]"
+            className="flex flex-col items-center justify-center w-full h-full gap-0.5 transition-colors outline-none cursor-pointer touch-manipulation min-h-[48px]"
             aria-label="Mở menu mở rộng"
           >
             <div
@@ -333,8 +333,8 @@ export function MobileNav({
               )}
             </div>
             <span
-              className={`text-[10px] tracking-tight transition-colors duration-200 ${
-                isExtendedActive ? 'font-semibold font-serif text-app-accent' : 'font-normal font-serif text-muted'
+              className={`text-[10px] sm:text-[11px] font-sans tracking-normal leading-tight text-center whitespace-nowrap transition-colors duration-200 ${
+                isExtendedActive ? 'font-bold text-app-accent' : 'font-medium text-muted'
               }`}
             >
               Thêm
@@ -459,7 +459,7 @@ function MobileDrawer({
 
     if (tag === 'HSK 7-9' || (count === 0 && defaultStatus === 'coming_soon')) {
       return (
-        <span className="text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+        <span className="text-[10px] font-sans px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
           Sắp có
         </span>
       )
@@ -468,7 +468,7 @@ function MobileDrawer({
     if (typeof count === 'number') {
       const active = isNavigationItemActive(pathname, qParam, { topic: tag })
       return (
-        <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded shrink-0 font-medium ${
+        <span className={`text-[10px] font-sans px-1.5 py-0.5 rounded shrink-0 whitespace-nowrap font-medium ${
           active ? 'bg-app-accent/15 text-app-accent' : 'bg-black/[0.03] text-muted'
         }`}>
           {formatNumber(count)} từ
@@ -493,10 +493,10 @@ function MobileDrawer({
       <>
         <div className="flex items-center gap-2.5 min-w-0">
           {Icon && <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-app-accent' : 'text-muted'}`} />}
-          <span className="truncate">{item.label}</span>
+          <span className="truncate whitespace-nowrap">{item.label}</span>
         </div>
         {item.badge && (
-          <span className="text-[10px] font-sans px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20 shrink-0">
+          <span className="text-[10px] font-sans px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20 shrink-0 whitespace-nowrap">
             {item.badge}
           </span>
         )}
@@ -683,26 +683,28 @@ function MobileDrawer({
               id={`${drawerAccordionId}-header-hsk`}
               type="button"
               onClick={() => toggleGroup('hsk')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-[11px] font-semibold uppercase tracking-wider transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
-                expandedGroups.hsk || activeGroupId === 'hsk'
+              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-xs font-bold font-sans tracking-normal transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
+                expandedGroups.hsk
                   ? 'text-title bg-black/[0.03] dark:bg-white/[0.04]'
+                  : activeGroupId === 'hsk'
+                  ? 'text-app-accent bg-app-accent/5'
                   : 'text-muted hover:text-title hover:bg-black/[0.02]'
               }`}
               aria-expanded={expandedGroups.hsk}
               aria-controls={`${drawerAccordionId}-content-hsk`}
             >
-              <span className="flex items-center gap-2 font-sans">
-                <HSK_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.hsk || activeGroupId === 'hsk' ? 'text-app-accent' : 'text-muted'}`} />
-                <span className="font-bold tracking-wide">{HSK_GROUP_CONFIG.title}</span>
+              <span className="flex items-center gap-2 font-sans min-w-0">
+                <HSK_GROUP_CONFIG.icon className={`w-4 h-4 shrink-0 transition-colors ${expandedGroups.hsk || activeGroupId === 'hsk' ? 'text-app-accent' : 'text-muted'}`} />
+                <span className="font-bold tracking-normal whitespace-nowrap truncate">{HSK_GROUP_CONFIG.title}</span>
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 shrink-0 ml-1.5">
                 {!expandedGroups.hsk && (
-                  <span className="text-[10px] font-mono text-muted/70 font-medium px-1.5 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06]">
+                  <span className="text-[10px] font-mono text-muted/70 font-medium px-1.5 py-0.5 rounded bg-black/[0.04] dark:bg-white/[0.06] shrink-0 whitespace-nowrap">
                     HSK 1–9
                   </span>
                 )}
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out ${
+                  className={`w-3.5 h-3.5 shrink-0 text-muted transition-transform duration-250 ease-out ${
                     expandedGroups.hsk ? 'rotate-180 text-app-accent' : ''
                   }`}
                 />
@@ -744,7 +746,7 @@ function MobileDrawer({
                                 onClose()
                               }
                             }}
-                            className={`flex items-center justify-between px-3 py-2 min-h-[44px] text-xs rounded-xl border-l-[3px] transition-all touch-manipulation cursor-pointer ${
+                            className={`flex items-center justify-between gap-2 px-3 py-2 min-h-[44px] text-xs rounded-xl border-l-[3px] transition-all touch-manipulation cursor-pointer ${
                               active
                                 ? 'border-app-accent bg-app-accent-soft text-app-accent font-semibold shadow-2xs'
                                 : 'border-transparent text-body hover:bg-black/5 hover:text-app-accent active:bg-black/10'
@@ -756,7 +758,7 @@ function MobileDrawer({
                                   active ? 'bg-app-accent' : isComingSoon ? 'bg-amber-400' : 'bg-border-strong'
                                 }`}
                               />
-                              <span className="font-semibold">{hsk.label}</span>
+                              <span className="font-semibold whitespace-nowrap truncate">{hsk.label}</span>
                             </div>
                             {renderBadge(hsk.data.tag, hsk.data.status)}
                           </Link>
@@ -777,21 +779,23 @@ function MobileDrawer({
               id={`${drawerAccordionId}-header-applied`}
               type="button"
               onClick={() => toggleGroup('applied')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-[11px] font-semibold uppercase tracking-wider transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
-                expandedGroups.applied || activeGroupId === 'applied'
+              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-xs font-bold font-sans tracking-normal transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
+                expandedGroups.applied
                   ? 'text-title bg-black/[0.03] dark:bg-white/[0.04]'
+                  : activeGroupId === 'applied'
+                  ? 'text-app-accent bg-app-accent/5'
                   : 'text-muted hover:text-title hover:bg-black/[0.02]'
               }`}
               aria-expanded={expandedGroups.applied}
               aria-controls={`${drawerAccordionId}-content-applied`}
             >
-              <span className="flex items-center gap-2 font-sans">
-                <APPLIED_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.applied || activeGroupId === 'applied' ? 'text-app-accent' : 'text-muted'}`} />
-                <span className="font-bold tracking-wide">{APPLIED_GROUP_CONFIG.title}</span>
+              <span className="flex items-center gap-2 font-sans min-w-0">
+                <APPLIED_GROUP_CONFIG.icon className={`w-4 h-4 shrink-0 transition-colors ${expandedGroups.applied || activeGroupId === 'applied' ? 'text-app-accent' : 'text-muted'}`} />
+                <span className="font-bold tracking-normal whitespace-nowrap truncate">{APPLIED_GROUP_CONFIG.title}</span>
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 shrink-0 ml-1.5">
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out ${
+                  className={`w-3.5 h-3.5 shrink-0 text-muted transition-transform duration-250 ease-out ${
                     expandedGroups.applied ? 'rotate-180 text-app-accent' : ''
                   }`}
                 />
@@ -818,7 +822,7 @@ function MobileDrawer({
                         key={item.href}
                         href={item.href}
                         onClick={onClose}
-                        className={`flex items-center justify-between px-3 py-2 min-h-[44px] text-xs rounded-xl border-l-[3px] transition-all touch-manipulation cursor-pointer ${
+                        className={`flex items-center justify-between gap-2 px-3 py-2 min-h-[44px] text-xs rounded-xl border-l-[3px] transition-all touch-manipulation cursor-pointer ${
                           active
                             ? 'border-app-accent bg-app-accent-soft text-app-accent font-semibold shadow-2xs'
                             : 'border-transparent text-body hover:bg-black/5 hover:text-app-accent active:bg-black/10'
@@ -826,7 +830,7 @@ function MobileDrawer({
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           {Icon && <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-app-accent' : 'text-muted'}`} />}
-                          <span className="truncate">{item.label}</span>
+                          <span className="truncate whitespace-nowrap">{item.label}</span>
                         </div>
                         {item.data && renderBadge(countTag, item.data.status)}
                       </Link>
@@ -845,21 +849,23 @@ function MobileDrawer({
               id={`${drawerAccordionId}-header-foundation`}
               type="button"
               onClick={() => toggleGroup('foundation')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-[11px] font-semibold uppercase tracking-wider transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
-                expandedGroups.foundation || activeGroupId === 'foundation'
+              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-xs font-bold font-sans tracking-normal transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
+                expandedGroups.foundation
                   ? 'text-title bg-black/[0.03] dark:bg-white/[0.04]'
+                  : activeGroupId === 'foundation'
+                  ? 'text-app-accent bg-app-accent/5'
                   : 'text-muted hover:text-title hover:bg-black/[0.02]'
               }`}
               aria-expanded={expandedGroups.foundation}
               aria-controls={`${drawerAccordionId}-content-foundation`}
             >
-              <span className="flex items-center gap-2 font-sans">
-                <FOUNDATION_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.foundation || activeGroupId === 'foundation' ? 'text-app-accent' : 'text-muted'}`} />
-                <span className="font-bold tracking-wide">{FOUNDATION_GROUP_CONFIG.title}</span>
+              <span className="flex items-center gap-2 font-sans min-w-0">
+                <FOUNDATION_GROUP_CONFIG.icon className={`w-4 h-4 shrink-0 transition-colors ${expandedGroups.foundation || activeGroupId === 'foundation' ? 'text-app-accent' : 'text-muted'}`} />
+                <span className="font-bold tracking-normal whitespace-nowrap truncate">{FOUNDATION_GROUP_CONFIG.title}</span>
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 shrink-0 ml-1.5">
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out ${
+                  className={`w-3.5 h-3.5 shrink-0 text-muted transition-transform duration-250 ease-out ${
                     expandedGroups.foundation ? 'rotate-180 text-app-accent' : ''
                   }`}
                 />
@@ -885,7 +891,7 @@ function MobileDrawer({
                         key={item.href}
                         href={item.href}
                         onClick={onClose}
-                        className={`flex items-center justify-between px-3 py-2 min-h-[44px] text-xs rounded-xl border-l-[3px] transition-all touch-manipulation cursor-pointer ${
+                        className={`flex items-center justify-between gap-2 px-3 py-2 min-h-[44px] text-xs rounded-xl border-l-[3px] transition-all touch-manipulation cursor-pointer ${
                           active
                             ? 'border-app-accent bg-app-accent-soft text-app-accent font-semibold shadow-2xs'
                             : 'border-transparent text-body hover:bg-black/5 hover:text-app-accent active:bg-black/10'
@@ -893,10 +899,10 @@ function MobileDrawer({
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           {Icon && <Icon className={`w-3.5 h-3.5 shrink-0 ${active ? 'text-app-accent' : 'text-muted'}`} />}
-                          <span className="truncate">{item.label}</span>
+                          <span className="truncate whitespace-nowrap">{item.label}</span>
                         </div>
                         {item.badge && (
-                          <span className={`text-[10px] font-sans px-1.5 py-0.2 rounded font-medium border ${
+                          <span className={`text-[10px] font-sans px-1.5 py-0.5 rounded font-medium border shrink-0 whitespace-nowrap ${
                             active
                               ? 'bg-app-accent/15 text-app-accent border-app-accent/30'
                               : 'bg-black/[0.03] text-muted border-border/60'
@@ -920,21 +926,23 @@ function MobileDrawer({
               id={`${drawerAccordionId}-header-tools`}
               type="button"
               onClick={() => toggleGroup('tools')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-[11px] font-semibold uppercase tracking-wider transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
-                expandedGroups.tools || activeGroupId === 'tools'
+              className={`w-full flex items-center justify-between px-3 py-2.5 min-h-[44px] text-xs font-bold font-sans tracking-normal transition-all rounded-xl select-none cursor-pointer touch-manipulation ${
+                expandedGroups.tools
                   ? 'text-title bg-black/[0.03] dark:bg-white/[0.04]'
+                  : activeGroupId === 'tools'
+                  ? 'text-app-accent bg-app-accent/5'
                   : 'text-muted hover:text-title hover:bg-black/[0.02]'
               }`}
               aria-expanded={expandedGroups.tools}
               aria-controls={`${drawerAccordionId}-content-tools`}
             >
-              <span className="flex items-center gap-2 font-sans">
-                <TOOLS_GROUP_CONFIG.icon className={`w-4 h-4 transition-colors ${expandedGroups.tools || activeGroupId === 'tools' ? 'text-app-accent' : 'text-muted'}`} />
-                <span className="font-bold tracking-wide">{TOOLS_GROUP_CONFIG.title}</span>
+              <span className="flex items-center gap-2 font-sans min-w-0">
+                <TOOLS_GROUP_CONFIG.icon className={`w-4 h-4 shrink-0 transition-colors ${expandedGroups.tools || activeGroupId === 'tools' ? 'text-app-accent' : 'text-muted'}`} />
+                <span className="font-bold tracking-normal whitespace-nowrap truncate">{TOOLS_GROUP_CONFIG.title}</span>
               </span>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 shrink-0 ml-1.5">
                 <ChevronDown
-                  className={`w-3.5 h-3.5 text-muted transition-transform duration-250 ease-out ${
+                  className={`w-3.5 h-3.5 shrink-0 text-muted transition-transform duration-250 ease-out ${
                     expandedGroups.tools ? 'rotate-180 text-app-accent' : ''
                   }`}
                 />
@@ -968,10 +976,10 @@ function MobileDrawer({
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           {Icon && <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-app-accent' : 'text-muted'}`} />}
-                          <span className="truncate">{tool.label}</span>
+                          <span className="truncate whitespace-nowrap">{tool.label}</span>
                         </div>
                         {tool.badge && (
-                          <span className="text-[10px] font-sans px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-medium">
+                          <span className="text-[10px] font-sans px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 font-medium shrink-0 whitespace-nowrap">
                             {tool.badge}
                           </span>
                         )}

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Copy, Check, ChevronDown, ChevronUp, GraduationCap, BookOpen, Volume2 } from 'lucide-react'
+import { Copy, Check, ChevronDown, ChevronUp, GraduationCap, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { AudioButton } from '@/components/ui/audio-button'
 import type { GrammarItemWithExamples } from '@/app/(main)/grammar/actions'
@@ -95,7 +95,7 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
       />
 
       <div className="p-5 md:p-6 space-y-4 sm:space-y-5">
-        {/* Header: Số thứ tự, Thể loại, Chuẩn GF, Trạng thái đã học */}
+        {/* Header: Số thứ tự, Thể loại, Cấp độ, Trạng thái đã học */}
         <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
           <div className="flex items-center gap-2 flex-wrap">
             {/* Badge STT */}
@@ -110,10 +110,10 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
               {item.category}
             </span>
 
-            {/* Standard Badge */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FAF4ED] dark:bg-slate-800 text-[#78350F] dark:text-amber-300 border border-[#E4D4C5] dark:border-slate-700 shadow-2xs">
+            {/* Cấp độ HSK */}
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FAF4ED] dark:bg-slate-800 text-[#78350F] dark:text-amber-300 border border-[#E4D4C5] dark:border-slate-700 shadow-2xs">
               <GraduationCap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>GF 0025-2021 • HSK 1</span>
+              <span>HSK 1</span>
             </span>
           </div>
 
@@ -122,7 +122,7 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
             type="button"
             onClick={() => onToggleMastered?.(item.order_index)}
             aria-label={isMastered ? 'Đánh dấu chưa thuộc' : 'Đánh dấu đã nắm vững'}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs touch-manipulation min-h-[40px] ${
               isMastered
                 ? 'bg-emerald-600 border-2 border-emerald-600 text-white'
                 : 'bg-white dark:bg-slate-800 border-2 border-[#DAC7B6] dark:border-slate-700 text-[#475569] dark:text-slate-300 hover:border-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
@@ -174,7 +174,7 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
         </div>
 
         {/* Giải thích tiếng Việt (Tăng line-height, chữ rõ hơn, highlight chữ Hán sạch sẽ) */}
-        <div className="text-[15px] sm:text-base leading-[1.8] text-[#243047] dark:text-[#CBD5E1] font-serif whitespace-pre-line">
+        <div className="text-sm sm:text-base leading-relaxed text-[#243047] dark:text-[#CBD5E1] font-sans whitespace-pre-line">
           {renderExplanationText(item.explanation_vi)}
         </div>
 
@@ -189,7 +189,7 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#F4ECE3] dark:bg-slate-800 text-[#334155] dark:text-[#E2E8F0] border border-[#E2D4C6] dark:border-slate-700 hover:border-[#B8322D] hover:text-[#B8322D] transition-colors cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F4ECE3] dark:bg-slate-800 text-[#334155] dark:text-[#E2E8F0] border border-[#E2D4C6] dark:border-slate-700 hover:border-[#B8322D] hover:text-[#B8322D] transition-colors cursor-pointer shadow-2xs touch-manipulation min-h-[36px]"
               >
                 <span>{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}</span>
                 {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -209,8 +209,8 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
                         <div className="text-xl sm:text-2xl font-hanzi font-bold text-[#0F172A] dark:text-white tracking-wide leading-snug">
                           {ex.chinese}
                         </div>
-                        {/* Pinyin tương phản cao: Màu hổ phách đậm (#92400E) ở light mode, vàng sáng ở dark mode */}
-                        <div className="text-sm sm:text-[15px] font-mono font-bold text-[#92400E] dark:text-[#FBBF24] tracking-wide">
+                        {/* Pinyin tương phản cao, dấu thanh điệu to rõ ràng */}
+                        <div className="text-sm sm:text-base font-sans font-bold text-app-accent dark:text-[#FBBF24] tracking-wide">
                           {ex.pinyin}
                         </div>
                       </div>
@@ -228,7 +228,7 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
                           type="button"
                           onClick={() => handleCopySentence(ex.chinese)}
                           title="Sao chép câu"
-                          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-[#DAC7B6] dark:border-slate-700 text-[#475569] dark:text-slate-300 hover:text-[#B8322D] hover:border-[#B8322D]/50 transition-colors shadow-2xs cursor-pointer"
+                          className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-[#DAC7B6] dark:border-slate-700 text-[#475569] dark:text-slate-300 hover:text-[#B8322D] hover:border-[#B8322D]/50 transition-colors shadow-2xs cursor-pointer touch-manipulation min-h-[36px] min-w-[36px] flex items-center justify-center"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -236,13 +236,13 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
                     </div>
 
                     {/* Dịch nghĩa tiếng Việt */}
-                    <div className="text-sm sm:text-base text-[#1E293B] dark:text-[#F1F5F9] font-serif font-medium pl-3.5 border-l-[3.5px] border-[#B8322D] leading-relaxed">
+                    <div className="text-sm sm:text-base text-[#1E293B] dark:text-[#F1F5F9] font-sans font-medium pl-3.5 border-l-[3.5px] border-[#B8322D] leading-relaxed">
                       {ex.translation_vi}
                     </div>
 
                     {/* Ghi chú ngữ pháp bổ trợ */}
                     {ex.explanation && (
-                      <div className="text-xs sm:text-[13.5px] text-[#78350F] dark:text-amber-200 font-sans bg-amber-100/70 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 p-3 rounded-lg flex items-start gap-2.5 leading-relaxed shadow-2xs">
+                      <div className="text-xs sm:text-sm text-[#78350F] dark:text-amber-200 font-sans bg-amber-100/70 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/60 p-3 rounded-lg flex items-start gap-2.5 leading-relaxed shadow-2xs">
                         <span className="shrink-0 text-sm">💡</span>
                         <span>{ex.explanation}</span>
                       </div>

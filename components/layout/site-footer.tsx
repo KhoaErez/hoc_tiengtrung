@@ -16,10 +16,10 @@ export function SiteFooter() {
         - Mobile: pt-6 pb-24 (bù đắp 56px của Bottom Navigation Bar + Safe Area)
         - Desktop (md:): pt-6 pb-6
       */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-24 md:pb-6 text-center space-y-2">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-20 md:pb-6 text-center space-y-1.5 sm:space-y-2">
         {/* Brand symbol thu nhỏ trang nhã */}
         <div className="flex items-center justify-center gap-2">
-          <BrandSymbol size={22} className="opacity-90" />
+          <BrandSymbol size={20} className="opacity-90" />
           <span className="font-serif font-bold text-xs tracking-wider text-title uppercase">
             {SITE_CONFIG.name}
           </span>
@@ -42,18 +42,20 @@ export function SiteFooter() {
           </Link>
         </p>
 
-        {/* Các liên kết phụ trợ */}
-        <div className="pt-1 flex items-center justify-center gap-3 text-[11px] font-sans text-muted/80">
-          {/* <Link
-            href="/about"
-            className="hover:text-title hover:underline transition-colors"
-          >
-            Về Chinese Notebook
-          </Link> */}
+        {/* Các liên kết phụ trợ: Thu gọn trên Mobile, đầy đủ trên Desktop */}
+        <div className="pt-0.5 flex items-center justify-center gap-2 text-[11px] font-sans text-muted/80">
           <span className="text-border-strong/70" aria-hidden="true">•</span>
+          {/* Mobile: Link ngắn gọn dễ đọc, không chiếm diện tích màn hình */}
           <Link
             href="/about#intellectual-property"
-            className="hover:text-title hover:underline transition-colors"
+            className="sm:hidden text-muted hover:text-app-accent hover:underline transition-colors"
+          >
+            Lưu ý về nguồn tài liệu & biên dịch
+          </Link>
+          {/* Desktop: Đoạn thông báo đầy đủ chi tiết */}
+          <Link
+            href="/about#intellectual-property"
+            className="hidden sm:inline hover:text-title hover:underline transition-colors max-w-xl"
           >
             Tài liệu này được tham khảo và biên dịch với sự hỗ trợ của công cụ trí tuệ nhân tạo nên khó tránh khỏi một số sai sót về ngữ nghĩa. Rất mong nhận được sự thông cảm và những ý kiến đóng góp từ mọi người để nội dung ngày càng hoàn thiện hơn.
           </Link>

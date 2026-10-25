@@ -92,6 +92,46 @@ export default function HskDashboardClient({
   const [vocabSearchQuery, setVocabSearchQuery] = useState(initialVocabSearch)
   const [visibleLessonsCount, setVisibleLessonsCount] = useState(24)
   const vocabTopRef = useRef<HTMLDivElement>(null)
+  const tabsContainerRef = useRef<HTMLDivElement>(null)
+  const activeTabRef = useRef<HTMLAnchorElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  // Kiểm tra vị trí cuộn của thanh HSK để hiển thị fade indicator 2 mép
+  const checkTabsScroll = useCallback(() => {
+    const el = tabsContainerRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 6)
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 6)
+  }, [])
+
+  useEffect(() => {
+    checkTabsScroll()
+    const el = tabsContainerRef.current
+    if (!el) return
+    el.addEventListener('scroll', checkTabsScroll, { passive: true })
+    window.addEventListener('resize', checkTabsScroll)
+    return () => {
+      el.removeEventListener('scroll', checkTabsScroll)
+      window.removeEventListener('resize', checkTabsScroll)
+    }
+  }, [checkTabsScroll])
+
+  // Tự động căn giữa tab HSK đang chọn trong thanh cuộn ngang khi chuyển cấp độ
+  useEffect(() => {
+    if (activeTabRef.current && tabsContainerRef.current) {
+      const container = tabsContainerRef.current
+      const tab = activeTabRef.current
+      const containerRect = container.getBoundingClientRect()
+      const tabRect = tab.getBoundingClientRect()
+      
+      // Nếu tab nằm ngoài hoặc quá sát mép màn hình, cuộn mượt đến giữa
+      if (tabRect.left < containerRect.left + 20 || tabRect.right > containerRect.right - 20) {
+        const offset = tab.offsetLeft - (container.offsetWidth / 2) + (tab.offsetWidth / 2)
+        container.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' })
+      }
+    }
+  }, [currentHsk])
 
   // Level info from curriculum (HSK 3.0: HSK 1 - 6, HSK 7-9)
   const levelNum = currentHsk === 'HSK 7-9' || currentHsk === 'HSK 7'
@@ -270,36 +310,61 @@ export default function HskDashboardClient({
   ]
 
   return (
-    <div className="min-h-full font-serif space-y-8 pb-12">
+    <div className="min-h-full font-serif space-y-6 sm:space-y-8 pb-4">
       
       {/* 1. LEVEL SELECTOR TAB BAR (Sticky, Glassmorphic on scroll below 56px fixed header) */}
-      <div className="bg-page/90 backdrop-blur-md sticky top-14 z-10 -mx-4 md:-mx-8 lg:-mx-10 px-4 md:px-8 lg:px-10 py-2.5 sm:py-3 border-b border-border transition-all">
+      <div className="bg-page/90 backdrop-blur-md sticky top-14 z-10 -mx-3.5 sm:-mx-6 md:-mx-8 lg:-mx-10 px-3.5 sm:px-6 md:px-8 lg:px-10 py-2 sm:py-2.5 border-b border-border/70 transition-all select-none">
         <div className="max-w-5xl mx-auto relative">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 scroll-smooth touch-pan-x">
+          {/* Left subtle scroll fade cue for mobile */}
+          <div 
+            className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-page via-page/80 to-transparent z-10 transition-opacity duration-200 sm:hidden ${
+              canScrollLeft ? 'opacity-100' : 'opacity-0'
+            }`} 
+            aria-hidden="true"
+          />
+
+          <div 
+            ref={tabsContainerRef}
+            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 scroll-smooth touch-pan-x snap-x snap-proximity overscroll-x-contain"
+          >
             {levelTabs.map((level) => {
               const isActive = currentHsk === level
               return (
                 <Link 
                   key={level} 
+                  ref={isActive ? activeTabRef : undefined}
                   href={`/topics?q=${encodeURIComponent(level)}`}
-                  className={`px-3.5 sm:px-4 py-2 sm:py-2 text-xs sm:text-sm font-serif rounded-xl border whitespace-nowrap transition-all duration-150 flex items-center shrink-0 select-none active:scale-[0.98] touch-manipulation ${
+                  className={`px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-serif rounded-xl border whitespace-nowrap transition-all duration-150 flex items-center shrink-0 select-none active:scale-[0.98] touch-manipulation snap-start ${
                     isActive 
                       ? 'border-[#B8322D] bg-[#B8322D] text-white font-bold shadow-2xs' 
                       : 'border-[#E9DDD1] bg-card text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3] hover:border-[#D8C7B8]'
                   }`}
                 >
                   <span 
-                    className={`w-1.5 h-1.5 rounded-full mr-1.5 transition-colors ${
+                    className={`w-1.5 h-1.5 rounded-full mr-1.5 shrink-0 transition-colors ${
                       isActive ? 'bg-white' : 'bg-[#E9DDD1]'
                     }`} 
                   />
                   <span>{level}</span>
+                  {level === 'HSK 7-9' && (
+                    <span className={`ml-1.5 text-[9px] font-sans px-1 py-0.2 rounded shrink-0 ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
+                    }`}>
+                      Sắp có
+                    </span>
+                  )}
                 </Link>
               )
             })}
           </div>
-          {/* Subtle horizontal scroll fade cue for mobile */}
-          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-page/90 to-transparent sm:hidden" />
+
+          {/* Right subtle scroll fade cue for mobile */}
+          <div 
+            className={`pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-page via-page/80 to-transparent z-10 transition-opacity duration-200 sm:hidden ${
+              canScrollRight ? 'opacity-100' : 'opacity-0'
+            }`} 
+            aria-hidden="true"
+          />
         </div>
       </div>
 
@@ -363,64 +428,46 @@ export default function HskDashboardClient({
             <div className="space-y-3 max-w-2xl">
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-lg text-xs font-serif font-bold bg-app-accent-soft text-app-accent border border-app-accent/20">
+                <span className="px-3 py-1 rounded-xl text-xs sm:text-sm font-sans font-bold bg-app-accent-soft text-app-accent border border-app-accent/20">
                   {currentHsk}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-serif text-muted bg-page border border-border">
+                <span className="px-2.5 py-1 rounded-xl text-xs font-sans text-muted bg-page border border-border">
                   {stage}
                 </span>
                 {levelInfo && (
-                  <span className="px-2 py-0.5 rounded-lg text-[10px] font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
-                    HSK 3.0 • GF 0025-2021
+                  <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
+                    HSK 3.0
                   </span>
                 )}
-                <span className="text-xs text-muted font-serif flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs sm:text-sm text-muted font-sans flex items-center gap-2">
                   <span>•</span>
-                  <span>Từ mới riêng cấp: <strong suppressHydrationWarning>{formatNumber(actualVocabCount)}</strong>{levelInfo?.newVocab ? ` / ${formatNumber(levelInfo.newVocab)}` : ''} từ</span>
-                  {levelInfo?.vocabTarget && (
-                    <>
-                      <span>•</span>
-                      <span>Tích lũy chuẩn HSK 3.0: <strong suppressHydrationWarning>{formatNumber(levelInfo.vocabTarget)}</strong> từ</span>
-                    </>
-                  )}
-                  {levelInfo?.charTarget && (
-                    <>
-                      <span>•</span>
-                      <span><strong suppressHydrationWarning>{formatNumber(levelInfo.charTarget)}</strong> chữ Hán</span>
-                    </>
-                  )}
-                  {levelInfo?.grammarTarget && (
-                    <>
-                      <span>•</span>
-                      <span><strong suppressHydrationWarning>{formatNumber(levelInfo.grammarTarget)}</strong> ngữ pháp</span>
-                    </>
-                  )}
+                  <span><strong suppressHydrationWarning>{formatNumber(actualVocabCount)}</strong> từ vựng</span>
                   <span>•</span>
                   <span><strong>{lessons.length}</strong> bài học</span>
                 </span>
               </div>
 
               {/* Title & Description */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-title tracking-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-title tracking-tight">
                 Lộ trình {currentHsk}
               </h1>
-              <p className="text-xs sm:text-sm text-body font-serif leading-relaxed">
+              <p className="text-sm sm:text-base text-body leading-relaxed">
                 {description}
               </p>
 
-              {/* Thông báo phân loại trạng thái cấp độ HSK */}
+              {/* Thông báo chuẩn hóa ngắn gọn, thân thiện */}
               {(actualVocabCount >= (levelInfo?.newVocab || standardVocabTarget)) && (levelInfo?.newVocab || standardVocabTarget) > 0 ? (
-                <div className="flex items-center gap-2 text-xs font-serif text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-2 rounded-xl">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                   <span>
-                    Kho từ vựng <strong>{currentHsk}</strong> trong hệ thống đã đạt chuẩn hoàn chỉnh <strong>{formatNumber(actualVocabCount)}/{formatNumber(levelInfo?.newVocab || standardVocabTarget)} mục từ mới</strong> (mục tiêu tích lũy chuẩn HSK 1–{levelNum}: {formatNumber(standardVocabTarget)} từ) theo Đề cương thi HSK 3.0 chính thức với đầy đủ phát âm, phân loại từ và câu ví dụ.
+                    Đầy đủ <strong>{formatNumber(actualVocabCount)}</strong> từ vựng chuẩn HSK 3.0 với phát âm chuẩn và câu ví dụ sinh động.
                   </span>
                 </div>
               ) : auditData?.status === 'partial' ? (
-                <div className="flex items-center gap-2 text-xs font-serif text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
-                  <Clock className="w-3.5 h-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/20 px-3.5 py-2 rounded-xl">
+                  <Clock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
                   <span>
-                    Hệ thống hiện có <strong>{formatNumber(actualVocabCount)}</strong> từ vựng mới và <strong>{lessons.length}</strong> bài học thực tế. Nội dung đang tiếp tục được bổ sung theo khung chuẩn HSK 3.0 (mục tiêu {formatNumber(levelInfo?.newVocab || standardVocabTarget)} từ mới, tích lũy {formatNumber(standardVocabTarget)} từ).
+                    Hiện có <strong>{formatNumber(actualVocabCount)}</strong> từ vựng và <strong>{lessons.length}</strong> bài học. Đang tiếp tục cập nhật theo đề cương HSK 3.0.
                   </span>
                 </div>
               ) : null}
@@ -431,7 +478,7 @@ export default function HskDashboardClient({
               {isLoggedIn ? (
                 reviewVocabCount > 0 ? (
                   <Link href="/review" className="block">
-                    <Button variant="primary" className="w-full sm:w-auto font-serif min-h-[46px] py-3 sm:py-3.5 px-5 sm:px-6 shadow-2xs text-sm group flex items-center justify-center gap-2 cursor-pointer">
+                    <Button variant="primary" className="w-full sm:w-auto min-h-[48px] py-3 px-6 shadow-xs text-sm sm:text-base group flex items-center justify-center gap-2 cursor-pointer font-semibold">
                       <Flame className="w-4 h-4 text-white animate-pulse" />
                       <span>Ôn tập {reviewVocabCount} từ vựng</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -439,7 +486,7 @@ export default function HskDashboardClient({
                   </Link>
                 ) : nextLesson ? (
                   <Link href={`/lessons/${nextLesson.id}`} className="block">
-                    <Button variant="tertiary" className="w-full sm:w-auto font-serif min-h-[46px] py-3 sm:py-3.5 px-5 sm:px-6 shadow-2xs text-sm group flex items-center justify-center gap-2 cursor-pointer">
+                    <Button variant="primary" className="w-full sm:w-auto min-h-[48px] py-3 px-6 shadow-xs text-sm sm:text-base group flex items-center justify-center gap-2 cursor-pointer font-semibold">
                       <PlayCircle className="w-4 h-4 text-white" />
                       <span>
                         {(nextLesson.learned_vocab_count || 0) > 0 ? 'Tiếp tục học:' : 'Bắt đầu:'} Bài {nextLesson.lesson_number || (nextLessonIndex + 1)}
@@ -448,21 +495,32 @@ export default function HskDashboardClient({
                     </Button>
                   </Link>
                 ) : (
-                  <div className="inline-flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2.5 rounded-xl bg-jade-soft text-jade border border-jade/30 text-xs font-serif font-bold">
+                  <div className="inline-flex items-center justify-center w-full sm:w-auto gap-2 px-4 py-2.5 rounded-xl bg-jade-soft text-jade border border-jade/30 text-xs sm:text-sm font-bold">
                     <CheckCircle2 className="w-4 h-4" />
                     <span>Đã hoàn thành toàn bộ bài học!</span>
                   </div>
                 )
               ) : (
-                <Button 
-                  type="button"
-                  variant="tertiary"
-                  onClick={() => openLoginForm()}
-                  className="w-full sm:w-auto font-serif min-h-[46px] py-3 sm:py-3.5 px-5 sm:px-6 shadow-2xs text-sm flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Đăng nhập để theo dõi</span>
-                </Button>
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+                  {nextLesson && (
+                    <Link href={`/lessons/${nextLesson.id}`} className="w-full sm:w-auto">
+                      <Button variant="primary" className="w-full sm:w-auto min-h-[48px] py-3 px-6 shadow-xs text-sm sm:text-base group flex items-center justify-center gap-2 cursor-pointer font-semibold">
+                        <PlayCircle className="w-4 h-4 text-white" />
+                        <span>Bắt đầu Bài 1</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </Link>
+                  )}
+                  <Button 
+                    type="button"
+                    variant="secondary"
+                    onClick={() => openLoginForm()}
+                    className="w-full sm:w-auto min-h-[44px] py-2 px-4 text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Đăng nhập lưu tiến độ</span>
+                  </Button>
+                </div>
               )}
             </div>
           </div>
@@ -683,19 +741,19 @@ export default function HskDashboardClient({
                           {/* Lesson Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-                              <h3 className="font-serif font-bold text-sm sm:text-base text-title group-hover:text-app-accent transition-colors truncate">
+                              <h3 className="font-serif font-bold text-sm sm:text-base text-title group-hover:text-app-accent transition-colors line-clamp-2 leading-snug break-words">
                                 {lesson.title}
                               </h3>
 
                               {/* Status Badge */}
                               {isLoggedIn && isCompleted && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-jade-soft text-jade border border-jade/20">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-jade-soft text-jade border border-jade/20 shrink-0">
                                   <CheckCircle2 className="w-2.5 h-2.5" />
                                   Đã học xong
                                 </span>
                               )}
                               {isLoggedIn && isInProgress && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-amber-50 text-amber-700 border border-amber-200/50">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-amber-50 text-amber-700 border border-amber-200/50 shrink-0">
                                   <NotebookPen className="w-2.5 h-2.5" />
                                   Đang học ({learnedCount}/{lesson.vocab_count})
                                 </span>
@@ -703,7 +761,7 @@ export default function HskDashboardClient({
                             </div>
 
                             {lesson.subtitle && (
-                              <p className="text-xs text-muted font-serif line-clamp-1 mb-2">
+                              <p className="text-xs text-muted font-serif line-clamp-2 leading-relaxed mb-2 break-words">
                                 {lesson.subtitle}
                               </p>
                             )}

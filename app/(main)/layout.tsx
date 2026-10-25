@@ -25,12 +25,12 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     <AuthModalProvider initialUser={user}>
       <AdminNotificationProvider adminId={isAdmin ? user?.id : null}>
         <MobileNavProvider>
-          <div className="min-h-screen bg-page text-title font-serif flex relative overflow-x-clip">
+          <div className="min-h-screen bg-page text-title font-sans flex relative overflow-x-clip">
         {/* Notebook Background Pattern - Self-hosted for 0ms network latency */}
         <div className="fixed inset-0 bg-[url('/patterns/notebook-dark.png')] opacity-10 pointer-events-none mix-blend-multiply z-0" />
         
         {/* Desktop Sidebar - Cố định hoàn toàn (Fixed Sidebar) */}
-        <aside className="w-64 border-r border-border/60 bg-page/95 backdrop-blur-md z-30 flex-col hidden md:flex fixed top-0 left-0 bottom-0 h-screen select-none">
+        <aside className="w-[272px] border-r border-border/60 bg-page/95 backdrop-blur-md z-30 flex-col hidden md:flex fixed top-0 left-0 bottom-0 h-screen select-none">
           {/* Header Logo - Cố định ở đầu */}
           <div className="px-5 py-3.5 border-b border-border/50 flex-shrink-0">
             <BrandLogo variant="horizontal" size="md" />
@@ -97,8 +97,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </div>
         </aside>
 
-        {/* Main Content Area - Cách lề md:ml-64 để vừa vặn với Fixed Sidebar */}
-        <div className="flex-1 md:ml-64 flex flex-col min-h-screen min-w-0 z-10">
+        {/* Main Content Area - Cách lề md:ml-[272px] để vừa vặn với Fixed Sidebar */}
+        <div className="flex-1 md:ml-[272px] flex flex-col min-h-screen min-w-0 z-10">
           {/* Mobile Header */}
           <MobileHeader 
             isLoggedIn={!!user} 
@@ -109,7 +109,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           />
 
           {/* Desktop Header - Cố định ở đầu trang (Fixed Header), đồng bộ với fixed sidebar */}
-          <header className="hidden md:flex h-14 border-b border-border/60 bg-page/85 backdrop-blur-md items-center justify-between px-6 sm:px-8 fixed top-0 right-0 left-0 md:left-64 z-20">
+          <header className="hidden md:flex h-14 border-b border-border/60 bg-page/85 backdrop-blur-md items-center justify-between px-6 sm:px-8 fixed top-0 right-0 left-0 md:left-[272px] z-20">
             {/* Nhãn văn hóa Đông Phương tinh tế thay thế khoảng trống tìm kiếm */}
             <div className="flex items-center gap-2 select-none">
               <span className="w-1.5 h-1.5 rounded-full bg-app-accent/80" />
@@ -146,7 +146,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <div className="h-14 flex-shrink-0" aria-hidden="true" />
 
           {/* Page Content */}
-          <main className="flex-1 p-4 md:p-8 lg:p-10 min-w-0 pb-6 md:pb-10">
+          <main className="flex-1 p-3.5 sm:p-6 md:p-8 lg:p-10 min-w-0 pb-3 md:pb-8">
             {children}
           </main>
 

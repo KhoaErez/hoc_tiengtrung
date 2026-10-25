@@ -127,7 +127,7 @@ export default async function HomePage() {
       {/* 1. HERO BANNER CHO KHÁCH (CHƯA ĐĂNG NHẬP)                */}
       {/* ======================================================== */}
       {!user && (
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-page to-card p-5 sm:p-6 md:p-10 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card via-page to-card p-5 sm:p-6 md:p-7 shadow-sm">
           {/* Watermark mây Á Đông trang nhã */}
           <div className="absolute top-0 right-0 w-80 h-80 opacity-5 pointer-events-none text-app-accent">
             <svg viewBox="0 0 200 200" fill="currentColor">
@@ -135,39 +135,56 @@ export default async function HomePage() {
             </svg>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 relative z-10">
-            <div className="max-w-2xl space-y-3.5 sm:space-y-4 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-app-accent-soft text-app-accent text-xs font-serif font-medium border border-app-accent/30">
-                <GraduationCap className="w-3.5 h-3.5" />
+          <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-8 relative z-10">
+            <div className="max-w-2xl space-y-3 sm:space-y-3.5 text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-app-accent-soft text-app-accent text-xs sm:text-[13px] font-medium border border-app-accent/25">
+                <GraduationCap className="w-4 h-4 shrink-0" />
                 <span>Không gian học tiếng Trung hiện đại & bản sắc</span>
               </div>
               
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-title tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-[32px] lg:text-4xl font-serif font-bold text-title tracking-tight leading-snug">
                 Chinh phục HSK & Hán tự từ cơ bản đến chuyên sâu
               </h1>
               
-              <p className="text-body font-serif text-xs sm:text-sm md:text-base leading-relaxed">
+              <p className="text-body text-sm sm:text-base leading-relaxed">
                 Lộ trình 6 cấp độ HSK chuẩn hóa với hơn 350 bài học, luyện gõ phím Pinyin thực tế, tra cứu 214 bộ thủ Khang Hy và ôn tập ngắt quãng thông minh.
               </p>
               
-              <div className="pt-2 flex flex-col sm:flex-row gap-2.5 sm:gap-3 w-full sm:w-auto">
-                <Link href="/login" className="w-full sm:w-auto">
-                  <Button variant="tertiary" className="w-full sm:w-auto font-serif px-6 cursor-pointer min-h-[44px] text-xs sm:text-sm">
-                    Đăng nhập để lưu tiến độ
+              <div className="pt-1.5 flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
+                <Link href="/topics?q=HSK 1" className="w-full sm:w-auto">
+                  <Button variant="primary" className="w-full sm:w-auto px-6 cursor-pointer min-h-[46px] text-sm sm:text-base font-semibold gap-2 shadow-xs">
+                    <PlayCircle className="w-5 h-5 shrink-0" />
+                    <span>Bắt đầu học ngay (HSK 1)</span>
                   </Button>
                 </Link>
                 <Link href="/register" className="w-full sm:w-auto">
-                  <Button variant="secondary" className="w-full sm:w-auto font-serif px-6 cursor-pointer min-h-[44px] text-xs sm:text-sm">
-                    Tạo tài khoản miễn phí
+                  <Button variant="secondary" className="w-full sm:w-auto px-5 cursor-pointer min-h-[46px] text-sm font-medium">
+                    Tạo tài khoản lưu tiến độ
                   </Button>
                 </Link>
               </div>
+
+              {/* Hướng dẫn 3 bước cho người mới truy cập lần đầu */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 pt-3.5 border-t border-border/50 text-xs sm:text-[13px]">
+                <div className="flex items-center gap-2.5 text-muted">
+                  <span className="w-5 h-5 rounded-full bg-app-accent/10 text-app-accent font-bold flex items-center justify-center text-[11px] shrink-0">1</span>
+                  <span>Chọn cấp độ cơ bản <strong>HSK 1</strong></span>
+                </div>
+                <div className="flex items-center gap-2.5 text-muted">
+                  <span className="w-5 h-5 rounded-full bg-jade/10 text-jade font-bold flex items-center justify-center text-[11px] shrink-0">2</span>
+                  <span>Học 10 từ & nghe phát âm</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-muted">
+                  <span className="w-5 h-5 rounded-full bg-gold/10 text-gold font-bold flex items-center justify-center text-[11px] shrink-0">3</span>
+                  <span>Luyện gõ phím & ôn thẻ nhớ</span>
+                </div>
+              </div>
             </div>
 
-            {/* Mascot Tiểu Bút chào đón người học */}
-            <div className="hidden md:flex flex-col items-center justify-center p-4">
-              <MascotAvatar state="open" size="2xl" />
-              <span className="text-xs font-serif text-muted mt-2">Tiểu Bút 🐼 đồng hành cùng bạn</span>
+            {/* Mascot Tiểu Bút chào đón người học (kích cỡ cân đối, không lấn át giao diện) */}
+            <div className="hidden md:flex flex-col items-center justify-center p-2 shrink-0">
+              <MascotAvatar state="open" size="xl" />
+              <span className="text-xs font-medium text-muted mt-2 text-center">Tiểu Bút 🐼 đồng hành cùng bạn</span>
             </div>
           </div>
         </div>
@@ -366,59 +383,57 @@ export default async function HomePage() {
               <Link 
                 key={levelNum} 
                 href={`/topics?q=${encodeURIComponent(info.tag)}`}
-                className={`group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-border bg-card ${theme.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none`}
+                className={`group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl border border-border bg-card ${theme.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none`}
               >
                 {/* Viền màu nhỏ phía trên thẻ */}
-                <div className={`absolute top-0 left-0 right-0 h-1 ${theme.progressBar}`} />
+                <div className={`absolute top-0 left-0 right-0 h-1.5 ${theme.progressBar}`} />
 
-                <div className="space-y-3">
+                <div className="space-y-3.5">
                   {/* Cấp độ Badge & Giai đoạn */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-serif font-bold ${theme.badgeBg}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-sans font-bold ${theme.badgeBg}`}>
                         {info.name}
                       </span>
-                      <span className="text-[10px] font-serif text-muted px-2 py-0.5 rounded-md bg-page border border-border">
+                      <span className="text-xs font-sans text-muted px-2.5 py-0.5 rounded-lg bg-page border border-border">
                         {theme.stageLabel}
                       </span>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-sans font-medium ${statusBadgeClass}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-sans font-medium ${statusBadgeClass}`}>
                       {statusText}
                     </span>
                   </div>
 
                   {/* Tiêu đề & Thông số bài học */}
                   <div>
-                    <h3 className="font-serif font-bold text-lg text-title group-hover:text-app-accent transition-colors">
+                    <h3 className="font-serif font-bold text-xl text-title group-hover:text-app-accent transition-colors">
                       {info.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-xs text-muted font-serif mt-1 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="w-3.5 h-3.5 text-app-accent" />
+                    <div className="flex items-center gap-2.5 text-xs sm:text-sm text-muted font-sans mt-1.5 flex-wrap">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <BookOpen className="w-4 h-4 text-app-accent shrink-0" />
                         <strong>{isComingSoon ? '0' : totalLessons}</strong> bài học
                       </span>
                       <span>•</span>
                       {isComingSoon ? (
-                        <span>Mục tiêu HSK 3.0: <strong suppressHydrationWarning>{formatNumber(targetVocab)}</strong> từ</span>
+                        <span>Mục tiêu: <strong suppressHydrationWarning>{formatNumber(targetVocab)}</strong> từ</span>
                       ) : (
-                        <span>Hệ thống: <strong suppressHydrationWarning>{formatNumber(systemVocab)}</strong> từ</span>
+                        <span>Kho từ: <strong suppressHydrationWarning>{formatNumber(systemVocab)}</strong> từ</span>
                       )}
-                      <span>•</span>
-                      <span><strong suppressHydrationWarning>{formatNumber(info.charTarget)}</strong> chữ</span>
                     </div>
                   </div>
 
-                  {/* Mô tả ngắn có xử lý clamp hợp lý */}
-                  <p className="text-xs text-body font-serif line-clamp-2 leading-relaxed">
+                  {/* Mô tả ngắn */}
+                  <p className="text-sm text-body leading-relaxed line-clamp-2">
                     {info.description}
                   </p>
                 </div>
 
                 {/* Phần tiến độ học tập */}
-                <div className="pt-4 mt-4 border-t border-border/70 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-serif">
+                <div className="pt-4 mt-4 border-t border-border/70 space-y-2.5">
+                  <div className="flex items-center justify-between text-xs sm:text-sm font-sans">
                     <span className="text-muted">
-                      {isComingSoon ? 'Trạng thái lộ trình' : 'Tiến độ từ thực tế'}
+                      {isComingSoon ? 'Trạng thái lộ trình' : 'Tiến độ từ vựng'}
                     </span>
                     <span className="font-bold text-title" suppressHydrationWarning>
                       {isComingSoon 
@@ -438,13 +453,13 @@ export default async function HomePage() {
                   </div>
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] text-muted font-serif group-hover:text-app-accent transition-colors flex items-center gap-1 font-medium">
+                    <span className="text-xs sm:text-sm font-semibold text-app-accent group-hover:text-accent-hover transition-colors flex items-center gap-1.5">
                       Bắt đầu học ngay
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </span>
                     {user && percent === 100 && (
-                      <span className="flex items-center gap-1 text-[11px] text-jade font-serif">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Hoàn thành
+                      <span className="flex items-center gap-1 text-xs text-jade font-medium font-sans">
+                        <CheckCircle2 className="w-4 h-4" /> Hoàn thành
                       </span>
                     )}
                   </div>
@@ -460,85 +475,85 @@ export default async function HomePage() {
       {/* ======================================================== */}
       <section className="space-y-4">
         <div className="border-b border-border/80 pb-3">
-          <h2 className="text-xl font-serif font-bold text-title">Công cụ học tập & Luyện kỹ năng</h2>
-          <p className="text-xs text-muted font-serif mt-0.5">Các công cụ hỗ trợ nâng cao toàn diện kỹ năng tiếng Trung</p>
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-title">Công cụ học tập & Luyện kỹ năng</h2>
+          <p className="text-xs sm:text-sm text-muted mt-0.5">Các công cụ hỗ trợ nâng cao toàn diện kỹ năng tiếng Trung</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
           {/* Luyện đánh máy */}
           <Link 
             href="/typing" 
-            className="group p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-app-accent/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
+            className="group p-5 sm:p-6 rounded-2xl border border-border bg-card hover:border-app-accent/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
           >
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center">
+            <div className="space-y-3.5">
+              <div className="w-11 h-11 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center">
                 <Keyboard className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-serif font-bold text-base text-title group-hover:text-app-accent transition-colors">
+                <h3 className="font-serif font-bold text-lg text-title group-hover:text-app-accent transition-colors">
                   Luyện đánh máy
                 </h3>
-                <p className="text-xs text-muted font-serif mt-1 leading-relaxed">
+                <p className="text-sm text-muted mt-1 leading-relaxed">
                   Luyện gõ chữ Hán theo từng cấp độ, đo tốc độ WPM và độ chính xác gõ thực tế.
                 </p>
               </div>
             </div>
-            <div className="pt-4 text-xs font-serif font-medium text-app-accent flex items-center gap-1">
+            <div className="pt-4 text-xs sm:text-sm font-semibold text-app-accent flex items-center gap-1.5">
               <span>Luyện gõ ngay</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           {/* 214 Bộ thủ */}
           <Link 
             href="/radicals" 
-            className="group p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-jade/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
+            className="group p-5 sm:p-6 rounded-2xl border border-border bg-card hover:border-jade/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
           >
-            <div className="space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-jade-soft text-jade flex items-center justify-center">
+            <div className="space-y-3.5">
+              <div className="w-11 h-11 rounded-xl bg-jade-soft text-jade flex items-center justify-center">
                 <Component className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-serif font-bold text-base text-title group-hover:text-jade transition-colors">
+                <h3 className="font-serif font-bold text-lg text-title group-hover:text-jade transition-colors">
                   214 Bộ thủ Khang Hy
                 </h3>
-                <p className="text-xs text-muted font-serif mt-1 leading-relaxed">
+                <p className="text-sm text-muted mt-1 leading-relaxed">
                   Phân loại 17 nhóm nét, tra cứu ý nghĩa, Flashcard và Trắc nghiệm phản xạ bộ thủ.
                 </p>
               </div>
             </div>
-            <div className="pt-4 text-xs font-serif font-medium text-jade flex items-center gap-1">
+            <div className="pt-4 text-xs sm:text-sm font-semibold text-jade flex items-center gap-1.5">
               <span>Học bộ thủ</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           {/* Luyện viết AI */}
           <Link 
             href="/write" 
-            className="group p-4 sm:p-5 rounded-2xl border border-border bg-card hover:border-title/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation sm:col-span-2 md:col-span-1"
+            className="group p-5 sm:p-6 rounded-2xl border border-border bg-card hover:border-title/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation sm:col-span-2 md:col-span-1"
           >
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               <div className="flex items-center justify-between">
-                <div className="w-10 h-10 rounded-xl bg-navy-soft text-title flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-navy-soft text-title flex items-center justify-center">
                   <PenTool className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-sans px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
+                <span className="text-xs font-sans px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium border border-amber-500/20">
                   Sắp ra mắt
                 </span>
               </div>
               <div>
-                <h3 className="font-serif font-bold text-base text-title group-hover:text-app-accent transition-colors">
+                <h3 className="font-serif font-bold text-lg text-title group-hover:text-app-accent transition-colors">
                   Luyện Viết AI
                 </h3>
-                <p className="text-xs text-muted font-serif mt-1 leading-relaxed">
+                <p className="text-sm text-muted mt-1 leading-relaxed">
                   Luyện viết tiếng Trung cùng trợ lý AI: phát hiện lỗi ngữ pháp, tinh chỉnh văn phong và cải thiện diễn đạt.
                 </p>
               </div>
             </div>
-            <div className="pt-4 text-xs font-serif font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+            <div className="pt-4 text-xs sm:text-sm font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
               <span>Xem tính năng sắp tới</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
         </div>

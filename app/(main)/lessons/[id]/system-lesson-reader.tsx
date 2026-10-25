@@ -833,17 +833,17 @@ export default function SystemLessonReader({
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                   {/* Left Column: Index, Hanzi, Pinyin, Meaning */}
                   <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                    <span className="w-6 h-6 rounded-md bg-page text-muted text-[11px] font-mono flex items-center justify-center flex-shrink-0 mt-1 border border-border/60">
+                    <span className="w-7 h-7 rounded-lg bg-page text-muted text-xs font-mono font-semibold flex items-center justify-center flex-shrink-0 mt-1 border border-border/80">
                       {String(index + 1).padStart(2, '0')}
                     </span>
 
                     <div className="space-y-2 flex-1 min-w-0">
                       {/* Character + Pinyin + Audio */}
-                      <div className="flex flex-wrap items-baseline gap-2.5">
-                        <span className="text-3xl sm:text-4xl font-serif font-bold text-title group-hover:text-app-accent transition-colors">
+                      <div className="flex flex-wrap items-baseline gap-3">
+                        <span className="text-3xl sm:text-4xl font-hanzi font-bold text-title group-hover:text-app-accent transition-colors">
                           {vocab.hanzi}
                         </span>
-                        <span className="text-sm font-sans text-app-accent font-semibold tracking-wider">
+                        <span className="text-base sm:text-lg font-sans text-app-accent font-bold tracking-wide">
                           {vocab.pinyin}
                         </span>
                         <AudioButton
@@ -856,17 +856,17 @@ export default function SystemLessonReader({
                       </div>
 
                       {/* Meaning */}
-                      <p className="text-sm md:text-base font-serif text-title font-semibold">
+                      <p className="text-base sm:text-lg font-sans text-title font-semibold">
                         {vocab.meaning_vi}
                       </p>
 
                       {/* Example sentence block */}
                       {vocab.example_hanzi && (
-                        <div className="bg-page/70 border border-border/70 rounded-xl p-3 space-y-1 text-xs">
-                          <p className="text-[11px] font-sans text-muted">
+                        <div className="bg-page/80 border border-border/80 rounded-xl p-3.5 space-y-1.5 text-sm">
+                          <p className="text-sm sm:text-base font-sans text-app-accent/90 font-medium tracking-wide">
                             {vocab.example_pinyin}
                           </p>
-                          <div className="text-sm font-serif text-title flex items-center justify-between gap-2">
+                          <div className="text-base sm:text-lg font-hanzi text-title flex items-center justify-between gap-2">
                             <span>{vocab.example_hanzi}</span>
                             <AudioButton
                               text={vocab.example_hanzi}
@@ -876,7 +876,7 @@ export default function SystemLessonReader({
                               tooltip="Nghe câu ví dụ"
                             />
                           </div>
-                          <p className="text-xs text-body font-serif italic">
+                          <p className="text-sm sm:text-base text-body font-sans leading-relaxed">
                             {vocab.example_vi}
                           </p>
                         </div>
@@ -890,21 +890,21 @@ export default function SystemLessonReader({
                       type="button"
                       onClick={() => handleToggleLearned(vocab.id)}
                       disabled={isPendingToggle}
-                      className={`inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-sans font-medium transition-all cursor-pointer select-none min-h-[40px] sm:min-h-[38px] active:scale-[0.98] touch-manipulation ${
+                      className={`inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 rounded-xl text-sm font-sans font-medium transition-all cursor-pointer select-none min-h-[44px] active:scale-[0.98] touch-manipulation shadow-2xs ${
                         isLearned
-                          ? 'bg-emerald-50 text-jade border border-jade/40 hover:bg-emerald-100/60 shadow-2xs'
+                          ? 'bg-emerald-50 text-jade border border-jade/40 hover:bg-emerald-100/60'
                           : 'bg-page text-muted border border-[#E9DDD1] hover:border-[#D8C7B8] hover:text-title hover:bg-[#FFF9F3]'
                       }`}
                       title={isLearned ? 'Nhấn để chuyển sang Chưa thuộc' : 'Nhấn để đánh dấu Đã thuộc'}
                     >
                       {isLearned ? (
                         <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-jade shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-jade shrink-0" />
                           <span>Đã thuộc</span>
                         </>
                       ) : (
                         <>
-                          <span className="w-2 h-2 rounded-full border border-muted shrink-0" />
+                          <span className="w-2.5 h-2.5 rounded-full border border-muted shrink-0" />
                           <span>Chưa thuộc</span>
                         </>
                       )}
@@ -916,6 +916,35 @@ export default function SystemLessonReader({
           })
         )}
       </div>
+
+      {/* 4. Hành động tiếp theo sau khi hoàn thành bài học */}
+      {isAllCompleted && (
+        <div className="p-5 sm:p-6 rounded-2xl bg-jade-soft/80 border border-jade/30 text-center space-y-3 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-jade text-white text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>Chúc mừng! Bạn đã thuộc hết từ vựng bài học này</span>
+          </div>
+          <h3 className="text-lg sm:text-xl font-bold font-serif text-title">
+            Bạn muốn làm gì tiếp theo?
+          </h3>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-1">
+            <Link href={`/typing?hskLevel=${encodeURIComponent(lesson.hsk_level)}&practice=hsk&lessonId=${lesson.id}`} className="w-full sm:w-auto">
+              <Button variant="primary" className="w-full sm:w-auto px-5 min-h-[44px] text-sm gap-2">
+                <Keyboard className="w-4 h-4" />
+                <span>Luyện gõ từ vựng bài này</span>
+              </Button>
+            </Link>
+            {nextLesson && (
+              <Link href={`/lessons/${nextLesson.id}`} className="w-full sm:w-auto">
+                <Button variant="secondary" className="w-full sm:w-auto px-5 min-h-[44px] text-sm gap-2">
+                  <span>Học tiếp: Bài {nextLesson.lesson_number}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation Switcher */}
       <div className="pt-6 border-t border-border flex items-center justify-between text-xs">

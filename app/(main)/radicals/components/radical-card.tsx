@@ -28,14 +28,14 @@ export default function RadicalCard({ radical, variant = 'horizontal' }: Radical
     return (
       <Link
         href={`/radicals/${radical.id}`}
-        className="group relative bg-card border border-border/80 hover:border-app-accent/60 rounded-xl p-3 md:p-3.5 hover:shadow-sm transition-all duration-200 flex items-start gap-3 md:gap-3.5 overflow-hidden"
+        className="group relative bg-card border border-[#E9DDD1] hover:border-app-accent rounded-2xl p-3.5 md:p-4 hover:shadow-2xs transition-all duration-200 flex items-start gap-3.5 overflow-hidden"
       >
         {/* Khối chữ Hán vuông nền tối (Dark tile bên trái) */}
         <div
-          className="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 rounded-lg bg-[#252830] dark:bg-[#1A1C22] text-white flex items-center justify-center border border-black/20 shadow-inner group-hover:bg-[#1C1E25] transition-colors"
+          className="w-14 h-14 md:w-16 md:h-16 flex-shrink-0 rounded-xl bg-[#252830] dark:bg-[#1A1C22] text-white flex items-center justify-center border border-black/20 shadow-inner group-hover:bg-[#1C1E25] transition-colors"
         >
           <span
-            className="text-3xl md:text-4xl font-serif text-white leading-none select-none"
+            className="text-3xl md:text-4xl font-hanzi text-white leading-none select-none"
             style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
           >
             {radical.radical}
@@ -49,18 +49,18 @@ export default function RadicalCard({ radical, variant = 'horizontal' }: Radical
             <span className="font-serif font-bold text-base md:text-lg text-title group-hover:text-app-accent transition-colors">
               {hanViet}
             </span>
-            <span className="text-xs text-muted font-sans font-normal">
+            <span className="text-xs text-muted font-mono font-bold">
               #{radical.id}
             </span>
             {radical.variants && radical.variants.length > 0 && (
-              <span className="text-[11px] font-serif px-1.5 py-0.5 rounded border border-border/80 bg-page/80 text-muted">
+              <span className="text-xs font-hanzi px-2 py-0.5 rounded-md border border-[#E9DDD1] bg-page/80 text-muted">
                 {`{ ${radical.variants.join(' ')} }`}
               </span>
             )}
           </div>
 
-          {/* Dòng mô tả ý nghĩa (như trong ảnh mẫu) */}
-          <p className="text-xs md:text-[13px] text-body/85 font-serif leading-relaxed line-clamp-2 md:line-clamp-3 mt-1.5">
+          {/* Dòng mô tả ý nghĩa */}
+          <p className="text-xs sm:text-sm text-body font-sans leading-relaxed line-clamp-2 md:line-clamp-3 mt-1.5">
             {radical.explanation || radical.meaning}
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function RadicalCard({ radical, variant = 'horizontal' }: Radical
   return (
     <Link
       href={`/radicals/${radical.id}`}
-      className="group relative bg-card border border-border rounded-lg p-3 md:p-4 hover:border-app-accent/50 hover:shadow-md transition-all duration-200 flex flex-col items-center text-center overflow-hidden"
+      className="group relative bg-card border border-[#E9DDD1] rounded-2xl p-3.5 md:p-4 hover:border-app-accent hover:shadow-2xs transition-all duration-200 flex flex-col items-center text-center overflow-hidden"
     >
       {(learned || favorite) && (
         <div className="absolute top-1.5 right-1.5 flex gap-1">
@@ -105,30 +105,30 @@ export default function RadicalCard({ radical, variant = 'horizontal' }: Radical
         </div>
       )}
 
-      <span className="absolute top-1.5 left-2 text-[10px] text-muted font-sans">
+      <span className="absolute top-2 left-2.5 text-[11px] text-muted font-mono font-bold">
         #{radical.id}
       </span>
 
       <span
-        className="text-4xl md:text-5xl font-serif text-title group-hover:text-app-accent transition-colors leading-none mt-3 mb-2"
+        className="text-4xl md:text-5xl font-hanzi text-title group-hover:text-app-accent transition-colors leading-none mt-4 mb-2 select-none"
         style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
       >
         {radical.radical}
       </span>
 
-      <span className="text-sm font-serif font-bold text-title mb-0.5">
+      <span className="text-base font-serif font-bold text-title mb-0.5">
         {hanViet}
       </span>
 
-      <span className="text-xs text-muted font-sans tracking-wide mb-1">
+      <span className="text-xs sm:text-sm font-sans font-bold text-app-accent tracking-wide mb-1">
         {radical.pinyin}
       </span>
 
-      <span className="text-xs text-body font-serif line-clamp-1">
+      <span className="text-xs sm:text-sm text-body font-sans line-clamp-1">
         {radical.meaning}
       </span>
 
-      <span className="mt-1.5 text-[10px] px-2 py-0.5 rounded-full bg-accent-soft text-app-accent font-sans">
+      <span className="mt-2 text-xs px-2.5 py-0.5 rounded-full bg-[#B8322D]/10 text-app-accent font-sans font-semibold">
         {radical.strokes} nét
       </span>
     </Link>

@@ -98,14 +98,7 @@ export function FeedbackWidget() {
 
   const widgetRef = useRef<HTMLDivElement>(null)
 
-  // Tooltip chào mừng xuất hiện sau 4 giây truy cập nếu chưa từng tắt
-  useEffect(() => {
-    if (hasDismissedTooltip || isOpen) return
-    const timer = setTimeout(() => {
-      setShowTooltip(true)
-    }, 4000)
-    return () => clearTimeout(timer)
-  }, [hasDismissedTooltip, isOpen])
+  // Không tự động mở bong bóng chào hỏi khi tải trang để tránh che khuất nội dung học tập
 
   // Cooldown countdown
   useEffect(() => {
@@ -201,7 +194,7 @@ export function FeedbackWidget() {
       {/* 1. CHATBOT MASCOT DIALOG WINDOW */}
       {isOpen && (
         <div 
-          className="fixed bottom-24 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[410px] max-h-[84vh] bg-card border border-border shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed z-50 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-24 right-3 sm:right-6 w-[calc(100vw-1.5rem)] sm:w-[410px] max-h-[82vh] bg-card border border-border shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
           role="dialog"
           aria-labelledby="feedback-dialog-title"
           aria-modal="true"
@@ -419,22 +412,28 @@ export function FeedbackWidget() {
           isKeyboardOpen ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-100 translate-y-0'
         } ${
           pathname.startsWith('/typing')
-            ? 'bottom-20 left-3 md:bottom-6 md:left-auto md:right-6'
-            : 'bottom-20 right-3 md:bottom-6 md:right-6'
+            ? 'bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] left-3 md:bottom-6 md:left-auto md:right-6'
+            : 'bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] right-3 md:bottom-6 md:right-6'
         }`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => {
+          setIsHovered(true)
+          if (!hasDismissedTooltip && !isOpen) setShowTooltip(true)
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setShowTooltip(false)
+        }}
       >
-        {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble - chỉ hiển thị trên tablet/desktop sm:block để không che màn hình mobile nhỏ) */}
+        {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble - chỉ hiển thị trên desktop khi hover) */}
         {!isOpen && showTooltip && (
-          <div className={`hidden sm:block absolute bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-56 sm:w-60 text-xs text-title font-serif animate-in fade-in duration-200 z-50 ${
+          <div className={`hidden sm:block absolute bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-56 sm:w-60 text-xs text-title font-serif animate-in fade-in duration-200 z-50 pointer-events-auto ${
             pathname.startsWith('/typing')
               ? 'left-full ml-3 slide-in-from-left-2'
               : 'right-full mr-3 slide-in-from-right-2'
           }`}>
             <div className="flex items-start justify-between gap-1.5">
               <p className="leading-relaxed">
-                Chào bạn! Mình là <strong>Tiểu Bút</strong> 🐼. Hôm nay bạn học bài nào rồi? Cần gì cứ gọi mình nhé!
+                Chào bạn! Mình là <strong>Tiểu Bút</strong> 🐼. Cần hỗ trợ hoặc góp ý cứ nhấn vào mình nhé!
               </p>
               <button
                 type="button"
@@ -458,7 +457,7 @@ export function FeedbackWidget() {
           </div>
         )}
 
-        {/* Nút bấm Mascot hình tròn cao cấp (Tối ưu kích thước gọn trên mobile 48px) */}
+        {/* Nút bấm Mascot hình tròn cao cấp (Tối ưu kích thước gọn trên mobile 44px, desktop 56px) */}
         <button
           type="button"
           onClick={() => {
@@ -466,7 +465,7 @@ export function FeedbackWidget() {
             setShowTooltip(false)
             setHasDismissedTooltip(true)
           }}
-          className={`w-12 h-12 md:w-16 md:h-16 rounded-full shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
+          className={`w-11 h-11 md:w-14 md:h-14 rounded-full shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
             isOpen
               ? 'bg-title text-white rotate-0 scale-95 ring-4 ring-title/15'
               : 'bg-page hover:bg-card border-2 border-app-accent/40 hover:border-app-accent hover:scale-105 active:scale-95 shadow-app-accent/15 ring-3 ring-app-accent/10'
@@ -475,13 +474,13 @@ export function FeedbackWidget() {
           aria-label={isOpen ? 'Đóng hộp thoại trợ lý' : 'Mở trợ lý Tiểu Bút'}
         >
           {isOpen ? (
-            <X className="w-5 h-5 md:w-6 md:h-6 text-white" />
+            <X className="w-5 h-5 text-white" />
           ) : (
             <div className="relative flex items-center justify-center">
               <MascotAvatar state={buttonMascotState} size="md" className="hidden sm:inline-flex" />
               <MascotAvatar state={buttonMascotState} size="sm" className="sm:hidden" />
               {/* Huy hiệu online nhỏ góc dưới */}
-              <span className="absolute bottom-0 right-0 w-3 h-3 md:w-3.5 md:h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
             </div>
           )}
         </button>

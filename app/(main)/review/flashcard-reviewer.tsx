@@ -397,11 +397,11 @@ export default function FlashcardReviewer({
 
               {/* Câu ví dụ minh họa nếu có */}
               {currentVocab.example_hanzi && (
-                <div className="w-full bg-page/80 border border-border/70 rounded-2xl p-3 sm:p-4 max-w-md mx-auto text-center space-y-1">
-                  <p className="text-[11px] font-sans text-muted tracking-wide">
+                <div className="w-full bg-page/80 border border-border/70 rounded-2xl p-3.5 sm:p-4 max-w-md mx-auto text-center space-y-1.5">
+                  <p className="text-sm sm:text-base font-sans text-app-accent font-medium tracking-wide">
                     {currentVocab.example_pinyin}
                   </p>
-                  <div className="text-sm sm:text-base font-hanzi font-serif text-title flex items-center justify-center gap-2">
+                  <div className="text-base sm:text-lg font-hanzi text-title flex items-center justify-center gap-2">
                     <span>{currentVocab.example_hanzi}</span>
                     <div onClick={(e) => e.stopPropagation()}>
                       <AudioButton 
@@ -413,7 +413,7 @@ export default function FlashcardReviewer({
                       />
                     </div>
                   </div>
-                  <p className="text-xs sm:text-sm font-serif text-body italic">
+                  <p className="text-sm font-sans text-body">
                     {currentVocab.example_vi}
                   </p>
                 </div>
@@ -422,7 +422,7 @@ export default function FlashcardReviewer({
 
             {/* Gợi ý phím tắt đánh giá */}
             <div className="pt-1 text-center">
-              <p className="text-[11px] text-muted/70 font-serif">
+              <p className="text-xs text-muted font-sans">
                 Chọn mức độ nhớ bên dưới để chuyển sang từ tiếp theo
               </p>
             </div>
@@ -439,7 +439,7 @@ export default function FlashcardReviewer({
           <Button 
             variant="primary"
             onClick={handleFlip}
-            className="w-full min-h-[50px] text-sm sm:text-base font-serif rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
+            className="w-full min-h-[52px] text-base font-sans font-semibold rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
           >
             <span>Lật thẻ xem đáp án</span>
             <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
@@ -452,7 +452,7 @@ export default function FlashcardReviewer({
             <Button 
               variant="outline"
               onClick={() => handleAnswer(false)}
-              className="w-full min-h-[50px] text-xs sm:text-sm font-serif border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
+              className="w-full min-h-[52px] text-sm sm:text-base font-sans font-semibold border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
             >
               <RotateCcw className="w-4 h-4 text-[#EF4444] shrink-0" />
               <span>Chưa nhớ</span>
@@ -464,7 +464,7 @@ export default function FlashcardReviewer({
             <Button 
               variant="success"
               onClick={() => handleAnswer(true)}
-              className="w-full min-h-[50px] text-xs sm:text-sm font-serif rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
+              className="w-full min-h-[52px] text-sm sm:text-base font-sans font-semibold rounded-2xl flex items-center justify-center gap-2 shadow-xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
             >
               <Check className="w-4 h-4 shrink-0" />
               <span>Đã nhớ</span>

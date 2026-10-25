@@ -96,6 +96,7 @@ import {
   AlignLeft,
   Flame,
   Headphones,
+  PenTool,
   Loader2,
 } from 'lucide-react'
 
@@ -140,6 +141,7 @@ export default function TypingClient() {
   const [mistakeCount, setMistakeCount] = useState<number>(0)
   const [savedProgress, setSavedProgress] = useState<TypingProgressDTO | null>(null)
   const [showResumeBanner, setShowResumeBanner] = useState<boolean>(false)
+  const [showImeGuide, setShowImeGuide] = useState<boolean>(true)
 
   const searchParams = useSearchParams()
   const urlMode = searchParams.get('mode') as TypingMode | null
@@ -1636,36 +1638,74 @@ export default function TypingClient() {
         </div>
       </div>
 
-      {/* 2. Thanh chọn chế độ luyện tập chính: Nghe & Gõ vs Dịch Việt → Gõ Hán */}
-      <div className="grid grid-cols-2 gap-1.5 sm:gap-2 p-1.5 bg-card border border-[#E9DDD1] rounded-2xl shadow-2xs">
-        <button
-          onClick={() => {
-            stopSpeech()
-            setPracticeMode('visual')
-          }}
-          className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer ${
-            practiceMode === 'visual'
-              ? 'bg-[#B8322D] text-white shadow-2xs'
-              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
-          }`}
-        >
-          <Headphones className="w-4 h-4 shrink-0" />
-          <span className="truncate">Nghe & Gõ</span>
-        </button>
+      {/* 2. Hướng dẫn gõ Pinyin IME cho người học mới */}
+      {showImeGuide && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+          <div className="flex items-start gap-3">
+            <span className="p-2 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5">
+              <Keyboard className="w-5 h-5" />
+            </span>
+            <div className="space-y-1">
+              <p className="font-semibold text-title text-sm sm:text-base">
+                Hướng dẫn gõ chữ Hán bằng bộ gõ Pinyin IME
+              </p>
+              <p className="text-body text-xs sm:text-sm leading-relaxed">
+                1. Chuyển bàn phím sang tiếng Trung (<strong>Windows + Space</strong> trên Windows hoặc <strong>Ctrl + Space</strong> trên Mac).<br />
+                2. Gõ Pinyin không dấu (ví dụ: <code className="px-1.5 py-0.5 rounded bg-black/5 font-mono font-bold">nihao</code>).<br />
+                3. Nhấn <strong>phím Cách (Space)</strong> hoặc số để chọn chữ Hán <strong className="font-hanzi">你好</strong> tương ứng.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowImeGuide(false)}
+            className="self-end sm:self-center shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-title hover:bg-black/5 transition-colors cursor-pointer"
+            title="Đóng hướng dẫn"
+          >
+            Đã hiểu, đóng lại
+          </button>
+        </div>
+      )}
 
-        <button
-          onClick={() => {
-            stopSpeech()
-            setPracticeMode('translate')
-          }}
-          className={`flex items-center justify-center py-2.5 px-3 rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer ${
-            practiceMode === 'translate'
-              ? 'bg-[#B8322D] text-white shadow-2xs'
-              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
-          }`}
-        >
-          <span className="truncate">Dịch Việt → Gõ Hán</span>
-        </button>
+      {/* 3. Thanh chọn chế độ luyện tập chính: Nghe & Gõ vs Dịch Việt → Gõ Hán */}
+      <div className="space-y-2">
+        <div className="grid grid-cols-2 gap-2 p-1.5 bg-card border border-[#E9DDD1] rounded-2xl shadow-2xs">
+          <button
+            onClick={() => {
+              stopSpeech()
+              setPracticeMode('visual')
+            }}
+            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-sans font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
+              practiceMode === 'visual'
+                ? 'bg-[#B8322D] text-white shadow-2xs'
+                : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+            }`}
+          >
+            <Headphones className="w-4 h-4 shrink-0" />
+            <span className="truncate">Nghe & Gõ</span>
+          </button>
+
+          <button
+            onClick={() => {
+              stopSpeech()
+              setPracticeMode('translate')
+            }}
+            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-sans font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
+              practiceMode === 'translate'
+                ? 'bg-[#B8322D] text-white shadow-2xs'
+                : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+            }`}
+          >
+            <PenTool className="w-4 h-4 shrink-0" />
+            <span className="truncate">Dịch Việt → Gõ Hán</span>
+          </button>
+        </div>
+
+        <p className="text-xs sm:text-sm text-muted font-sans px-1">
+          {practiceMode === 'visual'
+            ? '🎧 Nghe & Gõ: Luyện phản xạ tai nghe âm thanh tiếng Trung và ghi nhớ mặt chữ Hán tương ứng.'
+            : '✍️ Dịch Việt → Gõ Hán: Đọc ý nghĩa tiếng Việt và tự chuyển ngữ rồi gõ câu chữ Hán hoàn chỉnh.'}
+        </p>
       </div>
 
       {practiceMode === 'translate' ? (
@@ -2080,45 +2120,45 @@ export default function TypingClient() {
 
       {/* 4. Khung chỉ số thời gian thực (Live Dashboard) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
-          <span className="p-1.5 sm:p-2 rounded-lg bg-page border border-border text-muted shrink-0">
-            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3 sm:p-3.5 shadow-2xs flex items-center gap-3">
+          <span className="p-2 rounded-xl bg-page border border-[#E9DDD1] text-muted shrink-0">
+            <Clock className="w-4 h-4 text-app-accent" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">Thời gian</p>
-            <p className="text-base sm:text-lg font-serif font-bold text-title">{formatTime(elapsedSeconds)}</p>
+            <p className="text-xs text-muted font-sans truncate">Thời gian</p>
+            <p className="text-lg sm:text-xl font-bold font-sans text-title tracking-tight">{formatTime(elapsedSeconds)}</p>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
-          <span className="p-1.5 sm:p-2 rounded-lg bg-accent-soft text-app-accent shrink-0">
-            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3 sm:p-3.5 shadow-2xs flex items-center gap-3">
+          <span className="p-2 rounded-xl bg-accent-soft text-app-accent shrink-0">
+            <Zap className="w-4 h-4" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">Tốc độ (CPM)</p>
-            <p className="text-base sm:text-lg font-serif font-bold text-title">{evaluation.cpm}</p>
+            <p className="text-xs text-muted font-sans truncate">Tốc độ (CPM)</p>
+            <p className="text-lg sm:text-xl font-bold font-sans text-title tracking-tight">{evaluation.cpm}</p>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
-          <span className="p-1.5 sm:p-2 rounded-lg bg-jade-soft text-jade shrink-0">
-            <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3 sm:p-3.5 shadow-2xs flex items-center gap-3">
+          <span className="p-2 rounded-xl bg-jade-soft text-jade shrink-0">
+            <Target className="w-4 h-4" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">Độ chính xác</p>
-            <p className="text-base sm:text-lg font-serif font-bold text-title">{evaluation.accuracy}%</p>
+            <p className="text-xs text-muted font-sans truncate">Độ chính xác</p>
+            <p className="text-lg sm:text-xl font-bold font-sans text-title tracking-tight">{evaluation.accuracy}%</p>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-2.5 sm:p-3 shadow-xs flex items-center gap-2.5 sm:gap-3">
-          <span className="p-1.5 sm:p-2 rounded-lg bg-gold-soft text-gold shrink-0">
-            <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+        <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3 sm:p-3.5 shadow-2xs flex items-center gap-3">
+          <span className="p-2 rounded-xl bg-gold-soft text-gold shrink-0">
+            <Layers className="w-4 h-4" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] sm:text-[11px] text-muted font-sans truncate">
+            <p className="text-xs text-muted font-sans truncate">
               {mode === 'sentence' ? 'Tiến độ câu' : 'Tiến độ bài'}
             </p>
-            <p className="text-base sm:text-lg font-serif font-bold text-title truncate">
+            <p className="text-lg sm:text-xl font-bold font-sans text-title tracking-tight truncate">
               {mode === 'sentence'
                 ? `Câu ${exercises.length > 0 ? currentIndex + 1 : 0}/${exercises.length}`
                 : `${exercises.length > 0 ? currentIndex + 1 : 0} / ${exercises.length}`}
@@ -2221,15 +2261,15 @@ export default function TypingClient() {
 
                 {/* Câu ca dao, tục ngữ nguyên bản tiếng Việt */}
                 <div className="pt-1">
-                  <p className="text-xs text-muted font-serif mb-0.5">Câu ca dao / tục ngữ gốc:</p>
-                  <p className="text-base sm:text-lg font-serif font-bold text-title leading-relaxed">
+                  <p className="text-xs text-muted font-sans mb-1">Câu ca dao / tục ngữ gốc:</p>
+                  <p className="text-lg sm:text-xl font-serif font-bold text-title leading-relaxed">
                     &ldquo;{currentExercise.vietnamese || currentExercise.meaning}&rdquo;
                   </p>
                 </div>
 
                 {/* Ý nghĩa và chú thích văn hóa nếu có */}
                 {currentExercise.meaning && (
-                  <p className="text-xs font-serif text-body/90 leading-relaxed pt-1.5 border-t border-border/60">
+                  <p className="text-sm font-sans text-body leading-relaxed pt-2 border-t border-border/60">
                     <span className="font-semibold text-title">Ý nghĩa:</span> {currentExercise.meaning}
                     {currentExercise.culturalNote && (
                       <span className="text-muted block sm:inline sm:ml-1.5 mt-0.5 sm:mt-0">
@@ -2511,7 +2551,7 @@ export default function TypingClient() {
                       ? 'Đã hoàn thành câu này. Bấm "Câu tiếp theo" hoặc phím Enter để tiếp tục.'
                       : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                   }
-                  className="w-full p-4 bg-card border-2 border-border focus:border-app-accent rounded-xl text-lg md:text-xl font-serif text-title placeholder:text-muted placeholder:text-sm focus:outline-none transition-colors shadow-inner resize-none"
+                  className="w-full p-4 bg-card border-2 border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner resize-none"
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 />
               ) : (
@@ -2536,7 +2576,7 @@ export default function TypingClient() {
                       ? 'Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán...'
                       : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                   }
-                  className="w-full px-4 py-3.5 bg-card border-2 border-border focus:border-app-accent rounded-xl text-lg md:text-2xl font-serif text-title placeholder:text-muted placeholder:text-sm focus:outline-none transition-colors shadow-inner"
+                  className="w-full px-4 py-3.5 min-h-[52px] bg-card border-2 border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner"
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 />
               )}

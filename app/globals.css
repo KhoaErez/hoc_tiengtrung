@@ -112,15 +112,15 @@
   --bg-card-featured: #FBEFEA;
   --border: #E8E0D4;
   --border-strong: #DDD2C1;
-  --text-title: #1C2233;
-  --text-body: #3F4657;
-  --text-muted: #6A7081;
+  --text-title: #181F2F;
+  --text-body: #2B3448;
+  --text-muted: #525B70;
   
   /* Màu nhấn */
   --accent: #B8312B;
   --accent-hover: #8F2420;
   --accent-soft: #F6E3DF;
-  --jade: #3F7A5C;
+  --jade: #24856A;
   --jade-soft: #E4F0E8;
   --gold: #B88A3E;
   --gold-soft: #F7ECD3;
@@ -243,12 +243,17 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
-    @apply font-serif; /* Mặc định dùng serif cho toàn bộ web */
+    @apply font-sans;
+    font-size: 16px;
     -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground font-sans text-base antialiased;
+    line-height: 1.6;
+  }
+  h1, h2, h3, .font-heading {
+    font-family: var(--font-serif);
   }
 }
 
