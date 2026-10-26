@@ -1560,8 +1560,9 @@ export default function TypingClient() {
       const actions = keyActionsRef.current
       if (actions.showHistoryModal) return
 
-      // Bỏ qua hoàn toàn nếu người dùng đang nhập IME tiếng Trung
+      // Bỏ qua hoàn toàn nếu người dùng đang nhập IME tiếng Trung hoặc giữ phím lặp lại
       if (e.isComposing || e.keyCode === 229 || actions.isComposing) return
+      if (e.repeat) return
 
       // Enter khi đã hoàn thành -> sang câu kế tiếp
       if (e.key === 'Enter' && actions.isCompleted) {
