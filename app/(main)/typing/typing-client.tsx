@@ -1537,6 +1537,7 @@ export default function TypingClient() {
 
   // Phím tắt bàn phím tiện lợi (Sử dụng ref để listener chỉ gắn 1 lần duy nhất, loại bỏ hoàn toàn listener churn)
   const keyActionsRef = useRef({
+    practiceMode,
     showHistoryModal,
     isCompleted,
     isComposing,
@@ -1546,6 +1547,7 @@ export default function TypingClient() {
   })
   useEffect(() => {
     keyActionsRef.current = {
+      practiceMode,
       showHistoryModal,
       isCompleted,
       isComposing,
@@ -1558,6 +1560,8 @@ export default function TypingClient() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const actions = keyActionsRef.current
+      // Chỉ hoạt động trong chế độ Nghe & Gõ (visual), không can thiệp vào chế độ Dịch (translate)
+      if (actions.practiceMode !== 'visual') return
       if (actions.showHistoryModal) return
 
       // Bỏ qua hoàn toàn nếu người dùng đang nhập IME tiếng Trung hoặc giữ phím lặp lại

@@ -86,6 +86,7 @@ export default function TranslateTypingMode({
 
   // 3. Trạng thái nhập liệu & IME
   const [userInput, setUserInput] = useState<string>('')
+  const userInputRef = useRef<string>('')
   const [isComposing, setIsComposing] = useState<boolean>(false)
   const [compositionText, setCompositionText] = useState<string>('')
   const isComposingRef = useRef<boolean>(false)
@@ -100,6 +101,10 @@ export default function TranslateTypingMode({
   const [evaluation, setEvaluation] = useState<TranslationEvaluationResult | null>(null)
   const [hintLevel, setHintLevel] = useState<number>(0) // 0: chưa gợi ý, 1: từ vựng, 2: pinyin, 3: toàn bộ chữ Hán
   const [hintsUsedCount, setHintsUsedCount] = useState<number>(0)
+
+  // Cờ theo dõi ghi nhận thống kê cho câu hiện tại (tránh cộng dồn sai khi Enter nhiều lần)
+  const hasRecordedMistakeForCurrentRef = useRef<boolean>(false)
+  const hasCountedCorrectForCurrentRef = useRef<boolean>(false)
 
   // Cập nhật state machine an toàn và đồng bộ ref ngay lập tức
   const updatePracticeStatus = useCallback((status: TranslationPracticeStatus) => {
@@ -154,9 +159,12 @@ export default function TranslateTypingMode({
     }
   }, [hskLevel])
 
-  // Reset trạng thái khi sang câu mới
+  // Reset trạng thái khi sang câu mới hoặc làm lại câu
   const resetSentenceState = useCallback(() => {
     setUserInput('')
+    userInputRef.current = ''
+    hasRecordedMistakeForCurrentRef.current = false
+    hasCountedCorrectForCurrentRef.current = false
     updatePracticeStatus('typing')
     setEvaluation(null)
     setHintLevel(0)
@@ -284,11 +292,16 @@ export default function TranslateTypingMode({
     if (!isTimerRunning && val.length > 0) {
       setIsTimerRunning(true)
     }
+    userInputRef.current = val
     setUserInput(val)
 
     // Khi người dùng chỉnh sửa đáp án:
-    // Kết quả kiểm tra cũ bị vô hiệu hóa, trạng thái trở về 'typing' để chuẩn bị Enter kiểm tra lại
+    // Hủy kết quả kiểm tra cũ, trạng thái trở về 'typing' để chuẩn bị Enter kiểm tra lại
     if (practiceStatusRef.current === 'incorrect' || practiceStatusRef.current === 'correct') {
+      if (practiceStatusRef.current === 'correct' && hasCountedCorrectForCurrentRef.current) {
+        hasCountedCorrectForCurrentRef.current = false
+        setCorrectCount((prev) => Math.max(0, prev - 1))
+      }
       updatePracticeStatus('typing')
       setEvaluation(null)
     }
@@ -314,28 +327,48 @@ export default function TranslateTypingMode({
     isComposingRef.current = false
     setIsComposing(false)
     setCompositionText('')
-    setUserInput(e.currentTarget.value)
+    const val = e.currentTarget.value
+    userInputRef.current = val
+    setUserInput(val)
 
-    // Đặt cờ vừa kết thúc composition trong 150ms để chặn phím Enter xác nhận IME không bị kích hoạt kiểm tra
+    // Đặt lại trạng thái typing nếu người dùng vừa chọn chữ qua IME sau khi đã kiểm tra
+    if (practiceStatusRef.current === 'incorrect' || practiceStatusRef.current === 'correct') {
+      if (practiceStatusRef.current === 'correct' && hasCountedCorrectForCurrentRef.current) {
+        hasCountedCorrectForCurrentRef.current = false
+        setCorrectCount((prev) => Math.max(0, prev - 1))
+      }
+      updatePracticeStatus('typing')
+      setEvaluation(null)
+    }
+
+    // Đặt cờ vừa kết thúc composition trong 120ms để chặn phím Enter xác nhận IME
     justEndedCompositionRef.current = true
     if (justEndedCompositionTimerRef.current) {
       clearTimeout(justEndedCompositionTimerRef.current)
     }
     justEndedCompositionTimerRef.current = setTimeout(() => {
       justEndedCompositionRef.current = false
-    }, 150)
+    }, 120)
   }
 
   // Kiểm tra đáp án câu dịch
   const handleCheckAnswer = useCallback(async () => {
-    if (!currentExercise || practiceStatusRef.current !== 'typing' || !userInput.trim()) return
+    if (!currentExercise) return
+    const currentStatus = practiceStatusRef.current
+    // Chỉ kiểm tra khi đang typing hoặc khi đang incorrect cần kiểm tra lại
+    if (currentStatus !== 'typing' && currentStatus !== 'incorrect') return
+
+    // Lấy giá trị mới nhất từ input DOM hoặc ref để loại bỏ hoàn toàn stale state
+    const rawVal = inputRef.current ? inputRef.current.value : userInputRef.current
+    const val = (rawVal ?? '').trim()
+    if (!val) return
 
     updatePracticeStatus('checking')
     setIsTimerRunning(false)
     ttsEngine.stop()
     setIsAudioPlaying(false)
 
-    const evalResult = evaluateTranslationInput(userInput, currentExercise.chineseAnswer)
+    const evalResult = evaluateTranslationInput(val, currentExercise.chineseAnswer)
     setEvaluation(evalResult)
 
     // Xóa bản nháp câu này sau khi đã kiểm tra
@@ -344,11 +377,17 @@ export default function TranslateTypingMode({
     const isMatch = evalResult.isExactMatch
     if (isMatch) {
       updatePracticeStatus('correct')
-      setCorrectCount((prev) => prev + 1)
+      if (!hasCountedCorrectForCurrentRef.current) {
+        hasCountedCorrectForCurrentRef.current = true
+        setCorrectCount((prev) => prev + 1)
+      }
       playTypingSfx('complete', 0.08)
     } else {
       updatePracticeStatus('incorrect')
-      setReviewCount((prev) => prev + 1)
+      if (!hasRecordedMistakeForCurrentRef.current) {
+        hasRecordedMistakeForCurrentRef.current = true
+        setReviewCount((prev) => prev + 1)
+      }
       playTypingSfx('error', 0.06)
 
       // Ghi nhận câu khác câu mẫu vào danh sách câu sai/ôn tập
@@ -367,7 +406,7 @@ export default function TranslateTypingMode({
         sentenceZh: currentExercise.chineseAnswer,
         pinyin: currentExercise.pinyinAnswer,
         meaningVi: currentExercise.vietnamesePrompt,
-        lastInputZh: userInput,
+        lastInputZh: val,
         mistakeDetails,
       }
 
@@ -384,9 +423,9 @@ export default function TranslateTypingMode({
       currentSentenceIndex: currentIndex,
       completedSentences: isMatch ? currentIndex + 1 : currentIndex,
       totalSentences: exercises.length,
-      correctSentences: correctCount + (isMatch ? 1 : 0),
-      errorSentences: reviewCount + (!isMatch ? 1 : 0),
-      lastTypedLength: userInput.length,
+      correctSentences: correctCount + (isMatch && !hasCountedCorrectForCurrentRef.current ? 1 : 0),
+      errorSentences: reviewCount + (!isMatch && !hasRecordedMistakeForCurrentRef.current ? 1 : 0),
+      lastTypedLength: val.length,
       timeSpentSeconds: Math.max(elapsedSeconds, 1),
       status: currentIndex >= exercises.length - 1 && isMatch ? 'completed' : 'in_progress',
       updatedAt: new Date().toISOString(),
@@ -403,7 +442,6 @@ export default function TranslateTypingMode({
     }, 50)
   }, [
     currentExercise,
-    userInput,
     exerciseStorageId,
     progressMode,
     currentIndex,
@@ -430,9 +468,9 @@ export default function TranslateTypingMode({
       clearLocalTypingDraft(progressMode, `${exerciseStorageId}-${currentExercise.id}`)
     }
 
-    // Nếu người dùng bấm "Câu tiếp theo" để bỏ qua khi chưa kiểm tra (đang typing):
+    // Nếu người dùng bấm "Câu tiếp theo" để bỏ qua khi chưa đúng (đang typing hoặc sai):
     // Cập nhật vị trí lưu tiến độ mà KHÔNG ghi nhận câu đúng
-    if (currentStatus === 'typing' && currentExercise) {
+    if (currentExercise && !isCurrentlyCorrect) {
       const skipProgressPayload: TypingProgressDTO = {
         mode: progressMode,
         exerciseId: exerciseStorageId,
@@ -441,7 +479,7 @@ export default function TranslateTypingMode({
         totalSentences: exercises.length,
         correctSentences: correctCount,
         errorSentences: reviewCount,
-        lastTypedLength: userInput.length,
+        lastTypedLength: userInputRef.current.length,
         timeSpentSeconds: Math.max(elapsedSeconds, 1),
         status: currentIndex >= exercises.length - 1 ? 'completed' : 'in_progress',
         updatedAt: new Date().toISOString(),
@@ -476,7 +514,6 @@ export default function TranslateTypingMode({
     exerciseStorageId,
     correctCount,
     reviewCount,
-    userInput.length,
     elapsedSeconds,
     isLoggedIn,
     resetSentenceState,
@@ -484,10 +521,9 @@ export default function TranslateTypingMode({
   ])
 
   // Xử lý phím Enter:
-  // - Lần đầu: kiểm tra đáp án
-  // - Nếu đúng: Enter lần 2 mới chuyển câu
-  // - Nếu sai: Enter KHÔNG chuyển câu, cho phép sửa rồi Enter kiểm tra lại
-  // - Phải chặn IME composition hoàn toàn
+  // - Khi typing hoặc incorrect: kiểm tra đáp án (không tự động chuyển câu)
+  // - Khi correct: nhấn Enter lần tiếp theo mới chuyển sang câu tiếp theo
+  // - Chặn triệt để IME composition và các phím Enter dùng để chọn chữ Hán
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     // 1. Chặn phím lặp do giữ phím Enter
     if (e.repeat) {
@@ -501,8 +537,17 @@ export default function TranslateTypingMode({
       isComposingRef.current ||
       e.nativeEvent?.isComposing ||
       e.keyCode === 229 ||
+      e.key === 'Process' ||
       justEndedCompositionRef.current
     ) {
+      // Tiêu thụ ngay cờ justEndedComposition khi gặp phím Enter xác nhận IME
+      if (justEndedCompositionRef.current && e.key === 'Enter') {
+        justEndedCompositionRef.current = false
+        if (justEndedCompositionTimerRef.current) {
+          clearTimeout(justEndedCompositionTimerRef.current)
+          justEndedCompositionTimerRef.current = null
+        }
+      }
       return
     }
 
@@ -510,26 +555,22 @@ export default function TranslateTypingMode({
       e.preventDefault()
       const currentStatus = practiceStatusRef.current
 
-      // A. Nếu đang typing: kiểm tra đáp án nếu có nội dung
-      if (currentStatus === 'typing') {
-        if (userInput.trim().length > 0) {
+      // A. Nếu đang typing HOẶC đang incorrect: kiểm tra đáp án nếu có nội dung
+      if (currentStatus === 'typing' || currentStatus === 'incorrect') {
+        const textToCheck = (inputRef.current ? inputRef.current.value : userInputRef.current).trim()
+        if (textToCheck.length > 0) {
           handleCheckAnswer()
         }
         return
       }
 
-      // B. Nếu đang incorrect: KHÔNG chuyển câu, giữ nguyên cho phép sửa
-      if (currentStatus === 'incorrect') {
-        return
-      }
-
-      // C. Nếu đã correct: Chuyển sang câu tiếp theo
+      // B. Nếu đã correct: Chuyển sang câu tiếp theo
       if (currentStatus === 'correct') {
         handleNextSentence()
         return
       }
 
-      // D. Nếu đang checking hoặc transitioning: bỏ qua tránh double-submit
+      // C. Nếu đang checking hoặc transitioning: bỏ qua tránh race condition
       if (currentStatus === 'checking' || currentStatus === 'transitioning') {
         return
       }
@@ -544,6 +585,7 @@ export default function TranslateTypingMode({
       if (
         e.isComposing ||
         e.keyCode === 229 ||
+        e.key === 'Process' ||
         isComposingRef.current ||
         justEndedCompositionRef.current
       ) {
@@ -566,7 +608,7 @@ export default function TranslateTypingMode({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
   }, [handleNextSentence])
 
-  // Luyện lại câu hiện tại
+  // Luyện lại câu hiện tại (xóa đáp án và bắt đầu lại câu này)
   const handleRetryCurrent = useCallback(() => {
     resetSentenceState()
   }, [resetSentenceState])
@@ -857,16 +899,16 @@ export default function TranslateTypingMode({
                 onCompositionStart={handleCompositionStart}
                 onCompositionUpdate={handleCompositionUpdate}
                 onCompositionEnd={handleCompositionEnd}
-                readOnly={practiceStatus === 'correct' || practiceStatus === 'checking' || practiceStatus === 'transitioning'}
+                readOnly={practiceStatus === 'checking' || practiceStatus === 'transitioning'}
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
                 spellCheck="false"
                 placeholder={
                   practiceStatus === 'correct'
-                    ? 'Đã trùng khớp câu mẫu! Nhấn Enter lần nữa hoặc bấm "Câu tiếp theo" để tiếp tục...'
+                    ? 'Đã trùng khớp câu mẫu! Nhấn Enter để sang câu tiếp theo hoặc bấm "Câu tiếp theo"...'
                     : practiceStatus === 'incorrect'
-                    ? 'Chưa chính xác. Chỉnh sửa câu của bạn rồi nhấn Enter để kiểm tra lại...'
+                    ? 'Chưa chính xác. Chỉnh sửa câu của bạn rồi nhấn Enter để kiểm tra...'
                     : practiceStatus === 'checking'
                     ? 'Đang kiểm tra đáp án...'
                     : practiceStatus === 'transitioning'
@@ -892,8 +934,7 @@ export default function TranslateTypingMode({
               )}
 
               {/* Nút xóa nhanh khi chưa kiểm tra hoặc khi đang sửa */}
-              {practiceStatus !== 'correct' &&
-                practiceStatus !== 'checking' &&
+              {practiceStatus !== 'checking' &&
                 practiceStatus !== 'transitioning' &&
                 userInput.length > 0 &&
                 !isComposing && (
@@ -901,7 +942,15 @@ export default function TranslateTypingMode({
                     type="button"
                     onClick={() => {
                       setUserInput('')
+                      userInputRef.current = ''
                       if (practiceStatus === 'incorrect') {
+                        updatePracticeStatus('typing')
+                        setEvaluation(null)
+                      } else if (practiceStatus === 'correct') {
+                        if (hasCountedCorrectForCurrentRef.current) {
+                          hasCountedCorrectForCurrentRef.current = false
+                          setCorrectCount((prev) => Math.max(0, prev - 1))
+                        }
                         updatePracticeStatus('typing')
                         setEvaluation(null)
                       }
@@ -927,32 +976,26 @@ export default function TranslateTypingMode({
                 </kbd>
                 {practiceStatus === 'correct' ? (
                   <span className="text-emerald-700 dark:text-emerald-400 font-bold animate-pulse">
-                    để chuyển sang câu tiếp theo →
+                    để sang câu tiếp theo
                   </span>
-                ) : practiceStatus === 'incorrect' ? (
-                  <span className="text-amber-700 dark:text-amber-400 font-medium">
-                    để kiểm tra lại
-                  </span>
-                ) : practiceStatus === 'checking' ? (
-                  <span>đang kiểm tra...</span>
-                ) : practiceStatus === 'transitioning' ? (
-                  <span>đang chuyển câu...</span>
                 ) : (
-                  <span>để kiểm tra</span>
+                  <span className="text-body font-medium">
+                    để kiểm tra
+                  </span>
                 )}
               </span>
             </div>
           </div>
 
-          {/* 6. Hàng nút công cụ: Gợi ý & Kiểm tra đáp án */}
-          {practiceStatus !== 'correct' && practiceStatus !== 'transitioning' && (
+          {/* 6. Hàng nút công cụ: Gợi ý & Kiểm tra (chỉ hiện khi đang nhập liệu, bỏ nút Kiểm tra lại trùng lặp khi sai) */}
+          {practiceStatus === 'typing' && (
             <div className="flex items-center justify-between gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleNextHint}
-                disabled={hintLevel >= 3 || practiceStatus === 'checking'}
+                disabled={hintLevel >= 3}
                 className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-serif font-medium transition-all active:scale-95 touch-manipulation min-h-[44px] cursor-pointer shadow-2xs ${
-                  hintLevel >= 3 || practiceStatus === 'checking'
+                  hintLevel >= 3
                     ? 'bg-page border border-border text-muted/60 cursor-not-allowed'
                     : 'bg-[#FFF9F3] border border-[#E9DDD1] hover:border-[#DDD0C2] text-[#243047]'
                 }`}
@@ -967,20 +1010,12 @@ export default function TranslateTypingMode({
               <button
                 type="button"
                 onClick={handleCheckAnswer}
-                disabled={userInput.trim().length === 0 || practiceStatus === 'checking'}
+                disabled={userInput.trim().length === 0}
                 className="flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-[#B8322D] hover:bg-[#982923] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all shadow-2xs active:scale-95 touch-manipulation min-h-[44px] cursor-pointer ml-auto"
+                title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
               >
-                {practiceStatus === 'checking' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                    <span>Đang kiểm tra...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    <span>{practiceStatus === 'incorrect' ? 'Kiểm tra lại' : 'Kiểm tra đáp án'}</span>
-                  </>
-                )}
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>Kiểm tra</span>
               </button>
             </div>
           )}
@@ -1025,6 +1060,7 @@ export default function TranslateTypingMode({
                     type="button"
                     onClick={handleRetryCurrent}
                     className="flex items-center gap-1.5 px-3.5 py-2 bg-[#FFF9F3] border border-[#E9DDD1] hover:bg-[#F6EDE3] rounded-xl text-xs sm:text-sm font-serif text-[#243047] transition-all active:scale-95 touch-manipulation min-h-[44px] cursor-pointer shadow-2xs"
+                    title="Xóa câu đã nhập và luyện lại câu này từ đầu"
                   >
                     <RotateCcw className="w-4 h-4 shrink-0" />
                     <span>Luyện lại</span>
@@ -1034,6 +1070,7 @@ export default function TranslateTypingMode({
                     type="button"
                     onClick={() => handleNextSentence({ isSkipManual: !evaluation.isExactMatch })}
                     className="flex items-center gap-1.5 px-4 sm:px-5 py-2 bg-[#B8322D] hover:bg-[#982923] text-white rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all shadow-2xs active:scale-95 touch-manipulation min-h-[44px] cursor-pointer"
+                    title={evaluation.isExactMatch ? 'Chuyển sang câu tiếp theo' : 'Bỏ qua câu này và sang câu tiếp theo'}
                   >
                     <span>{currentIndex >= exercises.length - 1 ? 'Hoàn thành' : 'Câu tiếp theo'}</span>
                     <ArrowRight className="w-4 h-4 shrink-0" />
@@ -1047,7 +1084,7 @@ export default function TranslateTypingMode({
                   <span className="flex items-center gap-1.5 font-medium">
                     <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>
-                      Nhấn phím <kbd className="font-mono font-bold px-1.5 py-0.5 rounded bg-white/80 dark:bg-emerald-950/80 border border-emerald-400/40 text-emerald-900 dark:text-emerald-200">Enter</kbd> lần nữa hoặc bấm nút &ldquo;Câu tiếp theo&rdquo; để chuyển sang câu mới.
+                      Nhấn phím <kbd className="font-mono font-bold px-1.5 py-0.5 rounded bg-white/80 dark:bg-emerald-950/80 border border-emerald-400/40 text-emerald-900 dark:text-emerald-200">Enter</kbd> để sang câu tiếp theo, hoặc bấm nút &ldquo;Câu tiếp theo&rdquo;.
                     </span>
                   </span>
                 </div>
@@ -1056,7 +1093,7 @@ export default function TranslateTypingMode({
                   <span className="flex items-center gap-1.5 font-medium">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>
-                      Chỉnh sửa câu ở ô nhập liệu bên trên rồi nhấn <kbd className="font-mono font-bold px-1.5 py-0.5 rounded bg-white/80 dark:bg-amber-950/80 border border-amber-400/40 text-amber-900 dark:text-amber-200">Enter</kbd> để kiểm tra lại, hoặc bấm <strong className="font-semibold">&ldquo;Câu tiếp theo&rdquo;</strong> để bỏ qua câu này.
+                      Chỉnh sửa câu ở ô nhập liệu rồi nhấn <kbd className="font-mono font-bold px-1.5 py-0.5 rounded bg-white/80 dark:bg-amber-950/80 border border-amber-400/40 text-amber-900 dark:text-amber-200">Enter</kbd> để kiểm tra, hoặc bấm <strong className="font-semibold">&ldquo;Câu tiếp theo&rdquo;</strong> để bỏ qua câu này.
                     </span>
                   </span>
                 </div>
