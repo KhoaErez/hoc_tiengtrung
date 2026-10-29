@@ -36,6 +36,9 @@ jobs:
       - name: 📝 Kiểm tra TypeScript (Type Check)
         run: npm run type-check
 
+      - name: 🧪 Chạy Kiểm thử Tự động (Automated Unit & Logic Tests)
+        run: npm test
+
       - name: 🧹 Kiểm tra mã nguồn (ESLint)
         run: npm run lint
 

@@ -326,6 +326,8 @@ export function updateCustomExerciseResult(
 
 // === QUẢN LÝ TIẾN ĐỘ & CÂU GÕ SAI TẠI LOCALSTORAGE (CHO KHÁCH & OFFLINE CACHE) ===
 
+import { calculateSM2, mapTypingResultToQuality, isItemDue } from '@/lib/spaced-repetition';
+
 export type ReviewStatus = 'need_review' | 'reviewing' | 'mastered';
 
 export interface TypingMistakeDetail {
@@ -347,11 +349,20 @@ export interface TypingProgressItem {
   timeSpentSeconds: number;
   status: 'not_started' | 'in_progress' | 'completed';
   updatedAt: string;
+  // Các trường lưu vị trí học tiếp thông minh
+  hskLevel?: number;
+  lessonId?: string;
+  lessonTitle?: string;
+  currentQuestionId?: string;
+  currentQuestionText?: string;
+  practiceMode?: 'visual' | 'translate';
+  settings?: Record<string, any>;
 }
 
 export interface TypingMistakeItem {
   id: string;
   mode: string;
+  practiceType?: 'translate' | 'listen';
   exerciseId: string;
   sentenceIndex: number;
   sentenceZh: string;
@@ -364,6 +375,11 @@ export interface TypingMistakeItem {
   reviewCount: number;
   reviewCorrectCount: number;
   consecutiveCorrect: number;
+  // Các trường Spaced Repetition (SM-2)
+  intervalDays?: number;
+  easeFactor?: number;
+  dueAt?: string;
+  lapses?: number;
   lastErrorAt: string;
   lastReviewedAt?: string;
 }
@@ -389,6 +405,23 @@ export function getLocalTypingProgress(mode: string, exerciseId: string): Typing
   return map[key] || null;
 }
 
+// Lấy tiến độ học tập gần đây nhất (bài học vừa mở/vừa hoàn thành câu mới nhất)
+// Hỗ trợ lọc riêng biệt theo practiceMode: 'visual' (Nghe & Gõ) vs 'translate' (Dịch Việt -> Gõ Hán)
+export function getLatestLocalTypingProgress(practiceMode?: 'visual' | 'translate'): TypingProgressItem | null {
+  const map = getAllLocalProgressMap();
+  let list = Object.values(map);
+
+  if (practiceMode === 'translate') {
+    list = list.filter((item) => item.practiceMode === 'translate' || item.mode === 'translate_hsk');
+  } else if (practiceMode === 'visual') {
+    list = list.filter((item) => item.practiceMode === 'visual' || (item.practiceMode !== 'translate' && item.mode !== 'translate_hsk'));
+  }
+
+  if (list.length === 0) return null;
+  // Sắp xếp theo updatedAt giảm dần
+  return list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0] || null;
+}
+
 // Lưu tiến độ vào local
 export function saveLocalTypingProgress(item: TypingProgressItem): void {
   if (typeof window === 'undefined') return;
@@ -397,6 +430,7 @@ export function saveLocalTypingProgress(item: TypingProgressItem): void {
     const key = `${item.mode}_${item.exerciseId}`;
     map[key] = {
       ...item,
+      practiceMode: item.practiceMode || (item.mode === 'translate_hsk' ? 'translate' : 'visual'),
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(STORAGE_KEY_PROGRESS_LOCAL, JSON.stringify(map));
@@ -425,9 +459,10 @@ export function resetLocalTypingProgress(mode: string, exerciseId: string): void
   } catch {}
 }
 
-// Lấy danh sách câu sai từ local
+// Lấy danh sách câu sai từ local (hỗ trợ tách riêng practiceType: translate vs listen)
 export function getLocalTypingMistakes(filter?: {
   mode?: string;
+  practiceType?: 'translate' | 'listen' | 'all';
   reviewStatus?: ReviewStatus | 'all';
 }): TypingMistakeItem[] {
   if (typeof window === 'undefined') return [];
@@ -435,6 +470,14 @@ export function getLocalTypingMistakes(filter?: {
     const raw = localStorage.getItem(STORAGE_KEY_MISTAKES_LOCAL);
     if (!raw) return [];
     let list: TypingMistakeItem[] = JSON.parse(raw);
+
+    // Lọc theo loại hình luyện tập (Dịch Việt -> Gõ Hán vs Nghe & Gõ)
+    if (filter?.practiceType && filter.practiceType !== 'all') {
+      list = list.filter((m) => {
+        const itemType = m.practiceType || (m.mode?.includes('translate') ? 'translate' : 'listen');
+        return itemType === filter.practiceType;
+      });
+    }
 
     if (filter?.mode && filter.mode !== 'all') {
       list = list.filter((m) => m.mode === filter.mode);
@@ -448,9 +491,10 @@ export function getLocalTypingMistakes(filter?: {
   }
 }
 
-// Ghi nhận câu sai vào local (upsert)
+// Ghi nhận câu sai vào local (upsert) - Đảm bảo phân tách độc lập giữa 2 chế độ
 export function recordLocalTypingMistake(data: {
   mode: string;
+  practiceType?: 'translate' | 'listen';
   exerciseId: string;
   sentenceIndex: number;
   sentenceZh: string;
@@ -461,14 +505,24 @@ export function recordLocalTypingMistake(data: {
 }): TypingMistakeItem {
   const list = getLocalTypingMistakes();
   const now = new Date().toISOString();
-  const existingIdx = list.findIndex(
-    (m) => m.mode === data.mode && m.exerciseId === data.exerciseId && m.sentenceIndex === data.sentenceIndex
-  );
+  const effectivePracticeType: 'translate' | 'listen' =
+    data.practiceType || (data.mode?.includes('translate') ? 'translate' : 'listen');
+
+  // Tìm kiếm theo practiceType + exerciseId + sentenceIndex để cùng 1 câu nếu sai ở cả 2 chế độ sẽ có 2 record riêng
+  const existingIdx = list.findIndex((m) => {
+    const itemType = m.practiceType || (m.mode?.includes('translate') ? 'translate' : 'listen');
+    return (
+      itemType === effectivePracticeType &&
+      m.exerciseId === data.exerciseId &&
+      m.sentenceIndex === data.sentenceIndex
+    );
+  });
 
   if (existingIdx !== -1) {
     const existing = list[existingIdx];
     const updated: TypingMistakeItem = {
       ...existing,
+      practiceType: effectivePracticeType,
       sentenceZh: data.sentenceZh,
       pinyin: data.pinyin || existing.pinyin,
       meaningVi: data.meaningVi || existing.meaningVi,
@@ -477,6 +531,10 @@ export function recordLocalTypingMistake(data: {
       mistakeCount: existing.mistakeCount + 1,
       reviewStatus: 'need_review',
       consecutiveCorrect: 0,
+      intervalDays: 0,
+      easeFactor: existing.easeFactor || 2.5,
+      dueAt: now, // Sai câu này -> Đưa lên ưu tiên ôn tập ngay
+      lapses: (existing.lapses || 0) + 1,
       lastErrorAt: now,
     };
     list[existingIdx] = updated;
@@ -489,6 +547,7 @@ export function recordLocalTypingMistake(data: {
   const newMistake: TypingMistakeItem = {
     id: `local-mistake-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     mode: data.mode,
+    practiceType: effectivePracticeType,
     exerciseId: data.exerciseId,
     sentenceIndex: data.sentenceIndex,
     sentenceZh: data.sentenceZh,
@@ -501,6 +560,10 @@ export function recordLocalTypingMistake(data: {
     reviewCount: 0,
     reviewCorrectCount: 0,
     consecutiveCorrect: 0,
+    intervalDays: 0,
+    easeFactor: 2.5,
+    dueAt: now, // Đến hạn ôn ngay
+    lapses: 0,
     lastErrorAt: now,
   };
 
@@ -511,8 +574,12 @@ export function recordLocalTypingMistake(data: {
   return newMistake;
 }
 
-// Cập nhật kết quả ôn tập trong local
-export function updateLocalMistakeReview(mistakeId: string, isCorrect: boolean): TypingMistakeItem | null {
+// Cập nhật kết quả ôn tập trong local theo thuật toán Spaced Repetition (SM-2)
+export function updateLocalMistakeReview(
+  mistakeId: string,
+  isCorrect: boolean,
+  options?: { hintsUsed?: number; hadRetry?: boolean }
+): TypingMistakeItem | null {
   if (typeof window === 'undefined') return null;
   try {
     const list = getLocalTypingMistakes();
@@ -522,25 +589,33 @@ export function updateLocalMistakeReview(mistakeId: string, isCorrect: boolean):
     const current = list[idx];
     const now = new Date().toISOString();
     const newReviewCount = current.reviewCount + 1;
-    let newReviewCorrectCount = current.reviewCorrectCount;
-    let newConsecutive = current.consecutiveCorrect;
-    let newStatus: ReviewStatus = current.reviewStatus;
+    const newReviewCorrectCount = isCorrect ? current.reviewCorrectCount + 1 : current.reviewCorrectCount;
 
-    if (isCorrect) {
-      newReviewCorrectCount += 1;
-      newConsecutive += 1;
-      newStatus = newConsecutive >= 2 ? 'mastered' : 'reviewing';
-    } else {
-      newConsecutive = 0;
-      newStatus = 'need_review';
-    }
+    // Tính toán SM-2
+    const quality = mapTypingResultToQuality(
+      isCorrect,
+      options?.hintsUsed ?? 0,
+      options?.hadRetry ?? false
+    );
+
+    const sm2Result = calculateSM2({
+      quality,
+      repetitions: current.consecutiveCorrect || 0,
+      interval: current.intervalDays || 0,
+      easeFactor: current.easeFactor || 2.5,
+      lapses: current.lapses || 0,
+    });
 
     const updated: TypingMistakeItem = {
       ...current,
       reviewCount: newReviewCount,
       reviewCorrectCount: newReviewCorrectCount,
-      consecutiveCorrect: newConsecutive,
-      reviewStatus: newStatus,
+      consecutiveCorrect: sm2Result.repetitions,
+      intervalDays: sm2Result.interval,
+      easeFactor: sm2Result.easeFactor,
+      dueAt: sm2Result.dueAt,
+      lapses: sm2Result.lapses,
+      reviewStatus: sm2Result.status,
       lastReviewedAt: now,
     };
 
@@ -550,6 +625,12 @@ export function updateLocalMistakeReview(mistakeId: string, isCorrect: boolean):
   } catch {
     return null;
   }
+}
+
+// Đếm số câu đến hạn ôn trong local (hỗ trợ lọc theo practiceType)
+export function getLocalDueMistakesCount(practiceType?: 'translate' | 'listen'): number {
+  const list = getLocalTypingMistakes(practiceType ? { practiceType } : undefined);
+  return list.filter((m) => isItemDue(m.dueAt)).length;
 }
 
 // Đổi trạng thái câu sai thủ công trong local

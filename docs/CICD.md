@@ -26,7 +26,7 @@ Hệ sinh thái CI/CD của Chinese Notebook bao gồm 3 quy trình tự động
 
 | Tên Workflow | File cấu hình | Điều kiện kích hoạt | Mục đích |
 | :--- | :--- | :--- | :--- |
-| **CI (Continuous Integration)** | `.github/workflows/ci.yml` | `push` / `pull_request` vào nhánh `main` hoặc chạy thủ công | Kiểm tra lỗi cú pháp (Lint), kiểm tra kiểu dữ liệu (TypeScript) và thử nghiệm Build Next.js Production |
+| **CI (Continuous Integration)** | `.github/workflows/ci.yml` | `push` / `pull_request` vào nhánh `main` hoặc chạy thủ công | Kiểm tra Type Check (TypeScript), chạy bộ kiểm thử tự động (Unit & Logic Tests cho SM-2, tách tiến độ, tách câu sai), kiểm tra Lint (ESLint) và thử nghiệm Build Next.js Production |
 | **CD (Continuous Deployment)** | `.github/workflows/cd.yml` | `push` vào nhánh `main` hoặc chạy thủ công | Tự động kích hoạt quy trình triển khai lên môi trường Production trên Vercel |
 | **Release Management** | `.github/workflows/release.yml` | `push` Git tag dạng `v*` (ví dụ `v1.0.0`) | Tự động xuất bản GitHub Release chính thức với tên tác giả **Trần Doãn Khoa** và bản quyền © 2026 |
 

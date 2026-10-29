@@ -49,6 +49,7 @@ import {
   resetLocalTypingProgress,
   recordLocalTypingMistake,
   getLocalTypingMistakes,
+  getLatestLocalTypingProgress,
   getAllLocalTypingDataForSync,
   clearSyncedLocalData,
   saveLocalTypingDraft,
@@ -57,6 +58,7 @@ import {
 } from '@/lib/typing-storage'
 import {
   getTypingProgressAction,
+  getLatestTypingProgressAction,
   saveTypingProgressAction,
   recordTypingMistakeAction,
   resetTypingProgressAction,
@@ -70,6 +72,7 @@ import {
 import { useSearchParams } from 'next/navigation'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
 import TypingResumeBanner from './components/typing-resume-banner'
+import TypingResumeCard from './components/typing-resume-card'
 import TypingMistakesReview from './components/typing-mistakes-review'
 import { toast } from 'sonner'
 import {
@@ -136,24 +139,82 @@ function isCharMatch(c1: string, c2: string, allowNormalize = true): boolean {
 export default function TypingClient() {
   const { user, isLoggedIn } = useAuthModal()
 
-  // Chế độ & Tab điều hướng
-  const [activeTab, setActiveTab] = useState<'practice' | 'mistakes'>('practice')
-  const [mistakeCount, setMistakeCount] = useState<number>(0)
-  const [savedProgress, setSavedProgress] = useState<TypingProgressDTO | null>(null)
-  const [showResumeBanner, setShowResumeBanner] = useState<boolean>(false)
-  const [showImeGuide, setShowImeGuide] = useState<boolean>(true)
-
   const searchParams = useSearchParams()
   const urlMode = searchParams.get('mode') as TypingMode | null
   const urlPractice = searchParams.get('practice')
+  const urlTab = searchParams.get('tab')
   const urlHskLevel = searchParams.get('hskLevel')
   const urlLessonId = searchParams.get('lessonId')
+  const urlSentenceId = searchParams.get('sentenceId')
   const urlPracticeType = searchParams.get('practiceType')
+
+  // Chế độ & Tab điều hướng (Tự động phục hồi từ URL khi F5 hoặc chia sẻ link)
+  const [activeTab, setActiveTab] = useState<'practice' | 'mistakes'>(() => {
+    return urlTab === 'mistakes' ? 'mistakes' : 'practice'
+  })
+  const [mistakeCount, setMistakeCount] = useState<number>(0)
+  const [savedProgress, setSavedProgress] = useState<TypingProgressDTO | null>(null)
+  const [latestVisualProgress, setLatestVisualProgress] = useState<TypingProgressDTO | null>(null)
+  const [showResumeBanner, setShowResumeBanner] = useState<boolean>(false)
+  const [showImeGuide, setShowImeGuide] = useState<boolean>(true)
+
+  // Cập nhật URL mượt mà không reload trang (giữ đúng ngữ cảnh học tập)
+  const updateUrlParams = useCallback((params: { practice?: string; tab?: string }) => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (params.practice) url.searchParams.set('practice', params.practice)
+    if (params.tab !== undefined) {
+      if (params.tab === 'mistakes') {
+        url.searchParams.set('tab', 'mistakes')
+      } else {
+        url.searchParams.delete('tab')
+      }
+    }
+    window.history.replaceState({}, '', url.toString())
+  }, [])
+
+  const [resumeSentenceId, setResumeSentenceId] = useState<string | undefined>(() => urlSentenceId || undefined)
+  const [resumeSentenceIndex, setResumeSentenceIndex] = useState<number | undefined>(undefined)
 
   const [practiceMode, setPracticeMode] = useState<'visual' | 'translate'>(() => {
     if (urlPractice === 'translate' || urlMode === ('translate' as any)) return 'translate'
     return 'visual'
   })
+
+  // Tự động tải tiến độ học gần nhất cho RIÊNG chế độ Nghe & Gõ (visual)
+  useEffect(() => {
+    let isCancelled = false
+    const loadLatestVisualProgress = async () => {
+      try {
+        let p: TypingProgressDTO | null = null
+        if (isLoggedIn) {
+          const res = await getLatestTypingProgressAction('visual')
+          if (res.success && res.progress) {
+            p = res.progress
+          }
+        }
+        if (!p) {
+          p = getLatestLocalTypingProgress('visual') as TypingProgressDTO | null
+        }
+
+        if (
+          !isCancelled &&
+          p &&
+          p.status !== 'completed' &&
+          (p.completedSentences > 0 || p.currentSentenceIndex > 0)
+        ) {
+          setLatestVisualProgress(p)
+        }
+      } catch (err) {
+        console.error('Lỗi tải tiến độ học gần nhất cho Nghe & Gõ:', err)
+      }
+    }
+
+    loadLatestVisualProgress()
+    return () => {
+      isCancelled = true
+    }
+  }, [isLoggedIn])
 
   const [mode, setMode] = useState<TypingMode>(() => {
     if (urlMode && ['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(urlMode)) {
@@ -184,6 +245,11 @@ export default function TypingClient() {
 
   // Đồng bộ searchParams từ URL nếu có thay đổi điều hướng
   useEffect(() => {
+    if (urlTab === 'mistakes') {
+      setActiveTab('mistakes')
+    } else if (urlTab === 'practice') {
+      setActiveTab('practice')
+    }
     if (urlPractice === 'translate' || urlMode === ('translate' as any)) {
       setPracticeMode('translate')
     } else if (urlPractice === 'visual') {
@@ -203,7 +269,7 @@ export default function TypingClient() {
     if (urlPracticeType === 'dictation') {
       setPreferences((prev) => ({ ...prev, hideHanzi: true }))
     }
-  }, [urlPractice, urlMode, urlHskLevel, urlLessonId, urlPracticeType])
+  }, [urlTab, urlPractice, urlMode, urlHskLevel, urlLessonId, urlPracticeType])
 
   // Danh sách các bài học có trong cấp HSK hiện tại (fallback tĩnh)
   const availableLessons = useMemo(() => {
@@ -233,6 +299,27 @@ export default function TypingClient() {
       isCancelled = true
     }
   }, [mode, hskLevel])
+
+  // Đồng bộ số lượng câu sai cần ôn tập cho badge theo từng chế độ riêng biệt
+  useEffect(() => {
+    let isCancelled = false
+    const currentPracticeType = practiceMode === 'translate' ? 'translate' : 'listen'
+    if (isLoggedIn) {
+      getTypingMistakesAction({ practiceType: currentPracticeType })
+        .then((res) => {
+          if (!isCancelled && res.success && res.mistakes) {
+            setMistakeCount(res.mistakes.length)
+          }
+        })
+        .catch(() => {})
+    } else {
+      const localList = getLocalTypingMistakes({ practiceType: currentPracticeType })
+      setMistakeCount(localList.length)
+    }
+    return () => {
+      isCancelled = true
+    }
+  }, [isLoggedIn, activeTab, practiceMode])
 
   // Dữ liệu bài tập HSK tải trực tiếp từ database (vocabulary_examples + vocabularies)
   const [hskDynamicExercises, setHskDynamicExercises] = useState<TypingExercise[]>([])
@@ -288,6 +375,25 @@ export default function TypingClient() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [exerciseEpoch, setExerciseEpoch] = useState(0)
   const currentExercise = exercises[currentIndex] || exercises[0]
+
+  // Tự động khôi phục vị trí câu bài tập khi danh sách bài tập đã nạp xong
+  useEffect(() => {
+    if (!resumeSentenceId && resumeSentenceIndex === undefined) return
+    if (exercises.length === 0) return
+
+    if (resumeSentenceId) {
+      const foundIdx = exercises.findIndex((ex) => ex.id === resumeSentenceId)
+      if (foundIdx !== -1) {
+        setCurrentIndex(foundIdx)
+        setResumeSentenceId(undefined)
+        return
+      }
+    }
+    if (typeof resumeSentenceIndex === 'number' && resumeSentenceIndex >= 0 && resumeSentenceIndex < exercises.length) {
+      setCurrentIndex(resumeSentenceIndex)
+      setResumeSentenceIndex(undefined)
+    }
+  }, [exercises, resumeSentenceId, resumeSentenceIndex])
 
   // Trạng thái nhập liệu & IME
   const [userInput, setUserInput] = useState('')
@@ -954,19 +1060,57 @@ export default function TypingClient() {
     }
   }, [stopSpeech])
 
+  // Xử lý khi nhấn nút "Tiếp tục học →" từ Thẻ Tiếp tục học của Nghe & Gõ
+  const handleResumeVisualLatest = useCallback((p: TypingProgressDTO) => {
+    if (['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(p.mode as any)) {
+      setMode(p.mode as any)
+    }
+    if (p.hskLevel) setHskLevel(p.hskLevel)
+    if (p.lessonId) setSelectedLessonId(p.lessonId)
+    if (typeof p.currentSentenceIndex === 'number') {
+      setCurrentIndex(p.currentSentenceIndex)
+      setResumeSentenceIndex(p.currentSentenceIndex)
+    }
+    if (p.currentQuestionId) {
+      setResumeSentenceId(p.currentQuestionId)
+    } else if (p.exerciseId) {
+      setResumeSentenceId(p.exerciseId)
+    }
+    setLatestVisualProgress(null)
+    setShowResumeBanner(false)
+    toast.success('Đang khôi phục vị trí học tiếp...', { duration: 2500 })
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }, [])
+
+  // Xử lý khi muốn bắt đầu lại bài học gần nhất từ đầu cho Nghe & Gõ
+  const handleRestartVisualLatest = useCallback(async (p: TypingProgressDTO) => {
+    if (isLoggedIn) {
+      await resetTypingProgressAction(p.mode, p.exerciseId)
+    }
+    resetLocalTypingProgress(p.mode, p.exerciseId)
+    setLatestVisualProgress(null)
+    setShowResumeBanner(false)
+    setCurrentIndex(0)
+    resetExercise()
+    toast.info('Đã đặt lại tiến độ bài học về câu đầu tiên.')
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }, [isLoggedIn, resetExercise])
+
   // Chuyển bài khi đổi bộ lọc
   useEffect(() => {
     lastAutoSpokenExerciseIdRef.current = null
     setExerciseEpoch((prev) => prev + 1)
-    setCurrentIndex(0)
+    if (!resumeSentenceId && resumeSentenceIndex === undefined) {
+      setCurrentIndex(0)
+    }
     resetExercise()
-  }, [mode, levelFilter, categoryFilter, hskLevel, selectedLessonId, onlyUnlearnedFilter, resetExercise])
+  }, [mode, levelFilter, categoryFilter, hskLevel, selectedLessonId, onlyUnlearnedFilter, resetExercise, resumeSentenceId, resumeSentenceIndex])
 
-  // Làm mới số lượng câu sai cần ôn
+  // Làm mới số lượng câu sai cần ôn (chỉ đếm câu sai thuộc chế độ Nghe & Gõ: practiceType = 'listen')
   const refreshMistakeCount = useCallback(async () => {
     if (isLoggedIn) {
       try {
-        const res = await getTypingMistakesAction()
+        const res = await getTypingMistakesAction({ practiceType: 'listen' })
         if (res.success && res.mistakes) {
           setMistakeCount(res.mistakes.filter((m) => m.reviewStatus !== 'mastered').length)
           return
@@ -975,7 +1119,7 @@ export default function TypingClient() {
     }
     if (typeof getLocalTypingMistakes === 'function') {
       try {
-        const localList = getLocalTypingMistakes()
+        const localList = getLocalTypingMistakes({ practiceType: 'listen' })
         setMistakeCount(localList.filter((m) => m.reviewStatus !== 'mastered').length)
       } catch {}
     }
@@ -1224,6 +1368,7 @@ export default function TypingClient() {
       }))
       const mistakePayload = {
         mode,
+        practiceType: 'listen' as const,
         exerciseId: currentExercise.id,
         sentenceIndex: currentTypingSentenceIndex,
         sentenceZh: currentExercise.hanzi,
@@ -1253,6 +1398,19 @@ export default function TypingClient() {
       lastTypedLength: userInput.length,
       timeSpentSeconds: Math.max(elapsedSeconds, 1),
       status: 'completed',
+      hskLevel: mode === 'hsk' ? hskLevel : undefined,
+      lessonId: mode === 'hsk' ? (selectedLessonId || undefined) : undefined,
+      lessonTitle:
+        mode === 'hsk'
+          ? selectedLessonId
+            ? 'Bài học'
+            : `HSK ${hskLevel}`
+          : mode === 'sentence'
+          ? 'Câu mẫu'
+          : (currentExercise as any).title || 'Đoạn văn',
+      currentQuestionId: currentExercise.id,
+      currentQuestionText: currentExercise.hanzi,
+      practiceMode: 'visual',
     }
     if (typeof saveLocalTypingProgress === 'function') {
       saveLocalTypingProgress(finishProgress as any)
@@ -1376,6 +1534,7 @@ export default function TypingClient() {
           if (!isSentenceValid) {
             const mistakePayload = {
               mode,
+              practiceType: 'listen' as const,
               exerciseId: currentExercise.id,
               sentenceIndex: curSentence.index,
               sentenceZh: curSentence.text,
@@ -1406,6 +1565,19 @@ export default function TypingClient() {
             lastTypedLength: newLength,
             timeSpentSeconds: elapsedSeconds,
             status: isLastSentence ? 'completed' : 'in_progress',
+            hskLevel: mode === 'hsk' ? hskLevel : undefined,
+            lessonId: mode === 'hsk' ? (selectedLessonId || undefined) : undefined,
+            lessonTitle:
+              mode === 'hsk'
+                ? selectedLessonId
+                  ? 'Bài học'
+                  : `HSK ${hskLevel}`
+                : mode === 'sentence'
+                ? 'Câu mẫu'
+                : (currentExercise as any).title || 'Đoạn văn',
+            currentQuestionId: currentExercise.id,
+            currentQuestionText: curSentence ? curSentence.text : (currentExercise.hanzi || ''),
+            practiceMode: 'visual',
           }
           if (typeof saveLocalTypingProgress === 'function') {
             saveLocalTypingProgress(progressPayload as any)
@@ -1679,6 +1851,8 @@ export default function TypingClient() {
             onClick={() => {
               stopSpeech()
               setPracticeMode('visual')
+              setActiveTab('practice')
+              updateUrlParams({ practice: 'visual', tab: 'practice' })
             }}
             className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-sans font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
               practiceMode === 'visual'
@@ -1694,6 +1868,8 @@ export default function TypingClient() {
             onClick={() => {
               stopSpeech()
               setPracticeMode('translate')
+              setActiveTab('practice')
+              updateUrlParams({ practice: 'translate', tab: 'practice' })
             }}
             className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-sans font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
               practiceMode === 'translate'
@@ -1713,97 +1889,113 @@ export default function TypingClient() {
         </p>
       </div>
 
+      {/* Màn hình chính theo chế độ: Tích hợp hoàn toàn Ôn câu sai vào từng chế độ riêng biệt */}
       {practiceMode === 'translate' ? (
         <TranslateTypingMode
           initialHskLevel={hskLevel}
           initialLessonId={selectedLessonId}
-          onBackToNormalMode={() => setPracticeMode('visual')}
+          initialSentenceIndex={resumeSentenceIndex}
+          initialSentenceId={resumeSentenceId}
+          initialViewMode={urlTab === 'mistakes' ? 'mistakes' : 'practice'}
+          onBackToNormalMode={() => {
+            setPracticeMode('visual')
+            setActiveTab('practice')
+            updateUrlParams({ practice: 'visual', tab: 'practice' })
+          }}
+        />
+      ) : activeTab === 'mistakes' ? (
+        <TypingMistakesReview
+          isLoggedIn={isLoggedIn}
+          practiceType="listen"
+          initialHskLevel={hskLevel}
+          initialLessonId={selectedLessonId}
+          onBackToPractice={() => {
+            setActiveTab('practice')
+            updateUrlParams({ practice: 'visual', tab: 'practice' })
+          }}
         />
       ) : (
         <>
           {/* 3. Thanh chọn phân loại nội dung cho Nhìn & Gõ (4 chế độ bao gồm Ôn câu sai) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 bg-card border border-[#E9DDD1] rounded-2xl p-1.5 shadow-2xs">
-        <button
-          onClick={() => {
-            setActiveTab('practice')
-            setMode('sentence')
-          }}
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
-            activeTab === 'practice' && mode === 'sentence'
-              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
-              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
-          }`}
-        >
-          <FileText className="w-4 h-4 shrink-0" />
-          <span className="truncate">Câu mẫu</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('practice')
-            setMode('paragraph')
-          }}
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
-            activeTab === 'practice' && mode === 'paragraph'
-              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
-              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
-          }`}
-        >
-          <AlignLeft className="w-4 h-4 shrink-0" />
-          <span className="truncate">Đoạn văn</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('practice')
-            setMode('hsk')
-          }}
-          className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
-            activeTab === 'practice' && mode === 'hsk'
-              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
-              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
-          }`}
-        >
-          <GraduationCap className="w-4 h-4 shrink-0" />
-          <span className="truncate">Theo HSK</span>
-        </button>
-
-        <button
-          onClick={() => {
-            stopSpeech()
-            setActiveTab('mistakes')
-          }}
-          className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
-            activeTab === 'mistakes'
-              ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
-              : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
-          }`}
-        >
-          <Flame className="w-4 h-4 text-amber-500 shrink-0" />
-          <span className="truncate">Ôn câu sai</span>
-          {mistakeCount > 0 && (
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold shrink-0 ${
-                activeTab === 'mistakes'
-                  ? 'bg-white/25 text-white'
-                  : 'bg-red-500/15 text-red-600 dark:text-red-400'
+            <button
+              onClick={() => {
+                setActiveTab('practice')
+                setMode('sentence')
+                updateUrlParams({ tab: 'practice' })
+              }}
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
+                activeTab === 'practice' && mode === 'sentence'
+                  ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+                  : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
               }`}
             >
-              {mistakeCount}
-            </span>
-          )}
-        </button>
-      </div>
+              <FileText className="w-4 h-4 shrink-0" />
+              <span className="truncate">Câu mẫu</span>
+            </button>
 
-      {activeTab === 'mistakes' ? (
-        <TypingMistakesReview
-          isLoggedIn={isLoggedIn}
-          onBackToPractice={() => setActiveTab('practice')}
-        />
-      ) : (
-        <>
-          {/* Banner khôi phục tiến độ nếu có bài dở dang */}
-          {showResumeBanner && savedProgress && (
+            <button
+              onClick={() => {
+                setActiveTab('practice')
+                setMode('paragraph')
+                updateUrlParams({ tab: 'practice' })
+              }}
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
+                activeTab === 'practice' && mode === 'paragraph'
+                  ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+                  : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+              }`}
+            >
+              <AlignLeft className="w-4 h-4 shrink-0" />
+              <span className="truncate">Đoạn văn</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('practice')
+                setMode('hsk')
+                updateUrlParams({ tab: 'practice' })
+              }}
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] ${
+                activeTab === 'practice' && mode === 'hsk'
+                  ? 'bg-[#B8322D] text-white font-semibold shadow-2xs'
+                  : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4 shrink-0" />
+              <span className="truncate">Theo HSK</span>
+            </button>
+
+            <button
+              onClick={() => {
+                stopSpeech()
+                setActiveTab('mistakes')
+                updateUrlParams({ practice: 'visual', tab: 'mistakes' })
+              }}
+              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3] cursor-pointer"
+            >
+              <Flame className="w-4 h-4 text-amber-500 shrink-0" />
+              <span className="truncate">Ôn câu sai</span>
+              {mistakeCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-sans font-bold shrink-0 bg-red-500/15 text-red-600 dark:text-red-400">
+                  {mistakeCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* 3.1. Thẻ "Tiếp tục học" thông minh riêng biệt cho Nghe & Gõ */}
+          {latestVisualProgress && (
+            <TypingResumeCard
+              progress={latestVisualProgress}
+              onResume={handleResumeVisualLatest}
+              onRestart={handleRestartVisualLatest}
+              onDismiss={() => setLatestVisualProgress(null)}
+            />
+          )}
+
+          {/* Banner khôi phục tiến độ nếu có bài dở dang (chỉ hiển thị khi không có thẻ ResumeCard) */}
+          {showResumeBanner && savedProgress && !latestVisualProgress && (
             <TypingResumeBanner
               currentSentenceIndex={savedProgress.currentSentenceIndex}
               totalSentences={savedProgress.totalSentences}
@@ -1858,270 +2050,276 @@ export default function TypingClient() {
         />
       ) : (
         <>
-          {/* 3. Bộ lọc cấp độ / chủ đề & Tùy chọn hiển thị */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card border border-border rounded-xl p-3 shadow-xs">
-        {/* Bộ lọc theo chế độ */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted font-serif">Phân loại:</span>
-
-          {mode === 'sentence' && (
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Lọc theo chủ đề ca dao tục ngữ */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted font-serif">Chủ đề:</span>
-                <select
-                  value={categoryFilter}
-                  onChange={(e) => {
-                    setCategoryFilter(e.target.value)
-                    setCurrentIndex(0)
-                    resetExercise()
-                  }}
-                  className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2.5 py-1 focus:outline-none focus:border-app-accent max-w-[200px]"
-                >
-                  {VIETNAMESE_PROVERB_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat === 'Tất cả' ? 'all' : cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Lọc theo độ khó */}
-              <div className="flex items-center gap-1">
-                {[
-                  { key: 'all', label: 'Tất cả' },
-                  { key: 'Cơ bản', label: 'Cơ bản' },
-                  { key: 'Trung cấp', label: 'Trung cấp' },
-                  { key: 'Nâng cao', label: 'Nâng cao' },
-                ].map((lvl) => (
-                  <button
-                    key={lvl.key}
-                    onClick={() => {
-                      setLevelFilter(lvl.key)
+          {/* 3. Bộ lọc cấp độ / chủ đề & Tùy chọn hiển thị (Bố cục 2 hàng chuẩn hóa, đồng bộ chiều cao 44px) */}
+          <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-3">
+            {mode === 'sentence' && (
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-2.5 items-center w-full">
+                {/* Lọc theo chủ đề ca dao tục ngữ (4/12 cột) */}
+                <div className="sm:col-span-4 min-w-0">
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => {
+                      setCategoryFilter(e.target.value)
                       setCurrentIndex(0)
                       resetExercise()
                     }}
-                    className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
-                      levelFilter === lvl.key
-                        ? 'bg-app-accent text-white font-medium shadow-2xs'
-                        : 'bg-page border border-border text-muted hover:text-title'
+                    className="w-full bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs sm:text-sm font-serif text-[#243047] px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
+                    title="Lọc theo chủ đề ca dao tục ngữ"
+                  >
+                    {VIETNAMESE_PROVERB_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat === 'Tất cả' ? 'all' : cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Lọc theo độ khó (4/12 cột) */}
+                <div className="sm:col-span-4 min-w-0">
+                  <div className="grid grid-cols-4 gap-1 w-full">
+                    {[
+                      { key: 'all', label: 'Tất cả' },
+                      { key: 'Cơ bản', label: 'Cơ bản' },
+                      { key: 'Trung cấp', label: 'Trung' },
+                      { key: 'Nâng cao', label: 'Cao' },
+                    ].map((lvl) => (
+                      <button
+                        key={lvl.key}
+                        onClick={() => {
+                          setLevelFilter(lvl.key)
+                          setCurrentIndex(0)
+                          resetExercise()
+                        }}
+                        className={`h-11 min-h-[44px] rounded-xl text-xs font-serif transition-colors flex items-center justify-center cursor-pointer ${
+                          levelFilter === lvl.key
+                            ? 'bg-app-accent text-white font-semibold shadow-2xs'
+                            : 'bg-page border border-[#E9DDD1] text-muted hover:text-title hover:bg-[#FFF9F3]'
+                        }`}
+                      >
+                        {lvl.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Danh sách chọn câu nhanh (4/12 cột) */}
+                <div className="sm:col-span-4 min-w-0">
+                  {exercises.length > 0 && (
+                    <select
+                      value={currentIndex}
+                      onChange={(e) => {
+                        const idx = parseInt(e.target.value, 10)
+                        if (!isNaN(idx) && idx >= 0 && idx < exercises.length) {
+                          setCurrentIndex(idx)
+                          resetExercise()
+                        }
+                      }}
+                      className="w-full bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs sm:text-sm font-serif text-[#243047] px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
+                      title="Chuyển nhanh đến câu bất kỳ"
+                    >
+                      {exercises.map((ex, idx) => (
+                        <option key={ex.id || idx} value={idx}>
+                          {`#${idx + 1}: ${ex.vietnamese || ex.meaning}`}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {mode === 'paragraph' && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {['all', 'Sơ cấp', 'Trung cấp', 'Nâng cao'].map((lvl) => (
+                  <button
+                    key={lvl}
+                    onClick={() => {
+                      setLevelFilter(lvl)
+                      resetExercise()
+                    }}
+                    className={`h-11 min-h-[44px] px-3.5 rounded-xl text-xs sm:text-sm font-serif transition-colors flex items-center justify-center cursor-pointer ${
+                      levelFilter === lvl
+                        ? 'bg-title text-white font-semibold shadow-2xs'
+                        : 'bg-page border border-[#E9DDD1] text-muted hover:text-title hover:bg-[#FFF9F3]'
                     }`}
                   >
-                    {lvl.label}
+                    {lvl === 'all' ? `Tất cả (${paragraphExercises.length} bài)` : lvl}
                   </button>
                 ))}
               </div>
+            )}
 
-              {/* Danh sách chọn câu để chuyển nhanh đến câu bất kỳ */}
-              {exercises.length > 0 && (
-                <div className="flex items-center gap-1.5 ml-auto">
-                  <span className="text-xs text-muted font-serif hidden md:inline">Chọn câu:</span>
-                  <select
-                    value={currentIndex}
-                    onChange={(e) => {
-                      const idx = parseInt(e.target.value, 10)
-                      if (!isNaN(idx) && idx >= 0 && idx < exercises.length) {
-                        setCurrentIndex(idx)
-                        resetExercise()
-                      }
-                    }}
-                    className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2 py-1 focus:outline-none focus:border-app-accent max-w-[170px] sm:max-w-[240px] truncate"
-                    title="Chuyển nhanh đến câu bất kỳ"
-                  >
-                    {exercises.map((ex, idx) => (
-                      <option key={ex.id || idx} value={idx}>
-                        {`#${idx + 1}: ${ex.vietnamese || ex.meaning}`}
-                      </option>
-                    ))}
-                  </select>
+            {mode === 'hsk' && (
+              <div className="space-y-3 w-full">
+                {/* Hàng 1: Badge HSK 3.0 & Các nút chọn cấp HSK 1 - 6 (đồng bộ chiều cao 44px, phân bổ đều) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#E9DDD1]/60">
+                  <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar w-full">
+                    <span className="text-[11px] uppercase font-mono tracking-wider px-3 rounded-xl bg-app-accent/10 text-app-accent border border-app-accent/20 font-bold shrink-0 flex items-center justify-center h-11 min-h-[44px]">
+                      HSK 3.0
+                    </span>
+
+                    <div className="grid grid-cols-6 gap-1.5 sm:gap-2 flex-1 max-w-[540px]">
+                      {[1, 2, 3, 4, 5, 6].map((num) => (
+                        <button
+                          key={num}
+                          onClick={() => {
+                            setHskLevel(num)
+                            setSelectedLessonId('')
+                            setHskLesson(0)
+                            resetExercise()
+                          }}
+                          className={`h-11 min-h-[44px] rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-95 cursor-pointer flex items-center justify-center touch-manipulation ${
+                            hskLevel === num
+                              ? 'bg-app-accent text-white font-semibold shadow-2xs ring-1 ring-app-accent'
+                              : 'bg-page border border-[#E9DDD1] text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
+                          }`}
+                        >
+                          HSK {num}
+                        </button>
+                      ))}
+                    </div>
+
+                    <span
+                      title="HSK 7-9 (Cao cấp) đang cập nhật đề cương theo chuẩn GF 0025-2021"
+                      className="px-3 rounded-xl text-xs font-serif bg-page/60 border border-border/60 text-muted/60 select-none cursor-default h-11 min-h-[44px] flex items-center shrink-0 ml-auto hidden lg:flex"
+                    >
+                      HSK 7-9
+                    </span>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
 
+                {/* Hàng 2: Bộ chọn bài học, Lọc từ chưa thuộc & Danh sách chọn câu (Chiều cao chuẩn 44px) */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-2.5 items-center">
+                  {/* Bộ chọn bài học (5/12 cột) */}
+                  <div className="sm:col-span-5 min-w-0">
+                    {loadingLessons ? (
+                      <div className="flex items-center gap-2 text-xs text-muted font-serif px-3 h-11 min-h-[44px] bg-page border border-[#E9DDD1] rounded-xl">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-app-accent shrink-0" />
+                        <span className="truncate">Đang tải bài...</span>
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedLessonId}
+                        onChange={(e) => {
+                          setSelectedLessonId(e.target.value)
+                          setCurrentIndex(0)
+                          resetExercise()
+                        }}
+                        className="w-full bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs sm:text-sm font-serif text-[#243047] px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
+                        title="Chọn bài học cụ thể"
+                      >
+                        <option value="">Tất cả bài học (HSK {hskLevel})</option>
+                        {systemLessons.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.title}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
 
-
-          {mode === 'paragraph' && (
-            <div className="flex items-center gap-1 flex-wrap">
-              {['all', 'Sơ cấp', 'Trung cấp', 'Nâng cao'].map((lvl) => (
-                <button
-                  key={lvl}
-                  onClick={() => {
-                    setLevelFilter(lvl)
-                    resetExercise()
-                  }}
-                  className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
-                    levelFilter === lvl
-                      ? 'bg-title text-white font-medium'
-                      : 'bg-page border border-border text-muted hover:text-title'
-                  }`}
-                >
-                  {lvl === 'all' ? 'Tất cả (34 bài)' : lvl}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {mode === 'hsk' && (
-            <div className="flex items-center gap-2.5 flex-wrap">
-              {/* Chọn cấp HSK 3.0 */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] uppercase font-mono tracking-wider px-1.5 py-0.5 rounded bg-page border border-border text-muted">
-                  HSK 3.0
-                </span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                  {/* Nút Lọc theo từ chưa thuộc (3/12 cột) */}
+                  <div className="sm:col-span-3 min-w-0">
                     <button
-                      key={num}
                       onClick={() => {
-                        setHskLevel(num)
-                        setSelectedLessonId('')
-                        setHskLesson(0)
+                        setOnlyUnlearnedFilter(!onlyUnlearnedFilter)
+                        setCurrentIndex(0)
                         resetExercise()
                       }}
-                      className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors ${
-                        hskLevel === num
-                          ? 'bg-app-accent text-white font-semibold'
-                          : 'bg-page border border-border text-muted hover:text-title'
+                      className={`w-full h-11 min-h-[44px] px-3 rounded-xl text-xs sm:text-sm font-serif font-medium transition-all border flex items-center justify-center cursor-pointer whitespace-nowrap shadow-2xs ${
+                        onlyUnlearnedFilter
+                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-400 font-semibold'
+                          : 'bg-page border-[#E9DDD1] text-muted hover:text-title hover:bg-[#FFF9F3]'
                       }`}
+                      title="Chỉ hiển thị các từ vựng đang học hoặc câu ví dụ chưa thuộc"
                     >
-                      HSK {num}
+                      Từ chưa thuộc
                     </button>
-                  ))}
-                  <span
-                    title="HSK 7-9 (Cao cấp) đang cập nhật đề cương theo chuẩn GF 0025-2021"
-                    className="px-2 py-1 rounded-md text-[11px] font-serif bg-page/60 border border-border/60 text-muted/60 select-none cursor-default"
-                  >
-                    HSK 7-9
-                  </span>
-                </div>
-              </div>
-
-              {/* Chọn bài học cụ thể trong cấp HSK */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted font-serif hidden sm:inline">Bài học:</span>
-                {loadingLessons ? (
-                  <div className="flex items-center gap-1 text-xs text-muted font-serif px-2 py-1 bg-page border border-border rounded-lg">
-                    <Loader2 className="w-3 h-3 animate-spin text-app-accent" />
-                    <span>Đang tải...</span>
                   </div>
-                ) : (
-                  <select
-                    value={selectedLessonId}
-                    onChange={(e) => {
-                      setSelectedLessonId(e.target.value)
-                      setCurrentIndex(0)
-                      resetExercise()
-                    }}
-                    className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2.5 py-1 focus:outline-none focus:border-app-accent max-w-[210px] truncate"
-                  >
-                    <option value="">Tất cả bài học (HSK {hskLevel})</option>
-                    {systemLessons.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.title}
-                      </option>
-                    ))}
-                  </select>
-                )}
+
+                  {/* Danh sách chọn câu nhanh (4/12 cột) */}
+                  <div className="sm:col-span-4 min-w-0">
+                    {exercises.length > 0 && (
+                      <select
+                        value={currentIndex}
+                        onChange={(e) => {
+                          const idx = parseInt(e.target.value, 10)
+                          if (!isNaN(idx) && idx >= 0 && idx < exercises.length) {
+                            setCurrentIndex(idx)
+                            resetExercise()
+                          }
+                        }}
+                        className="w-full bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs sm:text-sm font-serif text-[#243047] px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
+                        title="Chuyển nhanh đến câu bất kỳ"
+                      >
+                        {exercises.map((ex, idx) => (
+                          <option key={ex.id || idx} value={idx}>
+                            {`#${idx + 1}: ${ex.titleZh || ex.hanzi} - ${ex.meaning || ex.vietnamese}`}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Thanh tùy chọn hiển thị: Pinyin, Nghĩa, Ẩn chữ Hán, Âm thanh */}
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#E9DDD1]/60 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={() => updatePref('showPinyin', !preferences.showPinyin)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-serif transition-colors border min-h-[36px] flex items-center justify-center cursor-pointer ${
+                    preferences.showPinyin
+                      ? 'bg-app-accent/10 border-app-accent/30 text-app-accent font-semibold'
+                      : 'bg-page border-[#E9DDD1] text-muted hover:text-title'
+                  }`}
+                  title="Bật / Tắt hiển thị Pinyin"
+                >
+                  Pinyin
+                </button>
+
+                <button
+                  onClick={() => updatePref('showMeaning', !preferences.showMeaning)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-serif transition-colors border min-h-[36px] flex items-center justify-center cursor-pointer ${
+                    preferences.showMeaning
+                      ? 'bg-app-accent/10 border-app-accent/30 text-app-accent font-semibold'
+                      : 'bg-page border-[#E9DDD1] text-muted hover:text-title'
+                  }`}
+                  title="Bật / Tắt hiển thị Nghĩa tiếng Việt"
+                >
+                  Nghĩa
+                </button>
+
+                <button
+                  onClick={() => updatePref('hideHanzi', !preferences.hideHanzi)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif transition-all border min-h-[36px] cursor-pointer select-none ${
+                    preferences.hideHanzi
+                      ? 'bg-title text-white border-title font-semibold shadow-2xs'
+                      : 'bg-page border-[#E9DDD1] text-muted hover:text-title hover:border-[#D4C5B5]'
+                  }`}
+                  title={preferences.hideHanzi ? 'Nhấp để hiện lại chữ Hán mẫu' : 'Ẩn chữ Hán mẫu để luyện nghe và gõ (Dictation)'}
+                >
+                  {preferences.hideHanzi ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{preferences.hideHanzi ? 'Đang ẩn chữ Hán' : 'Ẩn chữ Hán'}</span>
+                </button>
               </div>
 
-              {/* Lọc theo từ chưa thuộc */}
-              <button
-                onClick={() => {
-                  setOnlyUnlearnedFilter(!onlyUnlearnedFilter)
-                  setCurrentIndex(0)
-                  resetExercise()
-                }}
-                className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors border ${
-                  onlyUnlearnedFilter
-                    ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 font-semibold shadow-2xs'
-                    : 'bg-page border-border text-muted hover:text-title'
-                }`}
-                title="Chỉ hiển thị các từ vựng đang học hoặc câu ví dụ chưa thuộc"
-              >
-                Từ chưa thuộc
-              </button>
-
-              {/* Danh sách chọn nhanh câu trong danh sách */}
-              {exercises.length > 0 && (
-                <div className="flex items-center gap-1.5 ml-auto">
-                  <span className="text-xs text-muted font-serif hidden md:inline">Chọn câu:</span>
-                  <select
-                    value={currentIndex}
-                    onChange={(e) => {
-                      const idx = parseInt(e.target.value, 10)
-                      if (!isNaN(idx) && idx >= 0 && idx < exercises.length) {
-                        setCurrentIndex(idx)
-                        resetExercise()
-                      }
-                    }}
-                    className="bg-page border border-border rounded-lg text-xs font-serif text-title px-2 py-1 focus:outline-none focus:border-app-accent max-w-[170px] sm:max-w-[240px] truncate"
-                    title="Chuyển nhanh đến câu bất kỳ"
-                  >
-                    {exercises.map((ex, idx) => (
-                      <option key={ex.id || idx} value={idx}>
-                        {`#${idx + 1}: ${ex.titleZh || ex.hanzi} - ${ex.meaning || ex.vietnamese}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              <div className="flex items-center gap-1.5 ml-auto">
+                <button
+                  onClick={() => updatePref('soundEffects', !preferences.soundEffects)}
+                  className={`p-2 rounded-xl text-xs transition-colors border min-h-[36px] cursor-pointer ${
+                    preferences.soundEffects
+                      ? 'bg-page border-[#E9DDD1] text-app-accent hover:text-accent-hover'
+                      : 'bg-page border-[#E9DDD1] text-muted/50'
+                  }`}
+                  title={preferences.soundEffects ? 'Tắt âm thanh gõ' : 'Bật âm thanh gõ'}
+                >
+                  {preferences.soundEffects ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Các nút bật/tắt gợi ý (Pinyin, Nghĩa, Ẩn chữ Hán) */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => updatePref('showPinyin', !preferences.showPinyin)}
-            className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors border ${
-              preferences.showPinyin
-                ? 'bg-accent-soft/70 border-app-accent/40 text-app-accent font-medium'
-                : 'bg-page border-border text-muted'
-            }`}
-            title="Bật / Tắt hiển thị Pinyin"
-          >
-            Pinyin
-          </button>
-
-          <button
-            onClick={() => updatePref('showMeaning', !preferences.showMeaning)}
-            className={`px-2.5 py-1 rounded-md text-xs font-serif transition-colors border ${
-              preferences.showMeaning
-                ? 'bg-accent-soft/70 border-app-accent/40 text-app-accent font-medium'
-                : 'bg-page border-border text-muted'
-            }`}
-            title="Bật / Tắt hiển thị Nghĩa tiếng Việt"
-          >
-            Nghĩa
-          </button>
-
-          <button
-            onClick={() => updatePref('hideHanzi', !preferences.hideHanzi)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-serif transition-all border cursor-pointer select-none ${
-              preferences.hideHanzi
-                ? 'bg-title text-white border-title font-medium shadow-2xs'
-                : 'bg-page border-border text-muted hover:text-title hover:border-title/30'
-            }`}
-            title={preferences.hideHanzi ? 'Nhấp để hiện lại chữ Hán mẫu' : 'Ẩn chữ Hán mẫu để luyện nghe và gõ (Dictation)'}
-          >
-            {preferences.hideHanzi ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            <span>{preferences.hideHanzi ? 'Đang ẩn chữ Hán' : 'Ẩn chữ Hán'}</span>
-          </button>
-
-          <button
-            onClick={() => updatePref('soundEffects', !preferences.soundEffects)}
-            className={`p-1.5 rounded-md text-xs transition-colors border ${
-              preferences.soundEffects
-                ? 'bg-page border-border text-muted hover:text-title'
-                : 'bg-page border-border text-muted/50'
-            }`}
-            title={preferences.soundEffects ? 'Tắt âm thanh' : 'Bật âm thanh'}
-          >
-            {preferences.soundEffects ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-      </div>
+          </div>
 
       {/* 4. Khung chỉ số thời gian thực (Live Dashboard) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
@@ -2756,8 +2954,6 @@ export default function TypingClient() {
             </>
           )}
         </div>
-      )}
-      </>
       )}
       </>
       )}

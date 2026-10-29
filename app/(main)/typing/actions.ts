@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { calculateSM2, mapTypingResultToQuality, isItemDue } from '@/lib/spaced-repetition'
 
 export type ReviewStatus = 'need_review' | 'reviewing' | 'mastered'
 
@@ -24,11 +25,20 @@ export interface TypingProgressDTO {
   timeSpentSeconds: number
   status: 'not_started' | 'in_progress' | 'completed'
   updatedAt?: string
+  // Các trường lưu vị trí học tiếp thông minh
+  hskLevel?: number
+  lessonId?: string
+  lessonTitle?: string
+  currentQuestionId?: string
+  currentQuestionText?: string
+  practiceMode?: 'visual' | 'translate'
+  settings?: Record<string, any>
 }
 
 export interface TypingMistakeDTO {
   id?: string
   mode: string
+  practiceType?: 'translate' | 'listen'
   exerciseId: string
   sentenceIndex: number
   sentenceZh: string
@@ -41,6 +51,11 @@ export interface TypingMistakeDTO {
   reviewCount?: number
   reviewCorrectCount?: number
   consecutiveCorrect?: number
+  // Các trường Spaced Repetition (SM-2)
+  intervalDays?: number
+  easeFactor?: number
+  dueAt?: string
+  lapses?: number
   lastErrorAt?: string
   lastReviewedAt?: string
 }
@@ -66,7 +81,6 @@ export async function getTypingProgressAction(mode: string, exerciseId: string) 
       .maybeSingle()
 
     if (error) {
-      // Bảng chưa tạo hoặc lỗi mạng
       return { success: false, error: error.message, isGuest: false, progress: null }
     }
 
@@ -90,6 +104,13 @@ export async function getTypingProgressAction(mode: string, exerciseId: string) 
         timeSpentSeconds: data.time_spent_seconds,
         status: data.status,
         updatedAt: data.updated_at,
+        hskLevel: data.hsk_level,
+        lessonId: data.lesson_id,
+        lessonTitle: data.lesson_title,
+        currentQuestionId: data.current_question_id,
+        currentQuestionText: data.current_question_text,
+        practiceMode: data.practice_mode,
+        settings: data.settings,
       } as TypingProgressDTO,
     }
   } catch (err: any) {
@@ -98,7 +119,92 @@ export async function getTypingProgressAction(mode: string, exerciseId: string) 
 }
 
 /**
- * 2. Lưu / Cập nhật tiến độ bài luyện gõ (Upsert)
+ * 1.1. Lấy tiến độ luyện gõ gần đây nhất của người dùng (phục vụ "Tiếp tục học" tại trang chủ & /typing)
+ * Hỗ trợ tách biệt hoàn toàn theo từng chế độ luyện tập: 'visual' (Nghe & Gõ) vs 'translate' (Dịch Việt -> Gõ Hán)
+ */
+export async function getLatestTypingProgressAction(practiceMode?: 'visual' | 'translate') {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, isGuest: true, progress: null }
+    }
+
+    let query = supabase
+      .from('typing_progress')
+      .select('*')
+      .eq('user_id', user.id)
+
+    if (practiceMode === 'translate') {
+      query = query.or('practice_mode.eq.translate,mode.eq.translate_hsk')
+    } else if (practiceMode === 'visual') {
+      query = query.or('practice_mode.eq.visual,mode.neq.translate_hsk')
+    }
+
+    let { data, error } = await query
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    // Fallback an toàn nếu database Supabase chưa kịp chạy migration thêm cột practice_mode
+    if (error && error.message?.includes('column')) {
+      let fallbackQuery = supabase
+        .from('typing_progress')
+        .select('*')
+        .eq('user_id', user.id)
+
+      if (practiceMode === 'translate') {
+        fallbackQuery = fallbackQuery.eq('mode', 'translate_hsk')
+      } else if (practiceMode === 'visual') {
+        fallbackQuery = fallbackQuery.neq('mode', 'translate_hsk')
+      }
+
+      const fallbackRes = await fallbackQuery
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      data = fallbackRes.data
+      error = fallbackRes.error
+    }
+
+    if (error || !data) {
+      return { success: false, isGuest: false, progress: null }
+    }
+
+    return {
+      success: true,
+      isGuest: false,
+      progress: {
+        id: data.id,
+        mode: data.mode,
+        exerciseId: data.exercise_id,
+        currentSentenceIndex: data.current_sentence_index,
+        completedSentences: data.completed_sentences,
+        totalSentences: data.total_sentences,
+        correctSentences: data.correct_sentences,
+        errorSentences: data.error_sentences,
+        lastTypedLength: data.last_typed_length,
+        timeSpentSeconds: data.time_spent_seconds,
+        status: data.status,
+        updatedAt: data.updated_at,
+        hskLevel: data.hsk_level,
+        lessonId: data.lesson_id,
+        lessonTitle: data.lesson_title,
+        currentQuestionId: data.current_question_id,
+        currentQuestionText: data.current_question_text,
+        practiceMode: data.practice_mode || (data.mode === 'translate_hsk' ? 'translate' : 'visual'),
+        settings: data.settings,
+      } as TypingProgressDTO,
+    }
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Lỗi lấy tiến độ gần nhất', isGuest: false, progress: null }
+  }
+}
+
+/**
+ * 2. Lưu / Cập nhật tiến độ bài luyện gõ (Upsert với fallback an toàn)
  */
 export async function saveTypingProgressAction(input: TypingProgressDTO) {
   try {
@@ -130,7 +236,7 @@ export async function saveTypingProgressAction(input: TypingProgressDTO) {
     }
 
     const now = new Date().toISOString()
-    const payload = {
+    const payload: Record<string, any> = {
       user_id: user.id,
       mode: input.mode,
       exercise_id: input.exerciseId,
@@ -143,15 +249,49 @@ export async function saveTypingProgressAction(input: TypingProgressDTO) {
       time_spent_seconds: Math.max(0, input.timeSpentSeconds),
       status: input.status,
       updated_at: now,
+      hsk_level: input.hskLevel ?? null,
+      lesson_id: input.lessonId ?? null,
+      lesson_title: input.lessonTitle ?? null,
+      current_question_id: input.currentQuestionId ?? null,
+      current_question_text: input.currentQuestionText ?? null,
+      practice_mode: input.practiceMode ?? (input.mode === 'translate_hsk' ? 'translate' : 'visual'),
+      settings: input.settings ?? {},
     }
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('typing_progress')
       .upsert(payload, {
         onConflict: 'user_id,mode,exercise_id',
       })
       .select()
       .single()
+
+    // Fallback nếu database Supabase chưa kịp chạy migration thêm cột mới
+    if (error && error.message?.includes('column')) {
+      const legacyPayload = {
+        user_id: user.id,
+        mode: input.mode,
+        exercise_id: input.exerciseId,
+        current_sentence_index: Math.max(0, input.currentSentenceIndex),
+        completed_sentences: Math.max(0, input.completedSentences),
+        total_sentences: Math.max(1, input.totalSentences),
+        correct_sentences: Math.max(0, input.correctSentences),
+        error_sentences: Math.max(0, input.errorSentences),
+        last_typed_length: Math.max(0, input.lastTypedLength),
+        time_spent_seconds: Math.max(0, input.timeSpentSeconds),
+        status: input.status,
+        updated_at: now,
+      }
+      const fallbackRes = await supabase
+        .from('typing_progress')
+        .upsert(legacyPayload, {
+          onConflict: 'user_id,mode,exercise_id',
+        })
+        .select()
+        .single()
+      data = fallbackRes.data
+      error = fallbackRes.error
+    }
 
     if (error) {
       return { success: false, error: error.message }
@@ -165,6 +305,8 @@ export async function saveTypingProgressAction(input: TypingProgressDTO) {
 
 /**
  * 3. Ghi nhận hoặc cập nhật câu gõ sai (Chống trùng lặp với ON CONFLICT)
+ * Áp dụng thông số Spaced Repetition (SM-2) để tự động lên lịch ôn tập
+ * Tách biệt hoàn toàn giữa hai chế độ: 'translate' (Dịch Việt -> Gõ Hán) và 'listen' (Nghe & Gõ)
  */
 export async function recordTypingMistakeAction(input: TypingMistakeDTO) {
   try {
@@ -176,26 +318,70 @@ export async function recordTypingMistakeAction(input: TypingMistakeDTO) {
     }
 
     const now = new Date().toISOString()
+    const practiceType: 'translate' | 'listen' =
+      input.practiceType || (input.mode?.includes('translate') ? 'translate' : 'listen')
 
-    // Kiểm tra xem câu này đã tồn tại trong danh sách câu sai chưa
-    const { data: existing, error: fetchErr } = await supabase
+    // Kiểm tra xem câu này đã tồn tại trong danh sách câu sai của chế độ practiceType chưa
+    let { data: existing, error: fetchErr } = await supabase
       .from('typing_mistakes')
-      .select('id, mistake_count, review_status')
+      .select('id, mistake_count, review_status, consecutive_correct, lapses, ease_factor, interval_days')
       .eq('user_id', user.id)
-      .eq('mode', input.mode)
+      .eq('practice_type', practiceType)
       .eq('exercise_id', input.exerciseId)
       .eq('sentence_index', input.sentenceIndex)
       .maybeSingle()
+
+    // Fallback nếu database Supabase chưa kịp chạy migration thêm cột practice_type
+    if (fetchErr && fetchErr.message?.includes('column')) {
+      const fallbackRes = await supabase
+        .from('typing_mistakes')
+        .select('id, mistake_count, review_status, consecutive_correct, lapses, ease_factor, interval_days')
+        .eq('user_id', user.id)
+        .eq('mode', input.mode)
+        .eq('exercise_id', input.exerciseId)
+        .eq('sentence_index', input.sentenceIndex)
+        .maybeSingle()
+      existing = fallbackRes.data
+      fetchErr = fallbackRes.error
+    }
 
     if (fetchErr) {
       return { success: false, error: fetchErr.message }
     }
 
     if (existing) {
-      // Đã từng sai câu này -> Cập nhật tăng số lần sai, ghi nhận nội dung sai mới nhất, reset về need_review
-      const { data, error: updateErr } = await supabase
+      // Đã từng sai câu này ở chế độ này -> Cập nhật tăng số lần sai, reset về need_review
+      const newLapses = ((existing as any).lapses || 0) + 1
+      const currentEase = (existing as any).ease_factor || 2.5
+
+      const updatePayload: Record<string, any> = {
+        practice_type: practiceType,
+        sentence_zh: input.sentenceZh,
+        pinyin: input.pinyin || null,
+        meaning_vi: input.meaningVi || null,
+        last_input_zh: input.lastInputZh,
+        mistake_details: input.mistakeDetails,
+        mistake_count: (existing.mistake_count || 1) + 1,
+        review_status: 'need_review',
+        consecutive_correct: 0,
+        interval_days: 0,
+        ease_factor: currentEase,
+        due_at: now, // Đưa câu vừa sai vào danh sách cần ưu tiên ôn ngay
+        lapses: newLapses,
+        last_error_at: now,
+        updated_at: now,
+      }
+
+      let { data, error: updateErr } = await supabase
         .from('typing_mistakes')
-        .update({
+        .update(updatePayload)
+        .eq('id', existing.id)
+        .select()
+        .single()
+
+      // Fallback nếu database Supabase chưa có cột practice_type
+      if (updateErr && updateErr.message?.includes('column')) {
+        const legacyPayload = {
           sentence_zh: input.sentenceZh,
           pinyin: input.pinyin || null,
           meaning_vi: input.meaningVi || null,
@@ -206,19 +392,56 @@ export async function recordTypingMistakeAction(input: TypingMistakeDTO) {
           consecutive_correct: 0,
           last_error_at: now,
           updated_at: now,
-        })
-        .eq('id', existing.id)
-        .select()
-        .single()
+        }
+        const fallbackRes = await supabase
+          .from('typing_mistakes')
+          .update(legacyPayload)
+          .eq('id', existing.id)
+          .select()
+          .single()
+        data = fallbackRes.data
+        updateErr = fallbackRes.error
+      }
 
       if (updateErr) return { success: false, error: updateErr.message }
       return { success: true, data, isUpdate: true }
     }
 
-    // Câu sai lần đầu -> Chèn bản ghi mới
-    const { data, error: insertErr } = await supabase
+    // Câu sai lần đầu ở chế độ này -> Chèn bản ghi mới với giá trị khởi tạo SM-2 và practice_type
+    const insertPayload: Record<string, any> = {
+      user_id: user.id,
+      mode: input.mode,
+      practice_type: practiceType,
+      exercise_id: input.exerciseId,
+      sentence_index: input.sentenceIndex,
+      sentence_zh: input.sentenceZh,
+      pinyin: input.pinyin || null,
+      meaning_vi: input.meaningVi || null,
+      last_input_zh: input.lastInputZh,
+      mistake_details: input.mistakeDetails,
+      mistake_count: 1,
+      review_status: 'need_review',
+      review_count: 0,
+      review_correct_count: 0,
+      consecutive_correct: 0,
+      interval_days: 0,
+      ease_factor: 2.5,
+      due_at: now, // Đến hạn ôn ngay
+      lapses: 0,
+      last_error_at: now,
+      created_at: now,
+      updated_at: now,
+    }
+
+    let { data, error: insertErr } = await supabase
       .from('typing_mistakes')
-      .insert({
+      .insert(insertPayload)
+      .select()
+      .single()
+
+    // Fallback nếu database Supabase chưa có cột practice_type
+    if (insertErr && insertErr.message?.includes('column')) {
+      const legacyInsertPayload = {
         user_id: user.id,
         mode: input.mode,
         exercise_id: input.exerciseId,
@@ -236,9 +459,15 @@ export async function recordTypingMistakeAction(input: TypingMistakeDTO) {
         last_error_at: now,
         created_at: now,
         updated_at: now,
-      })
-      .select()
-      .single()
+      }
+      const fallbackRes = await supabase
+        .from('typing_mistakes')
+        .insert(legacyInsertPayload)
+        .select()
+        .single()
+      data = fallbackRes.data
+      insertErr = fallbackRes.error
+    }
 
     if (insertErr) return { success: false, error: insertErr.message }
     return { success: true, data, isUpdate: false }
@@ -248,11 +477,14 @@ export async function recordTypingMistakeAction(input: TypingMistakeDTO) {
 }
 
 /**
- * 4. Lấy danh sách câu sai phục vụ ôn tập
+ * 4. Lấy danh sách câu sai phục vụ ôn tập (hỗ trợ tách riêng practiceType, lọc SM-2, HSK, trạng thái)
  */
 export async function getTypingMistakesAction(filter?: {
   mode?: string
+  practiceType?: 'translate' | 'listen' | 'all'
   reviewStatus?: ReviewStatus | 'all'
+  dueOnly?: boolean
+  hskLevel?: number
 }) {
   try {
     const supabase = await createClient()
@@ -267,6 +499,11 @@ export async function getTypingMistakesAction(filter?: {
       .select('*')
       .eq('user_id', user.id)
 
+    // Nếu lọc theo loại hình ôn tập (Dịch vs Nghe & Gõ)
+    if (filter?.practiceType && filter.practiceType !== 'all') {
+      query = query.eq('practice_type', filter.practiceType)
+    }
+
     if (filter?.mode && filter.mode !== 'all') {
       query = query.eq('mode', filter.mode)
     }
@@ -275,15 +512,40 @@ export async function getTypingMistakesAction(filter?: {
       query = query.eq('review_status', filter.reviewStatus)
     }
 
-    const { data, error } = await query.order('last_error_at', { ascending: false })
+    let { data, error } = await query.order('last_error_at', { ascending: false })
+
+    // Fallback nếu database Supabase chưa có cột practice_type
+    if (error && error.message?.includes('column') && filter?.practiceType && filter.practiceType !== 'all') {
+      const fallbackQuery = supabase
+        .from('typing_mistakes')
+        .select('*')
+        .eq('user_id', user.id)
+
+      if (filter?.mode && filter.mode !== 'all') {
+        fallbackQuery.eq('mode', filter.mode)
+      }
+      if (filter?.reviewStatus && filter.reviewStatus !== 'all') {
+        fallbackQuery.eq('review_status', filter.reviewStatus)
+      }
+
+      const fallbackRes = await fallbackQuery.order('last_error_at', { ascending: false })
+      if (!fallbackRes.error && fallbackRes.data) {
+        data = fallbackRes.data.filter((row: any) => {
+          const rowType = row.practice_type || (row.mode?.includes('translate') ? 'translate' : 'listen')
+          return rowType === filter.practiceType
+        })
+        error = null
+      }
+    }
 
     if (error) {
       return { success: false, error: error.message, isGuest: false, mistakes: [] }
     }
 
-    const mapped: TypingMistakeDTO[] = (data || []).map((row) => ({
+    let mapped: TypingMistakeDTO[] = (data || []).map((row: any) => ({
       id: row.id,
       mode: row.mode,
+      practiceType: (row.practice_type as 'translate' | 'listen') || (row.mode?.includes('translate') ? 'translate' : 'listen'),
       exerciseId: row.exercise_id,
       sentenceIndex: row.sentence_index,
       sentenceZh: row.sentence_zh,
@@ -296,9 +558,27 @@ export async function getTypingMistakesAction(filter?: {
       reviewCount: row.review_count,
       reviewCorrectCount: row.review_correct_count,
       consecutiveCorrect: row.consecutive_correct,
+      intervalDays: row.interval_days ?? (row.consecutive_correct >= 2 ? 3 : row.consecutive_correct === 1 ? 1 : 0),
+      easeFactor: Number(row.ease_factor) || 2.5,
+      dueAt: row.due_at || row.last_error_at,
+      lapses: row.lapses ?? 0,
       lastErrorAt: row.last_error_at,
       lastReviewedAt: row.last_reviewed_at,
     }))
+
+    // Lọc theo câu đến hạn ôn (dueOnly)
+    if (filter?.dueOnly) {
+      mapped = mapped.filter((m) => isItemDue(m.dueAt))
+    }
+
+    // Lọc theo cấp HSK nếu có
+    if (filter?.hskLevel && filter.hskLevel >= 1 && filter.hskLevel <= 6) {
+      const targetLvl = filter.hskLevel
+      mapped = mapped.filter((m) => {
+        const match = m.exerciseId.match(/hsk-?(\d)/i)
+        return match ? parseInt(match[1], 10) === targetLvl : false
+      })
+    }
 
     return { success: true, isGuest: false, mistakes: mapped }
   } catch (err: any) {
@@ -307,10 +587,66 @@ export async function getTypingMistakesAction(filter?: {
 }
 
 /**
- * 5. Cập nhật kết quả một lượt ôn tập câu sai
- * Quy tắc: gõ đúng 2 lần liên tiếp -> 'mastered' (Đã thành thạo)
+ * 4.1. Đếm nhanh số câu đến hạn ôn tập hôm nay (có hỗ trợ phân loại practiceType)
  */
-export async function updateMistakeReviewResultAction(mistakeId: string, isCorrect: boolean) {
+export async function getDueMistakesCountAction(practiceType?: 'translate' | 'listen') {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { success: false, isGuest: true, dueCount: 0, totalCount: 0 }
+    }
+
+    let query = supabase
+      .from('typing_mistakes')
+      .select('due_at, review_status, practice_type, mode')
+      .eq('user_id', user.id)
+
+    if (practiceType) {
+      query = query.eq('practice_type', practiceType)
+    }
+
+    let { data, error } = await query
+
+    // Fallback nếu database Supabase chưa có cột practice_type
+    if (error && error.message?.includes('column') && practiceType) {
+      const fallbackRes = await supabase
+        .from('typing_mistakes')
+        .select('due_at, review_status, mode')
+        .eq('user_id', user.id)
+      if (!fallbackRes.error && fallbackRes.data) {
+        data = fallbackRes.data
+          .map((r: any) => ({
+            ...r,
+            practice_type: r.mode?.includes('translate') ? 'translate' : 'listen',
+          }))
+          .filter((row: any) => row.practice_type === practiceType) as any
+        error = null
+      }
+    }
+
+    if (error || !data) {
+      return { success: false, dueCount: 0, totalCount: 0 }
+    }
+
+    const totalCount = data.length
+    const dueCount = data.filter((row: any) => isItemDue(row.due_at)).length
+
+    return { success: true, isGuest: false, dueCount, totalCount }
+  } catch {
+    return { success: false, dueCount: 0, totalCount: 0 }
+  }
+}
+
+/**
+ * 5. Cập nhật kết quả một lượt ôn tập câu sai theo thuật toán SM-2 chuẩn
+ */
+export async function updateMistakeReviewResultAction(
+  mistakeId: string,
+  isCorrect: boolean,
+  options?: { hintsUsed?: number; hadRetry?: boolean }
+) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -332,38 +668,74 @@ export async function updateMistakeReviewResultAction(mistakeId: string, isCorre
 
     const now = new Date().toISOString()
     const newReviewCount = (current.review_count || 0) + 1
+    const newReviewCorrectCount = isCorrect
+      ? (current.review_correct_count || 0) + 1
+      : (current.review_correct_count || 0)
 
-    let newReviewCorrectCount = current.review_correct_count || 0
-    let newConsecutive = current.consecutive_correct || 0
-    let newStatus: ReviewStatus = current.review_status
+    // Ánh xạ chất lượng phản hồi q và tính toán SM-2
+    const quality = mapTypingResultToQuality(
+      isCorrect,
+      options?.hintsUsed ?? 0,
+      options?.hadRetry ?? false
+    )
 
-    if (isCorrect) {
-      newReviewCorrectCount += 1
-      newConsecutive += 1
-      // Đạt 2 lần đúng liên tiếp -> Thành thạo, nếu 1 lần -> Đang luyện
-      newStatus = newConsecutive >= 2 ? 'mastered' : 'reviewing'
-    } else {
-      newConsecutive = 0
-      newStatus = 'need_review'
+    const sm2Result = calculateSM2({
+      quality,
+      repetitions: current.consecutive_correct || 0,
+      interval: current.interval_days || 0,
+      easeFactor: Number(current.ease_factor) || 2.5,
+      lapses: current.lapses || 0,
+    })
+
+    const updatePayload: Record<string, any> = {
+      review_count: newReviewCount,
+      review_correct_count: newReviewCorrectCount,
+      consecutive_correct: sm2Result.repetitions,
+      interval_days: sm2Result.interval,
+      ease_factor: sm2Result.easeFactor,
+      due_at: sm2Result.dueAt,
+      lapses: sm2Result.lapses,
+      review_status: sm2Result.status,
+      last_reviewed_at: now,
+      updated_at: now,
     }
 
-    const { data, error: updateErr } = await supabase
+    let { data, error: updateErr } = await supabase
       .from('typing_mistakes')
-      .update({
-        review_count: newReviewCount,
-        review_correct_count: newReviewCorrectCount,
-        consecutive_correct: newConsecutive,
-        review_status: newStatus,
-        last_reviewed_at: now,
-        updated_at: now,
-      })
+      .update(updatePayload)
       .eq('id', mistakeId)
       .select()
       .single()
 
+    // Fallback nếu database Supabase chưa chạy migration thêm cột mới
+    if (updateErr && updateErr.message?.includes('column')) {
+      const legacyPayload = {
+        review_count: newReviewCount,
+        review_correct_count: newReviewCorrectCount,
+        consecutive_correct: sm2Result.repetitions,
+        review_status: sm2Result.status,
+        last_reviewed_at: now,
+        updated_at: now,
+      }
+      const fallbackRes = await supabase
+        .from('typing_mistakes')
+        .update(legacyPayload)
+        .eq('id', mistakeId)
+        .select()
+        .single()
+      data = fallbackRes.data
+      updateErr = fallbackRes.error
+    }
+
     if (updateErr) return { success: false, error: updateErr.message }
 
-    return { success: true, data, newStatus }
+    return {
+      success: true,
+      data,
+      newStatus: sm2Result.status,
+      interval: sm2Result.interval,
+      dueAt: sm2Result.dueAt,
+    }
   } catch (err: any) {
     return { success: false, error: err?.message || 'Lỗi cập nhật ôn tập' }
   }

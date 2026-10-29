@@ -39,7 +39,14 @@ export default async function HomePage() {
     mode: string
     completed_sentences: number
     total_sentences: number
+    current_sentence_index?: number
     updated_at: string
+    hsk_level?: number
+    lesson_id?: string
+    lesson_title?: string
+    current_question_id?: string
+    current_question_text?: string
+    practice_mode?: string
   } | null = null
   let needReviewMistakesCount = 0
 
@@ -54,7 +61,7 @@ export default async function HomePage() {
         .limit(5000),
       supabase
         .from('typing_progress')
-        .select('exercise_id, mode, completed_sentences, total_sentences, updated_at')
+        .select('*')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
         .limit(1)
@@ -250,12 +257,33 @@ export default async function HomePage() {
                 </div>
 
                 {recentTyping ? (
-                  <div>
-                    <h3 className="font-serif font-bold text-base text-title">
-                      Luyện đánh máy: {recentTyping.exercise_id}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-sans font-bold bg-app-accent-soft text-app-accent border border-app-accent/20">
+                        {recentTyping.practice_mode === 'translate' || recentTyping.mode === 'translate_hsk'
+                          ? 'Dịch Việt → Gõ Hán'
+                          : 'Nghe & Gõ'}
+                      </span>
+                      {recentTyping.hsk_level && (
+                        <span className="px-2 py-0.5 rounded text-[11px] font-sans font-semibold bg-[#FFF9F3] border border-[#E9DDD1] text-title">
+                          HSK {recentTyping.hsk_level}
+                        </span>
+                      )}
+                      {recentTyping.lesson_title && (
+                        <span className="text-xs text-muted font-serif truncate max-w-[180px]">
+                          {recentTyping.lesson_title}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-serif font-bold text-base text-title line-clamp-1">
+                      {recentTyping.current_question_text
+                        ? `Câu ${(recentTyping.current_sentence_index || 0) + 1}: "${recentTyping.current_question_text}"`
+                        : `Bài tập: ${recentTyping.exercise_id}`}
                     </h3>
-                    <p className="text-xs text-muted font-serif mt-1">
-                      Đã hoàn thành {recentTyping.completed_sentences}/{recentTyping.total_sentences} câu ({Math.round((recentTyping.completed_sentences / (recentTyping.total_sentences || 1)) * 100)}%)
+
+                    <p className="text-xs text-muted font-serif">
+                      Đã hoàn thành {recentTyping.completed_sentences}/{recentTyping.total_sentences} câu ({Math.round(((recentTyping.completed_sentences || 0) / (recentTyping.total_sentences || 1)) * 100)}%)
                     </p>
                   </div>
                 ) : (
@@ -272,10 +300,18 @@ export default async function HomePage() {
 
               <div className="pt-2 border-t border-border/60 flex items-center justify-between">
                 <Link 
-                  href={recentTyping ? '/typing' : '/topics?q=HSK 1'}
+                  href={
+                    recentTyping
+                      ? `/typing?practice=${recentTyping.practice_mode || (recentTyping.mode === 'translate_hsk' ? 'translate' : 'visual')}${recentTyping.hsk_level ? `&hskLevel=${recentTyping.hsk_level}` : ''}${recentTyping.lesson_id ? `&lessonId=${recentTyping.lesson_id}` : ''}${recentTyping.current_question_id ? `&sentenceId=${recentTyping.current_question_id}` : ''}&resume=1`
+                      : '/topics?q=HSK 1'
+                  }
                   className="inline-flex items-center gap-1.5 text-xs font-serif font-semibold text-app-accent hover:text-accent-hover group"
                 >
-                  <span>{recentTyping ? 'Gõ tiếp ngay' : 'Khám phá HSK 1'}</span>
+                  <span>
+                    {recentTyping
+                      ? `Tiếp tục câu ${(recentTyping.current_sentence_index || 0) + 1} →`
+                      : 'Khám phá HSK 1'}
+                  </span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </Link>
               </div>
