@@ -1,6 +1,6 @@
 import { ReactNode, Suspense } from 'react'
 import Link from 'next/link'
-import { LogOut, ShieldCheck } from 'lucide-react'
+import { LogOut, ShieldCheck, Keyboard, BrainCircuit } from 'lucide-react'
 import { MobileHeader, MobileNav, MobileNavProvider } from '@/components/dashboard/mobile-nav'
 import { UserNav } from '@/components/dashboard/user-nav'
 import { logout } from '@/app/auth/actions'
@@ -110,22 +110,46 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
           {/* Desktop Header - Cố định ở đầu trang (Fixed Header), đồng bộ với fixed sidebar */}
           <header className="hidden md:flex h-14 border-b border-border/60 bg-page/85 backdrop-blur-md items-center justify-between px-6 sm:px-8 fixed top-0 right-0 left-0 md:left-[272px] z-20">
-            {/* Nhãn văn hóa Đông Phương tinh tế thay thế khoảng trống tìm kiếm */}
-            <div className="flex items-center gap-2 select-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-app-accent/80" />
-              <span className="text-xs font-serif text-muted tracking-wide">
-                Nền tảng học Hán ngữ & Luyện thi HSK
-              </span>
+            {/* Nhãn văn hóa Đông Phương tinh tế & Lộ trình chuẩn hóa HSK 3.0 */}
+            <div className="flex items-center gap-3 select-none">
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF9F3] border border-[#E9DDD1] shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-app-accent animate-pulse" />
+                <span className="text-xs font-serif text-[#243047] font-semibold tracking-wide">
+                  Lộ trình HSK 3.0
+                </span>
+                <span className="text-[10px] font-sans px-1.5 py-0.2 rounded bg-app-accent/10 text-app-accent font-bold">
+                  GF 0025-2021
+                </span>
+              </div>
             </div>
 
-            {/* Cụm nút hành động chuẩn hóa chiều cao, font và bo góc */}
+            {/* Quick action chips & Cụm nút hành động chuẩn hóa chiều cao, font và bo góc */}
             <div className="flex items-center gap-2.5">
+              <div className="hidden lg:flex items-center gap-2 mr-2 border-r border-border/60 pr-3">
+                <Link
+                  href="/typing"
+                  className="h-8 px-3 rounded-xl border border-[#E9DDD1] bg-card hover:bg-[#FFF9F3] hover:border-app-accent/30 text-[#243047] text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                  title="Phòng luyện đánh máy tiếng Trung"
+                >
+                  <Keyboard className="h-3.5 w-3.5 text-app-accent" />
+                  <span>Luyện gõ</span>
+                </Link>
+                <Link
+                  href="/review"
+                  className="h-8 px-3 rounded-xl border border-[#E9DDD1] bg-card hover:bg-[#FFF9F3] hover:border-gold/40 text-[#243047] text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
+                  title="Ôn tập từ vựng Spaced Repetition"
+                >
+                  <BrainCircuit className="h-3.5 w-3.5 text-gold" />
+                  <span>Ôn tập</span>
+                </Link>
+              </div>
+
               {isAdmin && (
                 <>
                   <AdminNotificationBell adminId={user!.id} />
                   <Link 
                     href="/admin" 
-                    className="h-9 px-3.5 rounded-xl border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white transition-all text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs select-none"
+                    className="h-9 px-3.5 rounded-xl border border-app-accent/30 bg-app-accent-soft text-app-accent hover:bg-app-accent hover:text-white transition-all text-xs font-serif font-medium flex items-center gap-1.5 shadow-2xs select-none active:scale-95"
                     title="Trung tâm Quản trị & Phân quyền"
                   >
                     <ShieldCheck className="h-4 w-4" />

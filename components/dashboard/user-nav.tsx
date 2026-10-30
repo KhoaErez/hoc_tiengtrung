@@ -65,7 +65,7 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
       {/* Nút bấm hiển thị Avatar & Tên */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="h-9 flex items-center gap-2 px-2.5 rounded-xl border border-border/80 bg-card hover:border-app-accent/40 hover:shadow-2xs transition-all text-left cursor-pointer"
+        className="h-9 flex items-center gap-2 px-2.5 rounded-xl border border-border/80 bg-card hover:border-app-accent/40 hover:bg-[#FFF9F3] hover:shadow-2xs transition-all text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/30"
         title="Tài khoản người dùng"
       >
         {avatarUrl ? (
@@ -79,11 +79,11 @@ export function UserNav({ user, displayName, avatarUrl, isAdmin }: UserNavProps)
             {initial}
           </div>
         )}
-        <div className="hidden sm:block text-left max-w-[120px]">
+        <div className="hidden sm:block text-left max-w-[150px]">
           <div className="flex items-center gap-1.5">
             <p className="text-xs font-serif font-bold text-title truncate leading-tight">{name}</p>
             {isAdmin && (
-              <span className="bg-app-accent text-white text-[9px] font-sans font-bold uppercase px-1 py-0.2 rounded">
+              <span className="bg-app-accent text-white text-[9px] font-sans font-bold uppercase px-1 py-0.2 rounded shadow-2xs">
                 Admin
               </span>
             )}

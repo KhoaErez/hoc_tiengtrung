@@ -2155,11 +2155,19 @@ export default function TypingClient() {
           </button>
         </div>
 
-        <p className="text-xs sm:text-sm text-muted font-sans px-1">
-          {practiceMode === 'visual'
-            ? '🎧 Nghe & Gõ: Luyện phản xạ tai nghe âm thanh tiếng Trung và ghi nhớ mặt chữ Hán tương ứng.'
-            : '✍️ Dịch Việt → Gõ Hán: Đọc ý nghĩa tiếng Việt và tự chuyển ngữ rồi gõ câu chữ Hán hoàn chỉnh.'}
-        </p>
+        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#FFF9F3] border border-[#E9DDD1] text-xs sm:text-sm font-serif text-[#243047] shadow-2xs">
+          {practiceMode === 'visual' ? (
+            <>
+              <Headphones className="w-4 h-4 text-app-accent shrink-0" />
+              <span><strong>Nghe & Gõ:</strong> Luyện phản xạ tai nghe phát âm tiếng Trung và rèn luyện kỹ năng gõ chữ Hán tương ứng.</span>
+            </>
+          ) : (
+            <>
+              <PenTool className="w-4 h-4 text-app-accent shrink-0" />
+              <span><strong>Dịch Việt → Gõ Hán:</strong> Đọc ý nghĩa tiếng Việt, tự phản xạ chuyển ngữ rồi gõ câu chữ Hán hoàn chỉnh bằng bộ gõ IME.</span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Màn hình chính theo chế độ: Tích hợp hoàn toàn Ôn câu sai vào từng chế độ riêng biệt */}

@@ -1110,14 +1110,14 @@ export default function TranslateTypingMode({
             </div>
 
             {/* Câu tiếng Việt nổi bật */}
-            <div className="py-2 sm:py-3">
+            <div className="py-3 sm:py-4 px-4 sm:px-6 rounded-2xl bg-[#FFF9F3]/80 border border-[#E9DDD1]/80 shadow-2xs">
               <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#243047] leading-relaxed tracking-normal select-text">
                 &ldquo;{currentExercise.vietnamesePrompt}&rdquo;
               </h2>
             </div>
 
             {/* Thanh điều khiển âm thanh TTS tiếng Trung */}
-            <div className="flex items-center justify-between gap-2.5 pt-3 border-t border-[#E9DDD1]/60 flex-wrap">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#E9DDD1]/60 flex-wrap">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -1170,9 +1170,9 @@ export default function TranslateTypingMode({
               </div>
 
               {/* Thông tin hỗ trợ */}
-              <span className="text-[11px] text-muted font-serif hidden sm:inline">
-                💡 Nghe phát âm hỗ trợ suy nghĩ chữ Hán mà không lộ đáp án
-              </span>
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-300 font-serif">
+                <span>💡 Nghe phát âm hỗ trợ suy nghĩ chữ Hán mà không lộ đáp án</span>
+              </div>
             </div>
           </div>
 

@@ -1,14 +1,14 @@
 import { createClient, getCachedAuthUser, getCachedUserProfile } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { 
-  BookOpen, 
-  PenTool, 
-  Component, 
-  Keyboard, 
-  ArrowRight, 
-  CheckCircle2, 
-  Flame, 
+import {
+  BookOpen,
+  PenTool,
+  Component,
+  Keyboard,
+  ArrowRight,
+  CheckCircle2,
+  Flame,
   GraduationCap,
   Award,
   PlayCircle,
@@ -24,14 +24,14 @@ export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const supabase = await createClient()
-  
+
   // 1. Tải song song dữ liệu bộ đếm bài học hệ thống (< 1ms từ cache), auth session và số từ thực tế Supabase
   const [levelLessonCounts, user, liveVocabCountsRes] = await Promise.all([
     getCachedSystemLessonCounts(),
     getCachedAuthUser(),
     getCachedAllVocabCounts(),
   ])
-  
+
   let displayName = 'Học viên'
   const userVocabsPerLevel: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 }
   let recentTyping: {
@@ -129,7 +129,7 @@ export default async function HomePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 md:space-y-10 pb-16">
-      
+
       {/* ======================================================== */}
       {/* 1. HERO BANNER CHO KHÁCH (CHƯA ĐĂNG NHẬP)                */}
       {/* ======================================================== */}
@@ -148,15 +148,15 @@ export default async function HomePage() {
                 <GraduationCap className="w-4 h-4 shrink-0" />
                 <span>Không gian học tiếng Trung hiện đại & bản sắc</span>
               </div>
-              
+
               <h1 className="text-2xl sm:text-3xl md:text-[32px] lg:text-4xl font-serif font-bold text-title tracking-tight leading-snug">
                 Chinh phục HSK & Hán tự từ cơ bản đến chuyên sâu
               </h1>
-              
+
               <p className="text-body text-sm sm:text-base leading-relaxed">
                 Lộ trình 6 cấp độ HSK chuẩn hóa với hơn 350 bài học, luyện gõ phím Pinyin thực tế, tra cứu 214 bộ thủ Khang Hy và ôn tập ngắt quãng thông minh.
               </p>
-              
+
               <div className="pt-1.5 flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
                 <Link href="/topics?q=HSK 1" className="w-full sm:w-auto">
                   <Button variant="primary" className="w-full sm:w-auto px-6 cursor-pointer min-h-[46px] text-sm sm:text-base font-semibold gap-2 shadow-xs">
@@ -282,9 +282,17 @@ export default async function HomePage() {
                         : `Bài tập: ${recentTyping.exercise_id}`}
                     </h3>
 
-                    <p className="text-xs text-muted font-serif">
-                      Đã hoàn thành {recentTyping.completed_sentences}/{recentTyping.total_sentences} câu ({Math.round(((recentTyping.completed_sentences || 0) / (recentTyping.total_sentences || 1)) * 100)}%)
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted font-serif">
+                        Đã hoàn thành {recentTyping.completed_sentences}/{recentTyping.total_sentences} câu ({Math.round(((recentTyping.completed_sentences || 0) / (recentTyping.total_sentences || 1)) * 100)}%)
+                      </p>
+                      <div className="w-full bg-[#E9DDD1]/70 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-app-accent rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, Math.round(((recentTyping.completed_sentences || 0) / (recentTyping.total_sentences || 1)) * 100))}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <div>
@@ -299,7 +307,7 @@ export default async function HomePage() {
               </div>
 
               <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                <Link 
+                <Link
                   href={
                     recentTyping
                       ? `/typing?practice=${recentTyping.practice_mode || (recentTyping.mode === 'translate_hsk' ? 'translate' : 'visual')}${recentTyping.hsk_level ? `&hskLevel=${recentTyping.hsk_level}` : ''}${recentTyping.lesson_id ? `&lessonId=${recentTyping.lesson_id}` : ''}${recentTyping.current_question_id ? `&sentenceId=${recentTyping.current_question_id}` : ''}&resume=1`
@@ -334,7 +342,7 @@ export default async function HomePage() {
 
                 <div>
                   <h3 className="font-serif font-bold text-base text-title">
-                    {needReviewMistakesCount > 0 
+                    {needReviewMistakesCount > 0
                       ? `Bạn có ${needReviewMistakesCount} câu gõ sai cần luyện lại`
                       : 'Hệ thống thẻ nhớ Spaced Repetition'}
                   </h3>
@@ -347,7 +355,7 @@ export default async function HomePage() {
               </div>
 
               <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                <Link 
+                <Link
                   href={needReviewMistakesCount > 0 ? '/typing' : '/review'}
                   className="inline-flex items-center gap-1.5 text-xs font-serif font-semibold text-gold hover:text-amber-700 group"
                 >
@@ -396,8 +404,8 @@ export default async function HomePage() {
             const systemVocab = typeof liveCount === 'number' ? liveCount : (audit?.systemVocabCount || 0)
             const isComingSoon = audit?.status === 'coming_soon' || (systemVocab === 0 && totalLessons === 0)
 
-            const percent = user && systemVocab > 0 
-              ? Math.min(100, Math.round((learnedVocabs / systemVocab) * 100)) 
+            const percent = user && systemVocab > 0
+              ? Math.min(100, Math.round((learnedVocabs / systemVocab) * 100))
               : 0
             const theme = getStageTheme(levelNum)
 
@@ -416,8 +424,8 @@ export default async function HomePage() {
             }
 
             return (
-              <Link 
-                key={levelNum} 
+              <Link
+                key={levelNum}
                 href={`/topics?q=${encodeURIComponent(info.tag)}`}
                 className={`group relative flex flex-col justify-between p-5 sm:p-6 rounded-2xl border border-border bg-card ${theme.hoverBorder} hover:shadow-md transition-all duration-200 overflow-hidden h-full select-none`}
               >
@@ -472,17 +480,17 @@ export default async function HomePage() {
                       {isComingSoon ? 'Trạng thái lộ trình' : 'Tiến độ từ vựng'}
                     </span>
                     <span className="font-bold text-title" suppressHydrationWarning>
-                      {isComingSoon 
-                        ? 'Đang biên soạn dữ liệu' 
-                        : user 
-                        ? `${formatNumber(learnedVocabs)}/${formatNumber(systemVocab)} (${percent}%)` 
-                        : `${formatNumber(systemVocab)} từ có sẵn`}
+                      {isComingSoon
+                        ? 'Đang biên soạn dữ liệu'
+                        : user
+                          ? `${formatNumber(learnedVocabs)}/${formatNumber(systemVocab)} (${percent}%)`
+                          : `${formatNumber(systemVocab)} từ có sẵn`}
                     </span>
                   </div>
-                  
+
                   {/* Progress bar */}
                   <div className="w-full bg-track h-2 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className={`h-full rounded-full ${theme.progressBar} transition-all duration-500`}
                       style={{ width: `${isComingSoon ? 0 : user ? percent : 0}%` }}
                     />
@@ -517,8 +525,8 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
           {/* Luyện đánh máy */}
-          <Link 
-            href="/typing" 
+          <Link
+            href="/typing"
             className="group p-5 sm:p-6 rounded-2xl border border-border bg-card hover:border-app-accent/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
           >
             <div className="space-y-3.5">
@@ -541,8 +549,8 @@ export default async function HomePage() {
           </Link>
 
           {/* 214 Bộ thủ */}
-          <Link 
-            href="/radicals" 
+          <Link
+            href="/radicals"
             className="group p-5 sm:p-6 rounded-2xl border border-border bg-card hover:border-jade/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation"
           >
             <div className="space-y-3.5">
@@ -565,8 +573,8 @@ export default async function HomePage() {
           </Link>
 
           {/* Luyện viết AI */}
-          <Link 
-            href="/write" 
+          <Link
+            href="/write"
             className="group p-5 sm:p-6 rounded-2xl border border-border bg-card hover:border-title/60 hover:shadow-xs active:scale-[0.99] transition-all flex flex-col justify-between touch-manipulation sm:col-span-2 md:col-span-1"
           >
             <div className="space-y-3.5">
