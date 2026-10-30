@@ -74,12 +74,14 @@ import { useAuthModal } from '@/components/auth/auth-modal-context'
 import TypingResumeBanner from './components/typing-resume-banner'
 import TypingResumeCard from './components/typing-resume-card'
 import TypingMistakesReview from './components/typing-mistakes-review'
+import { evaluateTranslationInput } from '@/lib/translation-typing-eval'
 import { toast } from 'sonner'
 import {
   Keyboard,
   RotateCcw,
   CheckCircle2,
   XCircle,
+  AlertCircle,
   ArrowRight,
   ArrowLeft,
   Clock,
@@ -400,6 +402,28 @@ export default function TypingClient() {
   const [isComposing, setIsComposing] = useState(false)
   const [compositionText, setCompositionText] = useState('')
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+
+  // State Machine cho phím Enter & kiểm tra câu (typing -> checking -> correct/incorrect -> transitioning)
+  type PracticeStatus = 'typing' | 'checking' | 'correct' | 'incorrect' | 'transitioning'
+  const [practiceStatus, setPracticeStatus] = useState<PracticeStatus>('typing')
+  const practiceStatusRef = useRef<PracticeStatus>('typing')
+  const updatePracticeStatus = useCallback((s: PracticeStatus) => {
+    practiceStatusRef.current = s
+    setPracticeStatus(s)
+  }, [])
+
+  // Cờ chặn phím Enter xác nhận ứng viên IME không kích hoạt kiểm tra
+  const justEndedCompositionRef = useRef<boolean>(false)
+  const justEndedCompositionTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Dọn dẹp timer khi component unmount
+  useEffect(() => {
+    return () => {
+      if (justEndedCompositionTimerRef.current) {
+        clearTimeout(justEndedCompositionTimerRef.current)
+      }
+    }
+  }, [])
 
   // Thời gian & Trạng thái luyện tập
   const [isStarted, setIsStarted] = useState(false)
@@ -1046,6 +1070,8 @@ export default function TypingClient() {
     committedLengthRef.current = 0
     isComposingRef.current = false
     setUserInput('')
+    updatePracticeStatus('typing')
+    justEndedCompositionRef.current = false
     setIsComposing(false)
     setCompositionText('')
     setIsStarted(false)
@@ -1058,7 +1084,7 @@ export default function TypingClient() {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
       setTimeout(() => inputRef.current?.focus(), 50)
     }
-  }, [stopSpeech])
+  }, [stopSpeech, updatePracticeStatus])
 
   // Xử lý khi nhấn nút "Tiếp tục học →" từ Thẻ Tiếp tục học của Nghe & Gõ
   const handleResumeVisualLatest = useCallback((p: TypingProgressDTO) => {
@@ -1588,9 +1614,10 @@ export default function TypingClient() {
         }
       }
 
-      // Kiểm tra hoàn thành bài tập
-      if (newLength >= currentExercise.hanzi.length) {
-        handleFinish()
+      // Nếu trước đó đang 'correct' mà người dùng sửa ký tự -> hủy correct, về typing
+      if (practiceStatusRef.current === 'correct') {
+        updatePracticeStatus('typing')
+        setIsCompleted(false)
       }
     },
     [
@@ -1602,10 +1629,10 @@ export default function TypingClient() {
       exerciseWordTokens,
       chineseSentences,
       speakSentence,
-      handleFinish,
       mode,
       isLoggedIn,
       elapsedSeconds,
+      updatePracticeStatus,
     ]
   )
 
@@ -1624,6 +1651,11 @@ export default function TypingClient() {
   const handleCompositionStart = () => {
     isComposingRef.current = true
     setIsComposing(true)
+    justEndedCompositionRef.current = false
+    if (justEndedCompositionTimerRef.current) {
+      clearTimeout(justEndedCompositionTimerRef.current)
+      justEndedCompositionTimerRef.current = null
+    }
     if (!isStarted) setIsStarted(true)
   }
 
@@ -1639,6 +1671,15 @@ export default function TypingClient() {
     // Lấy giá trị chính xác đã được xác nhận từ DOM element
     const val = (e.target as HTMLInputElement | HTMLTextAreaElement).value
     handleCommittedText(val)
+
+    // Đặt cờ vừa kết thúc composition trong 120ms để chặn phím Enter xác nhận ứng viên IME
+    justEndedCompositionRef.current = true
+    if (justEndedCompositionTimerRef.current) {
+      clearTimeout(justEndedCompositionTimerRef.current)
+    }
+    justEndedCompositionTimerRef.current = setTimeout(() => {
+      justEndedCompositionRef.current = false
+    }, 120)
   }
 
   // Khi người dùng click/focus vào ô gõ lần đầu, nếu câu chưa kịp đọc do trình duyệt chặn autoplay
@@ -1687,18 +1728,245 @@ export default function TypingClient() {
     [clearAutoSpeakTimer, stopSpeech, resetExercise]
   )
 
-  // Chuyển sang câu kế tiếp
-  const handleNext = useCallback(() => {
-    if (exercises.length === 0) return
-    if (currentIndex >= exercises.length - 1) {
-      toast.success('Bạn đã hoàn thành câu cuối cùng của bài học!', {
-        description: 'Bạn có thể làm lại hoặc chuyển sang bài học tiếp theo.',
-        duration: 3500,
-      })
+  // 1. Kiểm tra đáp án cho chế độ Nghe & Gõ
+  const handleCheckVisualAnswer = useCallback(() => {
+    if (!currentExercise) return
+    const currentStatus = practiceStatusRef.current
+    if (currentStatus !== 'typing' && currentStatus !== 'incorrect') return
+
+    const rawVal = inputRef.current ? inputRef.current.value : userInput
+    const val = (rawVal ?? '').trim()
+    if (!val) return
+
+    updatePracticeStatus('checking')
+    stopSpeech()
+
+    const evalResult = evaluateTranslationInput(val, currentExercise.hanzi)
+    const isMatch = evalResult.isExactMatch
+
+    if (isMatch) {
+      updatePracticeStatus('correct')
+      setIsCompleted(true)
+      if (timerRef.current) clearInterval(timerRef.current)
+
+      if (preferences.soundEffects) {
+        playTypingSfx('complete')
+      }
+
+      // Lưu kết quả bài tập
+      const session: TypingSession = {
+        id: Date.now().toString(),
+        exerciseId: currentExercise.id,
+        date: new Date().toISOString(),
+        mode,
+        level: currentExercise.level || `HSK ${currentExercise.hskLevel || 1}`,
+        timeSeconds: Math.max(elapsedSeconds, 1),
+        targetChars: currentExercise.hanzi.length,
+        correctChars: currentExercise.hanzi.length,
+        errorChars: 0,
+        accuracy: 100,
+        cpm: Math.round(currentExercise.hanzi.length / (Math.max(elapsedSeconds, 1) / 60)),
+      }
+      saveTypingSession(session)
+      setStats(getTypingStats())
+      setHistoryList(getTypingHistory())
+    } else {
+      updatePracticeStatus('incorrect')
+      setIsCompleted(false)
+
+      if (preferences.soundEffects) {
+        playTypingSfx('error')
+      }
+
+      // Ghi nhận câu sai
+      const mistakeDetails = evalResult.diffTokens
+        .filter((t) => t.type !== 'match')
+        .map((t) => ({
+          index: t.index + 1,
+          expected: t.expectedChar || '(thiếu)',
+          actual: t.userInputChar || '(khác)',
+        }))
+
+      const mistakePayload = {
+        mode,
+        practiceType: 'listen' as const,
+        exerciseId: currentExercise.id,
+        sentenceIndex: currentIndex,
+        sentenceZh: currentExercise.hanzi,
+        pinyin: currentExercise.pinyin,
+        meaningVi: currentExercise.meaning,
+        lastInputZh: val,
+        mistakeDetails,
+      }
+
+      if (typeof recordLocalTypingMistake === 'function') {
+        recordLocalTypingMistake(mistakePayload)
+      }
+      if (isLoggedIn) {
+        recordTypingMistakeAction(mistakePayload).catch(() => {})
+      }
+      setMistakeCount((prev) => prev + 1)
+    }
+
+    setTimeout(() => {
+      inputRef.current?.focus()
+    }, 50)
+  }, [
+    currentExercise,
+    userInput,
+    mode,
+    currentIndex,
+    elapsedSeconds,
+    preferences.soundEffects,
+    isLoggedIn,
+    stopSpeech,
+    updatePracticeStatus,
+  ])
+
+  // 2. Chuyển sang câu tiếp theo cho Nghe & Gõ (Enter lần 2 hoặc Bỏ qua câu)
+  const handleNextVisualSentence = useCallback(
+    (options?: { isSkipManual?: boolean }) => {
+      if (practiceStatusRef.current === 'transitioning') return
+      if (exercises.length === 0) return
+
+      const currentStatus = practiceStatusRef.current
+      const isCurrentlyCorrect = currentStatus === 'correct'
+      const isSkipManual = options?.isSkipManual || !isCurrentlyCorrect
+
+      updatePracticeStatus('transitioning')
+      stopSpeech()
+
+      if (currentExercise) {
+        clearLocalTypingDraft(mode, currentExercise.id)
+
+        const nextIdx = currentIndex + 1 < exercises.length ? currentIndex + 1 : currentIndex
+        const nextEx = exercises[nextIdx]
+        const isLast = currentIndex >= exercises.length - 1
+
+        const progressPayload: TypingProgressDTO = {
+          mode,
+          exerciseId: currentExercise.id,
+          currentSentenceIndex: nextIdx,
+          completedSentences: isSkipManual ? currentIndex : currentIndex + 1,
+          totalSentences: exercises.length,
+          correctSentences: isSkipManual ? 0 : currentIndex + 1,
+          errorSentences: isSkipManual ? 1 : 0,
+          lastTypedLength: userInput.length,
+          timeSpentSeconds: Math.max(elapsedSeconds, 1),
+          status: isLast ? 'completed' : 'in_progress',
+          hskLevel: mode === 'hsk' ? hskLevel : undefined,
+          lessonId: mode === 'hsk' ? (selectedLessonId || undefined) : undefined,
+          lessonTitle:
+            mode === 'hsk'
+              ? selectedLessonId
+                ? 'Bài học'
+                : `HSK ${hskLevel}`
+              : mode === 'sentence'
+              ? 'Câu mẫu'
+              : (currentExercise as any).title || 'Đoạn văn',
+          currentQuestionId: nextEx?.id || currentExercise.id,
+          currentQuestionText: nextEx?.hanzi || currentExercise.hanzi,
+          practiceMode: 'visual',
+        }
+
+        if (typeof saveLocalTypingProgress === 'function') {
+          saveLocalTypingProgress(progressPayload as any)
+        }
+        if (isLoggedIn) {
+          saveTypingProgressAction(progressPayload).catch(() => {})
+        }
+      }
+
+      if (currentIndex >= exercises.length - 1) {
+        toast.success('Bạn đã hoàn thành bài học này!', {
+          description: isCurrentlyCorrect ? 'Chúc mừng bạn đã hoàn thành câu cuối cùng!' : 'Đã kết thúc bài luyện tập.',
+          duration: 3500,
+        })
+        updatePracticeStatus(isCurrentlyCorrect ? 'correct' : 'typing')
+        return
+      }
+
+      navigateToExercise(currentIndex + 1)
+      resetExercise()
+      updatePracticeStatus('typing')
+      setTimeout(() => {
+        inputRef.current?.focus()
+      }, 100)
+    },
+    [
+      currentIndex,
+      exercises,
+      currentExercise,
+      mode,
+      userInput,
+      elapsedSeconds,
+      hskLevel,
+      selectedLessonId,
+      isLoggedIn,
+      navigateToExercise,
+      resetExercise,
+      stopSpeech,
+      updatePracticeStatus,
+    ]
+  )
+
+  // 3. Xử lý phím Enter trên ô nhập liệu (Input KeyDown)
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // Chặn lặp phím
+    if (e.repeat) {
+      if (e.key === 'Enter') e.preventDefault()
       return
     }
-    navigateToExercise(currentIndex + 1)
-  }, [currentIndex, exercises.length, navigateToExercise])
+
+    // Chặn triệt để khi IME đang chọn chữ hoặc vừa kết thúc composition
+    if (
+      isComposing ||
+      isComposingRef.current ||
+      e.nativeEvent?.isComposing ||
+      e.keyCode === 229 ||
+      e.key === 'Process' ||
+      justEndedCompositionRef.current
+    ) {
+      if (justEndedCompositionRef.current && e.key === 'Enter') {
+        justEndedCompositionRef.current = false
+        if (justEndedCompositionTimerRef.current) {
+          clearTimeout(justEndedCompositionTimerRef.current)
+          justEndedCompositionTimerRef.current = null
+        }
+      }
+      return
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const currentStatus = practiceStatusRef.current
+
+      // A. Nếu đang typing HOẶC incorrect: kiểm tra đáp án nếu có nội dung
+      if (currentStatus === 'typing' || currentStatus === 'incorrect') {
+        const textToCheck = (inputRef.current ? inputRef.current.value : userInput).trim()
+        if (textToCheck.length > 0) {
+          handleCheckVisualAnswer()
+        }
+        return
+      }
+
+      // B. Nếu đã correct: Chuyển sang câu tiếp theo (Enter lần 2)
+      if (currentStatus === 'correct') {
+        handleNextVisualSentence()
+        return
+      }
+
+      // C. Nếu đang transitioning hoặc checking: bỏ qua tránh race condition
+      if (currentStatus === 'transitioning' || currentStatus === 'checking') {
+        return
+      }
+    }
+  }
+
+  // Chuyển sang câu kế tiếp (nút bấm điều hướng chung)
+  const handleNext = useCallback(() => {
+    handleNextVisualSentence()
+  }, [handleNextVisualSentence])
 
   // Quay lại câu trước
   const handlePrev = useCallback(() => {
@@ -1713,7 +1981,8 @@ export default function TypingClient() {
     showHistoryModal,
     isCompleted,
     isComposing,
-    handleNext,
+    practiceStatus,
+    handleNextVisualSentence,
     resetExercise,
     handlePlayCurrentSentence,
   })
@@ -1723,7 +1992,8 @@ export default function TypingClient() {
       showHistoryModal,
       isCompleted,
       isComposing,
-      handleNext,
+      practiceStatus,
+      handleNextVisualSentence,
       resetExercise,
       handlePlayCurrentSentence,
     }
@@ -1740,10 +2010,13 @@ export default function TypingClient() {
       if (e.isComposing || e.keyCode === 229 || actions.isComposing) return
       if (e.repeat) return
 
-      // Enter khi đã hoàn thành -> sang câu kế tiếp
-      if (e.key === 'Enter' && actions.isCompleted) {
-        e.preventDefault()
-        actions.handleNext()
+      // Enter khi đã correct -> sang câu kế tiếp (chỉ khi input không được focus để tránh double trigger)
+      if (e.key === 'Enter') {
+        if (document.activeElement === inputRef.current) return
+        if (actions.practiceStatus === 'correct') {
+          e.preventDefault()
+          actions.handleNextVisualSentence()
+        }
       }
       // Alt + R -> Làm lại bài
       if (e.altKey && (e.key === 'r' || e.key === 'R')) {
@@ -2744,17 +3017,26 @@ export default function TypingClient() {
                   value={userInput}
                   onChange={handleInputChange}
                   onFocus={handleInputFocus}
+                  onKeyDown={handleInputKeyDown}
                   onCompositionStart={handleCompositionStart}
                   onCompositionUpdate={handleCompositionUpdate}
                   onCompositionEnd={handleCompositionEnd}
-                  disabled={isCompleted}
+                  disabled={practiceStatus === 'checking' || practiceStatus === 'transitioning'}
                   rows={3}
                   placeholder={
-                    isCompleted
-                      ? 'Đã hoàn thành câu này. Bấm "Câu tiếp theo" hoặc phím Enter để tiếp tục.'
+                    practiceStatus === 'correct'
+                      ? 'Chính xác! Nhấn Enter lần nữa để chuyển sang câu tiếp theo.'
+                      : practiceStatus === 'incorrect'
+                      ? 'Chưa chính xác. Chỉnh sửa câu rồi nhấn Enter để kiểm tra lại...'
                       : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                   }
-                  className="w-full p-4 bg-card border-2 border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner resize-none"
+                  className={`w-full p-4 bg-card border-2 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner resize-none ${
+                    practiceStatus === 'correct'
+                      ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
+                      : practiceStatus === 'incorrect'
+                      ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/10'
+                      : 'border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10'
+                  }`}
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 />
               ) : (
@@ -2764,22 +3046,31 @@ export default function TypingClient() {
                   value={userInput}
                   onChange={handleInputChange}
                   onFocus={handleInputFocus}
+                  onKeyDown={handleInputKeyDown}
                   onCompositionStart={handleCompositionStart}
                   onCompositionUpdate={handleCompositionUpdate}
                   onCompositionEnd={handleCompositionEnd}
-                  disabled={isCompleted}
+                  disabled={practiceStatus === 'checking' || practiceStatus === 'transitioning'}
                   autoComplete="off"
                   autoCorrect="off"
                   autoCapitalize="off"
                   spellCheck="false"
                   placeholder={
-                    isCompleted
-                      ? 'Đã hoàn thành! Bấm Enter hoặc nút "Câu tiếp theo" để tiếp tục.'
+                    practiceStatus === 'correct'
+                      ? 'Chính xác! Nhấn Enter lần nữa để chuyển sang câu tiếp theo.'
+                      : practiceStatus === 'incorrect'
+                      ? 'Chưa chính xác. Chỉnh sửa câu rồi nhấn Enter để kiểm tra lại...'
                       : mode === 'sentence'
                       ? 'Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán...'
                       : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                   }
-                  className="w-full px-4 py-3.5 min-h-[52px] bg-card border-2 border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner"
+                  className={`w-full px-4 py-3.5 min-h-[52px] bg-card border-2 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner ${
+                    practiceStatus === 'correct'
+                      ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
+                      : practiceStatus === 'incorrect'
+                      ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/10'
+                      : 'border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10'
+                  }`}
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 />
               )}
@@ -2793,13 +3084,77 @@ export default function TypingClient() {
               )}
             </div>
 
-            <div className="flex items-center justify-between text-xs text-muted font-serif px-1">
+            {/* THÔNG BÁO TRẠNG THÁI THEO CHUẨN ENTER UX (Ngay dưới ô nhập liệu) */}
+            {practiceStatus === 'correct' && (
+              <div className="p-3 sm:p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-serif flex items-center justify-between gap-3 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>
+                    <strong>Chính xác!</strong> Nhấn <kbd className="font-mono font-bold bg-white/90 dark:bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-400/40 text-emerald-900 dark:text-emerald-100 shadow-2xs">Enter</kbd> lần nữa để chuyển sang câu tiếp theo.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleNextVisualSentence()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
+                  title="Chuyển sang câu tiếp theo"
+                >
+                  <span>Tiếp tục</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {practiceStatus === 'incorrect' && (
+              <div className="p-3 sm:p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-serif flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
+                <div className="flex items-start sm:items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                  <span>
+                    Bạn cần trả lời đúng để chuyển sang câu tiếp theo. Hãy kiểm tra và sửa lại đáp án, hoặc chọn <strong className="font-semibold">Bỏ qua câu này</strong> nếu muốn chuyển tiếp.
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleCheckVisualAnswer}
+                    disabled={userInput.trim().length === 0}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                    title="Kiểm tra lại đáp án (hoặc nhấn Enter)"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Kiểm tra lại</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleNextVisualSentence({ isSkipManual: true })}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/80 dark:bg-card border border-amber-400/50 hover:bg-white text-amber-900 dark:text-amber-300 rounded-lg text-xs font-serif font-medium transition-all shadow-2xs active:scale-95 cursor-pointer"
+                    title="Bỏ qua câu này và chuyển sang câu tiếp theo (không tính đúng)"
+                  >
+                    <span>Bỏ qua câu này →</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between text-xs text-muted font-serif px-1 gap-2 flex-wrap">
               <span>
                 Đã gõ: <strong className="text-title">{userInput.length}</strong> / {currentExercise.hanzi.length} ký tự
               </span>
-              <span className="hidden sm:inline text-muted/80">
-                Phím tắt: <kbd className="px-1.5 py-0.5 rounded bg-page border border-border">Enter</kbd> để tiếp tục • <kbd className="px-1.5 py-0.5 rounded bg-page border border-border">Alt + R</kbd> làm lại
-              </span>
+              <div className="flex items-center gap-2">
+                {practiceStatus === 'typing' && userInput.trim().length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleCheckVisualAnswer}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Kiểm tra</span>
+                  </button>
+                )}
+                <span className="hidden sm:inline text-muted/80">
+                  Phím tắt: <kbd className="px-1.5 py-0.5 rounded bg-page border border-border">Enter</kbd> {practiceStatus === 'correct' ? 'sang câu tiếp' : 'để kiểm tra'} • <kbd className="px-1.5 py-0.5 rounded bg-page border border-border">Alt + R</kbd> làm lại
+                </span>
+              </div>
             </div>
           </div>
 
@@ -2836,7 +3191,7 @@ export default function TypingClient() {
                     <span>Làm lại</span>
                   </button>
                   <button
-                    onClick={handleNext}
+                    onClick={() => handleNextVisualSentence()}
                     disabled={currentIndex >= exercises.length - 1}
                     className="flex items-center gap-1.5 px-4 py-2 bg-[#B8322D] hover:bg-[#982923] disabled:opacity-45 disabled:cursor-not-allowed text-white rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer"
                   >
@@ -2896,11 +3251,12 @@ export default function TypingClient() {
                 <span className="hidden sm:inline">Làm lại</span>
               </button>
 
-              {!isCompleted && (
+              {practiceStatus !== 'correct' && (
                 <button
-                  onClick={handleFinish}
-                  disabled={userInput.length === 0}
+                  onClick={handleCheckVisualAnswer}
+                  disabled={userInput.trim().length === 0}
                   className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer"
+                  title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
                 >
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
                   <span>Kiểm tra</span>
@@ -2908,14 +3264,23 @@ export default function TypingClient() {
               )}
 
               <button
-                onClick={handleNext}
-                disabled={currentIndex >= exercises.length - 1 && isCompleted}
-                className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#B8322D] hover:bg-[#982923] disabled:opacity-45 disabled:cursor-not-allowed text-white rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer"
+                onClick={() => handleNextVisualSentence({ isSkipManual: practiceStatus !== 'correct' })}
+                disabled={currentIndex >= exercises.length - 1 && practiceStatus === 'correct'}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer ${
+                  practiceStatus === 'correct'
+                    ? 'bg-[#B8322D] hover:bg-[#982923] text-white font-semibold'
+                    : 'bg-[#FFF9F3] border border-[#E9DDD1] hover:border-app-accent hover:text-app-accent text-title'
+                }`}
+                title={practiceStatus === 'correct' ? 'Chuyển sang câu tiếp theo (Enter)' : 'Bỏ qua câu này (không tính đúng)'}
               >
                 <span className="truncate">
                   {currentIndex >= exercises.length - 1
-                    ? 'Hoàn thành'
-                    : mode === 'sentence' ? 'Câu tiếp' : 'Tiếp theo'}
+                    ? practiceStatus === 'correct'
+                      ? 'Hoàn thành'
+                      : 'Kết thúc bài'
+                    : practiceStatus === 'correct'
+                    ? mode === 'sentence' ? 'Câu tiếp' : 'Tiếp theo'
+                    : 'Bỏ qua câu này →'}
                 </span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
               </button>

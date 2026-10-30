@@ -25,6 +25,10 @@ const testSuites = [
     name: '4. Phân tách Tiến độ Luyện tập 2 chế độ (Progress Separation)',
     file: 'test-progress-separation.mjs',
   },
+  {
+    name: '5. Chuẩn hóa Phím Enter & IME Keyboard UX (Keyboard UX State Machine)',
+    file: 'test-keyboard-enter-ux.mjs',
+  },
 ]
 
 console.log('=================================================================')
