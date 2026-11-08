@@ -132,7 +132,7 @@ export default async function LessonDetailPage(props: { params: Promise<{ id: st
   const runAiAction = analyzeLessonAction.bind(null, id)
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 pb-20">
+    <div className="w-full max-w-[1500px] mx-auto space-y-6 pb-20">
       <LessonReader
         lesson={lesson}
         aiData={aiData || {}}

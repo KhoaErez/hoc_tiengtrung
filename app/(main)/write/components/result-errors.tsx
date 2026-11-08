@@ -55,9 +55,9 @@ export function ResultErrors({ errors }: ResultErrorsProps) {
   return (
     <div className="space-y-4 font-serif">
       {/* Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card border border-border rounded-xl p-3 shadow-2xs text-xs">
-        <div className="flex items-center gap-1.5 text-muted">
-          <Filter className="w-3.5 h-3.5 text-app-accent" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border-2 border-[#182238] rounded-2xl p-3.5 shadow-[0_3px_0_#182238] text-xs">
+        <div className="flex items-center gap-1.5 text-[#182238] font-bold font-serif">
+          <Filter className="w-4 h-4 text-[#B8322D]" />
           <span>Bộ lọc phân loại ({errors.length} mục):</span>
         </div>
 
@@ -65,10 +65,10 @@ export function ResultErrors({ errors }: ResultErrorsProps) {
           <button
             type="button"
             onClick={() => setFilter('all')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-serif transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer ${
               filter === 'all'
-                ? 'bg-title text-white font-bold'
-                : 'bg-page text-title border border-border hover:border-app-accent'
+                ? 'bg-[#182238] text-white shadow-2xs'
+                : 'bg-white text-[#182238] border border-[#182238]/20 hover:border-[#182238]'
             }`}
           >
             Tất cả ({errors.length})
@@ -77,10 +77,10 @@ export function ResultErrors({ errors }: ResultErrorsProps) {
           <button
             type="button"
             onClick={() => setFilter('error')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-serif transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer ${
               filter === 'error'
-                ? 'bg-red-600 text-white font-bold'
-                : 'bg-page text-red-700 border border-red-200 hover:border-red-400'
+                ? 'bg-[#B8322D] text-white shadow-2xs'
+                : 'bg-white text-[#B8322D] border border-[#B8322D]/30 hover:border-[#B8322D]'
             }`}
           >
             Lỗi sai ({totalErrors})
@@ -89,10 +89,10 @@ export function ResultErrors({ errors }: ResultErrorsProps) {
           <button
             type="button"
             onClick={() => setFilter('suggestion')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-serif transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer ${
               filter === 'suggestion'
-                ? 'bg-amber-600 text-white font-bold'
-                : 'bg-page text-amber-800 border border-amber-200 hover:border-amber-400'
+                ? 'bg-[#D97706] text-white shadow-2xs'
+                : 'bg-white text-[#D97706] border border-[#D97706]/30 hover:border-[#D97706]'
             }`}
           >
             Gợi ý diễn đạt ({totalSuggestions})
@@ -109,9 +109,7 @@ export function ResultErrors({ errors }: ResultErrorsProps) {
           return (
             <div
               key={idx}
-              className={`bg-card border rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3 transition-all ${
-                isError ? 'border-red-200/80 hover:border-red-300' : 'border-amber-200/80 hover:border-amber-300'
-              }`}
+              className="bg-white border-2 border-[#182238] rounded-3xl p-5 sm:p-6 shadow-[0_4px_0_#182238] space-y-3 transition-all"
             >
               {/* Card Header: Type & Severity Badge */}
               <div className="flex items-center justify-between gap-2 flex-wrap">

@@ -91,6 +91,21 @@
   --color-hsk-34-text: var(--hsk-34-text);
   --color-hsk-56: var(--hsk-56);
   --color-hsk-56-text: var(--hsk-56-text);
+
+  --color-hsk-1: var(--hsk-1);
+  --color-hsk-1-soft: var(--hsk-1-soft);
+  --color-hsk-2: var(--hsk-2);
+  --color-hsk-2-soft: var(--hsk-2-soft);
+  --color-hsk-3: var(--hsk-3);
+  --color-hsk-3-soft: var(--hsk-3-soft);
+  --color-hsk-4: var(--hsk-4);
+  --color-hsk-4-soft: var(--hsk-4-soft);
+  --color-hsk-5: var(--hsk-5);
+  --color-hsk-5-soft: var(--hsk-5-soft);
+  --color-hsk-6: var(--hsk-6);
+  --color-hsk-6-soft: var(--hsk-6-soft);
+  --color-hsk-7: var(--hsk-7);
+  --color-hsk-7-soft: var(--hsk-7-soft);
 }
 
 :root {
@@ -136,6 +151,22 @@
   --hsk-34-text: #B88A3E;
   --hsk-56: #F6E3DF;
   --hsk-56-text: #B8312B;
+
+  /* HSK 3.0 Modern Level Colors (The Mandarin Lab inspired) */
+  --hsk-1: #D97706;
+  --hsk-1-soft: #FEF3C7;
+  --hsk-2: #0284C7;
+  --hsk-2-soft: #E0F2FE;
+  --hsk-3: #EA580C;
+  --hsk-3-soft: #FFEDD5;
+  --hsk-4: #B8322D;
+  --hsk-4-soft: #FEE2E2;
+  --hsk-5: #4338CA;
+  --hsk-5-soft: #E0E7FF;
+  --hsk-6: #7E22CE;
+  --hsk-6-soft: #F3E8FF;
+  --hsk-7: #047857;
+  --hsk-7-soft: #D1FAE5;
 
   /* Shadcn UI Mappings */
   --background: var(--bg-page);
@@ -203,6 +234,21 @@
   --hsk-34-text: #FFE082;
   --hsk-56: #3B1C1A;
   --hsk-56-text: #EF9A9A;
+
+  --hsk-1: #F59E0B;
+  --hsk-1-soft: #3B2A10;
+  --hsk-2: #38BDF8;
+  --hsk-2-soft: #0C2C3D;
+  --hsk-3: #FB923C;
+  --hsk-3-soft: #381A0F;
+  --hsk-4: #EF4444;
+  --hsk-4-soft: #3D1414;
+  --hsk-5: #818CF8;
+  --hsk-5-soft: #1E1B4B;
+  --hsk-6: #C084FC;
+  --hsk-6-soft: #33154A;
+  --hsk-7: #10B981;
+  --hsk-7-soft: #064E3B;
 
   --background: var(--bg-page);
   --foreground: var(--text-body);
@@ -393,4 +439,203 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ======================================================== */
+/* TACTILE NEO-EDTECH DESIGN SYSTEM (THE MANDARIN LAB INSPIRED) */
+/* ======================================================== */
+.pattern-dots {
+  background-image: radial-gradient(rgba(24, 34, 56, 0.12) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+.dark .pattern-dots {
+  background-image: radial-gradient(rgba(241, 245, 249, 0.08) 1.5px, transparent 1.5px);
+}
+
+.btn-tactile-primary {
+  background-color: #B8322D;
+  color: #FFFFFF;
+  border: 2px solid #7A1D1A;
+  box-shadow: 0 4px 0 #6A1A15;
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-tactile-primary:hover {
+  background-color: #982923;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #6A1A15;
+}
+.btn-tactile-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #6A1A15;
+}
+
+.btn-tactile-secondary {
+  background-color: #FAF7F2;
+  color: #182238;
+  border: 2px solid #182238;
+  box-shadow: 0 4px 0 #182238;
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .btn-tactile-secondary {
+  background-color: #182238;
+  color: #FAF7F2;
+  border-color: #384869;
+  box-shadow: 0 4px 0 #0D1322;
+}
+.btn-tactile-secondary:hover {
+  background-color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #182238;
+}
+.dark .btn-tactile-secondary:hover {
+  background-color: #202B45;
+  box-shadow: 0 5px 0 #0D1322;
+}
+.btn-tactile-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #182238;
+}
+
+.card-sticker {
+  background-color: #FFFFFF;
+  border: 2px solid #182238;
+  box-shadow: 0 4px 0 #182238;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .card-sticker {
+  background-color: #182238;
+  border-color: #384869;
+  box-shadow: 0 4px 0 #0D1322;
+}
+.card-sticker:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #182238;
+}
+.dark .card-sticker:hover {
+  box-shadow: 0 6px 0 #0D1322;
+}
+.card-sticker:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #182238;
+}
+
+.card-edtech-subtle {
+  background-color: #FFFFFF;
+  border: 2px solid rgba(24, 34, 56, 0.15);
+  box-shadow: 0 3px 0 rgba(24, 34, 56, 0.08);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .card-edtech-subtle {
+  background-color: #182238;
+  border-color: #384869;
+  box-shadow: 0 3px 0 #0D1322;
+}
+.card-edtech-subtle:hover {
+  border-color: #182238;
+  box-shadow: 0 5px 0 #182238;
+  transform: translateY(-1.5px);
+}
+.dark .card-edtech-subtle:hover {
+  border-color: #4A5E8A;
+  box-shadow: 0 5px 0 #0D1322;
+}
+
+
+/* ======================================================== */
+/* TACTILE NEO-EDTECH DESIGN SYSTEM (THE MANDARIN LAB INSPIRED) */
+/* ======================================================== */
+.pattern-dots {
+  background-image: radial-gradient(rgba(24, 34, 56, 0.12) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+}
+.dark .pattern-dots {
+  background-image: radial-gradient(rgba(241, 245, 249, 0.08) 1.5px, transparent 1.5px);
+}
+
+.btn-tactile-primary {
+  background-color: #B8322D;
+  color: #FFFFFF;
+  border: 2px solid #7A1D1A;
+  box-shadow: 0 4px 0 #6A1A15;
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-tactile-primary:hover {
+  background-color: #982923;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #6A1A15;
+}
+.btn-tactile-primary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #6A1A15;
+}
+
+.btn-tactile-secondary {
+  background-color: #FAF7F2;
+  color: #182238;
+  border: 2px solid #182238;
+  box-shadow: 0 4px 0 #182238;
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .btn-tactile-secondary {
+  background-color: #182238;
+  color: #FAF7F2;
+  border-color: #384869;
+  box-shadow: 0 4px 0 #0D1322;
+}
+.btn-tactile-secondary:hover {
+  background-color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #182238;
+}
+.dark .btn-tactile-secondary:hover {
+  background-color: #202B45;
+  box-shadow: 0 5px 0 #0D1322;
+}
+.btn-tactile-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #182238;
+}
+
+.card-sticker {
+  background-color: #FFFFFF;
+  border: 2px solid #182238;
+  box-shadow: 0 4px 0 #182238;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .card-sticker {
+  background-color: #182238;
+  border-color: #384869;
+  box-shadow: 0 4px 0 #0D1322;
+}
+.card-sticker:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #182238;
+}
+.dark .card-sticker:hover {
+  box-shadow: 0 6px 0 #0D1322;
+}
+.card-sticker:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #182238;
+}
+
+.card-edtech-subtle {
+  background-color: #FFFFFF;
+  border: 2px solid rgba(24, 34, 56, 0.15);
+  box-shadow: 0 3px 0 rgba(24, 34, 56, 0.08);
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.dark .card-edtech-subtle {
+  background-color: #182238;
+  border-color: #384869;
+  box-shadow: 0 3px 0 #0D1322;
+}
+.card-edtech-subtle:hover {
+  border-color: #182238;
+  box-shadow: 0 5px 0 #182238;
+  transform: translateY(-1.5px);
+}
+.dark .card-edtech-subtle:hover {
+  border-color: #4A5E8A;
+  box-shadow: 0 5px 0 #0D1322;
 }

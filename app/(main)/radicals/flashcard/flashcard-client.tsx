@@ -116,17 +116,17 @@ export default function FlashcardClient() {
 
       {/* Filter chips */}
       <div className="space-y-2">
-        <p className="text-xs text-muted font-serif uppercase tracking-wider flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5" />
+        <p className="text-xs text-muted font-serif uppercase tracking-wider flex items-center gap-1.5 font-bold">
+          <Layers className="w-3.5 h-3.5 text-[#B8322D]" />
           Lọc theo số nét
         </p>
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => { setStrokeFilter('all'); setCurrentIndex(0); setIsFlipped(false) }}
-            className={`px-3 py-1.5 rounded-full text-xs font-serif transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-serif font-bold transition-all ${
               strokeFilter === 'all'
-                ? 'bg-title text-white'
-                : 'bg-card border border-border text-muted hover:text-title'
+                ? 'bg-[#B8322D] text-white border-2 border-[#182238] shadow-[0_2px_0_#182238]'
+                : 'bg-white border-2 border-[#182238]/20 text-[#182238]/80 hover:border-[#182238] hover:text-[#182238]'
             }`}
           >
             Tất cả ({radicals.length})
@@ -135,10 +135,10 @@ export default function FlashcardClient() {
             <button
               key={sg.strokes}
               onClick={() => { setStrokeFilter(sg.strokes); setCurrentIndex(0); setIsFlipped(false) }}
-              className={`px-3 py-1.5 rounded-full text-xs font-serif transition-all ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-serif font-bold transition-all ${
                 strokeFilter === sg.strokes
-                  ? 'bg-title text-white'
-                  : 'bg-card border border-border text-muted hover:text-title'
+                  ? 'bg-[#B8322D] text-white border-2 border-[#182238] shadow-[0_2px_0_#182238]'
+                  : 'bg-white border-2 border-[#182238]/20 text-[#182238]/80 hover:border-[#182238] hover:text-[#182238]'
               }`}
             >
               {sg.label} ({sg.count})
@@ -179,16 +179,16 @@ export default function FlashcardClient() {
           >
             {/* Front */}
             <div
-              className={`col-start-1 row-start-1 w-full bg-card border border-border rounded-2xl p-6 sm:p-8 md:p-12 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-sm [backface-visibility:hidden] ${
+              className={`col-start-1 row-start-1 w-full bg-[#FAF7F2] border-2 border-[#182238] rounded-3xl p-6 sm:p-8 md:p-12 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-[0_6px_0_#182238] [backface-visibility:hidden] ${
                 isFlipped ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
               }`}
             >
-              <span className="text-xs text-muted font-sans mb-4 uppercase tracking-wider">
+              <span className="text-xs font-serif font-bold text-muted mb-4 uppercase tracking-wider">
                 Nhấn để lật thẻ
               </span>
               <div className="flex items-center gap-3">
                 <span
-                  className="text-8xl md:text-[10rem] font-serif text-title leading-none"
+                  className="text-8xl md:text-[10rem] font-serif text-[#182238] leading-none"
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 >
                   {currentRadical.radical}
@@ -202,10 +202,10 @@ export default function FlashcardClient() {
                 />
               </div>
               <div className="mt-4 flex items-center gap-2">
-                <span className="text-xs px-2 py-0.5 rounded-full bg-accent-soft text-app-accent font-sans">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#FFF9F3] text-[#B8322D] font-bold border border-[#B8322D]/30 shadow-2xs font-sans">
                   #{currentRadical.id}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-page border border-border text-muted font-sans">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-white border border-[#182238]/20 text-[#182238] font-bold font-sans">
                   {currentRadical.strokes} nét
                 </span>
               </div>
@@ -213,7 +213,7 @@ export default function FlashcardClient() {
 
             {/* Back */}
             <div
-              className={`col-start-1 row-start-1 w-full bg-card border border-border rounded-2xl p-6 sm:p-8 md:p-10 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-sm [backface-visibility:hidden] [transform:rotateY(180deg)] ${
+              className={`col-start-1 row-start-1 w-full bg-[#FAF7F2] border-2 border-[#182238] rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-[0_6px_0_#182238] [backface-visibility:hidden] [transform:rotateY(180deg)] ${
                 !isFlipped ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
               }`}
             >
@@ -279,10 +279,10 @@ export default function FlashcardClient() {
         <div className="flex gap-2">
           <button
             onClick={handleShuffle}
-            className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm font-serif transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 border-2 rounded-xl text-sm font-serif font-bold transition-all ${
               isShuffled
-                ? 'border-app-accent bg-accent-soft text-app-accent'
-                : 'border-border bg-card text-muted hover:text-title'
+                ? 'border-[#182238] bg-[#FFF9F3] text-[#B8322D] shadow-[0_2px_0_#182238]'
+                : 'border-[#182238]/20 bg-white text-muted hover:border-[#182238] hover:text-[#182238]'
             }`}
             title="Xáo trộn"
           >
@@ -291,7 +291,7 @@ export default function FlashcardClient() {
           </button>
           <button
             onClick={handleReset}
-            className="flex items-center gap-1.5 px-3 py-2 border border-border bg-card rounded-lg text-sm font-serif text-muted hover:text-title transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 border-2 border-[#182238]/20 bg-white rounded-xl text-sm font-serif font-bold text-muted hover:text-[#182238] hover:border-[#182238] transition-all"
             title="Về đầu"
           >
             <RotateCcw className="w-4 h-4" />
@@ -302,10 +302,10 @@ export default function FlashcardClient() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleToggleLearned}
-            className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-sm font-serif transition-all ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 border-2 rounded-xl text-sm font-serif font-bold transition-all ${
               getLearnedState(currentRadical.id)
-                ? 'border-jade/30 bg-jade-soft text-jade'
-                : 'border-border bg-card text-muted hover:text-jade'
+                ? 'border-[#182238] bg-[#E8F5E9] text-[#2E7D32] shadow-[0_2px_0_#182238]'
+                : 'border-[#182238]/20 bg-white text-muted hover:text-[#2E7D32] hover:border-[#2E7D32]'
             }`}
           >
             <CheckCircle className="w-4 h-4" />
@@ -319,7 +319,7 @@ export default function FlashcardClient() {
         <button
           onClick={goPrev}
           disabled={currentIndex === 0}
-          className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-lg text-sm font-serif transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:border-border-strong text-muted hover:text-title"
+          className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-[#182238] rounded-2xl text-sm font-serif font-bold shadow-[0_3px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[#182238]"
         >
           <ArrowLeft className="w-4 h-4" />
           Trước
@@ -327,7 +327,7 @@ export default function FlashcardClient() {
         <button
           onClick={goNext}
           disabled={currentIndex === deck.length - 1}
-          className="flex items-center gap-2 px-4 py-2.5 bg-card border border-border rounded-lg text-sm font-serif transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:border-border-strong text-muted hover:text-title"
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#B8322D] text-white border-2 border-[#182238] rounded-2xl text-sm font-serif font-bold shadow-[0_3px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#A32A26]"
         >
           Tiếp
           <ArrowRight className="w-4 h-4" />

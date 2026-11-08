@@ -169,16 +169,16 @@ export function WritingView() {
   return (
     <div className="max-w-6xl mx-auto pb-28 md:pb-24 space-y-6 font-serif">
       {/* 1. Page Header */}
-      <div className="bg-card border border-border rounded-2xl p-6 shadow-2xs space-y-2">
+      <div className="bg-white border-2 border-[#182238] rounded-3xl p-6 shadow-[0_4px_0_#182238] space-y-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center border border-app-accent/20 shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-[#FFF9F3] text-[#B8322D] flex items-center justify-center border-2 border-[#182238] shadow-[0_2px_0_#182238]">
               <PenTool className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-title">Luyện Viết Sổ Tay Hán Ngữ</h1>
-                <span className="bg-app-accent text-white text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                <h1 className="text-xl sm:text-2xl font-bold text-[#182238]">Luyện Viết Sổ Tay Hán Ngữ</h1>
+                <span className="bg-[#B8322D] text-white text-[10px] font-sans font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-[#182238]">
                   AI Giáo Viên
                 </span>
               </div>
@@ -214,33 +214,33 @@ export function WritingView() {
 
       {/* 4. Loading State Skeleton while AI is analyzing */}
       {isSubmitting && (
-        <div className="bg-card border border-app-accent/30 rounded-2xl p-8 sm:p-12 text-center space-y-4 shadow-sm animate-in fade-in">
-          <div className="w-16 h-16 rounded-full bg-app-accent-soft text-app-accent flex items-center justify-center mx-auto border-2 border-app-accent/20 shadow-inner">
+        <div className="bg-white border-2 border-[#182238] rounded-3xl p-8 sm:p-12 text-center space-y-4 shadow-[0_4px_0_#182238] animate-in fade-in">
+          <div className="w-16 h-16 rounded-full bg-[#FFF9F3] text-[#B8322D] flex items-center justify-center mx-auto border-2 border-[#182238] shadow-[0_2px_0_#182238]">
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base sm:text-lg font-bold text-title">AI đang đọc & chấm điểm bài viết...</h3>
+            <h3 className="text-base sm:text-lg font-bold text-[#182238]">AI đang đọc & chấm điểm bài viết...</h3>
             <p className="text-xs text-muted max-w-md mx-auto leading-relaxed">
               Hệ thống đang đối chiếu ngữ pháp, từ vựng, trật tự câu và độ tự nhiên theo chuẩn HSK 3.0. Quá trình này thường mất khoảng 3–8 giây.
             </p>
           </div>
           {/* Stepper indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-[11px] text-muted">
-            <span className="bg-page px-2.5 py-1 rounded-full border border-border">✓ Quét ngữ pháp</span>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-[11px] text-[#182238] font-bold">
+            <span className="bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#182238]/20">✓ Quét ngữ pháp</span>
             <span>→</span>
-            <span className="bg-page px-2.5 py-1 rounded-full border border-border">✓ Đo độ tự nhiên</span>
+            <span className="bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#182238]/20">✓ Đo độ tự nhiên</span>
             <span>→</span>
-            <span className="bg-page px-2.5 py-1 rounded-full border border-border">✓ Viết bản trau chuốt</span>
+            <span className="bg-[#FAF7F2] px-3 py-1 rounded-full border border-[#182238]/20">✓ Viết bản trau chuốt</span>
           </div>
         </div>
       )}
 
       {/* 5. Empty State Guide (Before submitting) */}
       {!result && !isSubmitting && (
-        <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xs space-y-3.5">
-          <div className="flex items-center gap-2 border-b border-border pb-2.5">
-            <NotebookPen className="w-4 h-4 text-gold" />
-            <h3 className="font-bold text-xs sm:text-sm text-title">
+        <div className="bg-white border-2 border-[#182238] rounded-3xl p-5 sm:p-6 shadow-[0_4px_0_#182238] space-y-3.5">
+          <div className="flex items-center gap-2 border-b border-[#182238]/15 pb-2.5">
+            <NotebookPen className="w-4 h-4 text-[#D97706]" />
+            <h3 className="font-bold text-xs sm:text-sm text-[#182238]">
               Quy trình 3 bước nâng cao kỹ năng viết cùng AI
             </h3>
           </div>

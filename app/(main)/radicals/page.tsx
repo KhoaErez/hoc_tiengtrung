@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function RadicalsPage() {
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="w-full max-w-[1500px] 2xl:max-w-[1600px] mx-auto">
       <RadicalGrid />
     </div>
   )

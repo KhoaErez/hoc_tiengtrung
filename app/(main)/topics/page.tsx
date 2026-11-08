@@ -111,7 +111,7 @@ export default async function TopicsPage(props: { searchParams: Promise<{ q?: st
   }) || []
 
   return (
-    <div className="max-w-5xl mx-auto pb-24 md:pb-12">
+    <div className="w-full max-w-[1500px] mx-auto pb-24 md:pb-12">
       <HskDashboardClient 
         currentHsk={currentHsk}
         lessons={lessons}

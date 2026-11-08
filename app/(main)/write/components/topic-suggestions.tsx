@@ -130,16 +130,16 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
               key={topic.id}
               type="button"
               onClick={() => setSelectedTopic(isSelected ? null : topic)}
-              className={`flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs transition-all duration-200 cursor-pointer ${
+              className={`flex-shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-2xl border-2 text-xs transition-all duration-200 cursor-pointer font-serif ${
                 isSelected
-                  ? 'bg-app-accent text-white border-app-accent shadow-2xs font-semibold'
-                  : 'bg-card text-title border-border hover:border-app-accent/60 hover:bg-page'
+                  ? 'bg-[#B8322D] text-white border-[#182238] shadow-[0_2px_0_#182238] font-bold'
+                  : 'bg-white text-[#182238] border-[#182238]/20 hover:border-[#182238] hover:shadow-[0_2px_0_#182238]/10'
               }`}
             >
               <span>{topic.icon}</span>
-              <span className="font-medium">{topic.title}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${
-                isSelected ? 'bg-white/20 text-white' : 'bg-page text-muted border border-border'
+              <span className="font-bold">{topic.title}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-sans font-bold ${
+                isSelected ? 'bg-white/20 text-white' : 'bg-[#FAF7F2] text-[#182238] border border-[#182238]/15'
               }`}>
                 {topic.levelHint}
               </span>
@@ -150,19 +150,19 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
 
       {/* Expanded Topic Detail Card */}
       {selectedTopic && (
-        <div className="bg-card border border-app-accent/30 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-white border-2 border-[#182238] rounded-3xl p-5 sm:p-6 shadow-[0_4px_0_#182238] space-y-3.5 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <span className="text-2xl p-2 bg-app-accent-soft/50 rounded-xl border border-app-accent/20">
+              <span className="text-2xl p-2.5 bg-[#FFF9F3] rounded-2xl border-2 border-[#182238] shadow-[0_2px_0_#182238]">
                 {selectedTopic.icon}
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm text-title">{selectedTopic.title}</h3>
-                  <span className="text-xs text-app-accent font-bold font-sans">
+                  <h3 className="font-bold text-sm text-[#182238]">{selectedTopic.title}</h3>
+                  <span className="text-xs text-[#B8322D] font-bold font-sans">
                     ({selectedTopic.chineseTitle})
                   </span>
-                  <span className="text-[10px] bg-jade-soft text-jade font-sans px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] bg-[#E8F5E9] text-[#2E7D32] border border-[#2E7D32]/30 font-sans px-2 py-0.5 rounded-full font-bold">
                     Phù hợp {selectedTopic.levelHint}
                   </span>
                 </div>
@@ -174,7 +174,7 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
             <button
               type="button"
               onClick={() => setSelectedTopic(null)}
-              className="text-muted hover:text-title p-1 rounded-lg hover:bg-page"
+              className="text-muted hover:text-[#182238] p-1.5 rounded-xl hover:bg-[#FAF7F2] border border-transparent hover:border-[#182238]/20 transition-all cursor-pointer"
               title="Đóng gợi ý"
             >
               <X className="w-4 h-4" />
@@ -182,16 +182,16 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
           </div>
 
           {/* Keywords & Sentence Template */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/60 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t-2 border-[#182238]/15 text-xs">
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-muted uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-[#182238] uppercase tracking-wider">
                 Từ vựng then chốt nên dùng:
               </span>
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 {selectedTopic.keywords.map((kw, i) => (
                   <span
                     key={i}
-                    className="bg-page px-2 py-0.5 rounded-lg border border-border text-[11px] text-body"
+                    className="bg-[#FAF7F2] px-2.5 py-1 rounded-xl border border-[#182238]/20 text-[11px] text-[#182238] font-bold"
                   >
                     {kw}
                   </span>
@@ -200,10 +200,10 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
             </div>
 
             <div className="space-y-1">
-              <span className="text-[11px] font-bold text-muted uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-[#182238] uppercase tracking-wider">
                 Cấu trúc câu gợi ý mở bài:
               </span>
-              <div className="bg-page p-2 rounded-xl border border-border text-[11px] font-mono text-body">
+              <div className="bg-[#FAF7F2] p-2.5 rounded-2xl border border-[#182238]/20 text-[11px] font-mono text-[#182238]">
                 {selectedTopic.sampleStructure}
               </div>
             </div>
@@ -218,9 +218,9 @@ export function TopicSuggestions({ currentText, onSelectPrompt }: TopicSuggestio
               type="button"
               size="sm"
               onClick={handleApplyTopic}
-              className="font-serif text-xs h-8 bg-title hover:bg-app-accent text-white rounded-xl gap-1.5"
+              className="font-serif text-xs h-9 px-4 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-xl gap-1.5 border-2 border-[#182238] shadow-[0_2px_0_#182238] active:translate-y-0.5 active:shadow-none font-bold"
             >
-              <NotebookPen className="w-3.5 h-3.5 text-gold" />
+              <NotebookPen className="w-3.5 h-3.5 text-[#E9C46A]" />
               <span>Chèn khung gợi ý vào bài viết</span>
             </Button>
           </div>

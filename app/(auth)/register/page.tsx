@@ -26,7 +26,7 @@ export default async function RegisterPage(props: {
       />
 
       {/* Main Authentication Card */}
-      <div className="relative w-full max-w-[420px] bg-card border border-border/80 rounded-2xl shadow-xl shadow-black/[0.04] p-6 sm:p-8 z-10">
+      <div className="relative w-full max-w-[430px] bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl shadow-[0_6px_0_#182238] dark:shadow-[0_6px_0_#0D1322] p-6 sm:p-8 z-10">
         {/* Top return button */}
         <Link
           href={redirectTarget}

@@ -47,7 +47,7 @@ export default async function GrammarPage({
   ])
 
   return (
-    <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-8 pb-28 sm:pb-36">
+    <div className="w-full max-w-[1500px] mx-auto py-2 pb-24 sm:pb-32">
       <GrammarClient
         initialItems={paginatedResult.data}
         initialTotalCount={paginatedResult.totalCount}
@@ -60,6 +60,6 @@ export default async function GrammarPage({
         initialStatus={initialStatus}
         levelCounts={levelCounts}
       />
-    </main>
+    </div>
   )
 }

@@ -269,7 +269,7 @@ export function FeedbackAdminClient({
       </div>
 
       {/* Filter and Search Toolbar */}
-      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between p-4 rounded-2xl bg-card border border-border shadow-2xs">
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between p-4 sm:p-5 rounded-2xl bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322]">
         
         {/* Search */}
         <div className="relative flex-1 max-w-md">
@@ -344,10 +344,10 @@ export function FeedbackAdminClient({
                 key={item.id}
                 ref={(el) => { feedbackRefs.current[item.id] = el }}
                 data-feedback-id={item.id}
-                className={`p-5 sm:p-6 rounded-2xl border bg-card shadow-2xs space-y-4 transition-all hover:border-title/30 ${
+                className={`p-5 sm:p-6 rounded-2xl border-2 bg-card dark:bg-[#182238] shadow-[0_3px_0_#182238]/15 dark:shadow-[0_3px_0_#0D1322] space-y-4 transition-all hover:border-[#182238] hover:shadow-[0_4px_0_#182238] ${
                   highlightedId === item.id
-                    ? 'border-app-accent ring-2 ring-app-accent/30 animate-pulse'
-                    : 'border-border'
+                    ? 'border-[#B8322D] ring-2 ring-[#B8322D]/30 animate-pulse'
+                    : 'border-[#182238]/20 dark:border-[#384869]'
                 }`}
               >
                 {/* Item Header */}

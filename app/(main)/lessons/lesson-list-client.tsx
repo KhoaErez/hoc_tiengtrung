@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -73,10 +74,22 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
 
   if (!lessons || lessons.length === 0) {
     return (
-      <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/60 space-y-3">
-        <BookOpen className="h-10 w-10 text-muted mx-auto opacity-50" />
-        <h3 className="text-base font-serif font-bold text-title">Chưa có bài học nào</h3>
-        <p className="text-xs text-muted font-serif max-w-sm mx-auto">Hiện tại chưa có chủ đề nào trong danh sách sưu tầm.</p>
+      <div className="text-center py-12 px-6 rounded-[22px] border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238] shadow-xs hover:shadow-md space-y-4 max-w-md mx-auto">
+        <div className="relative w-32 h-32 mx-auto rounded-2xl overflow-hidden border border-[#182238]/15 dark:border-white/10 shadow-xs bg-[#FFF9F3]">
+          <Image
+            src="/images/empty-states/empty-lessons.webp"
+            alt="Chưa có bài học"
+            fill
+            sizes="128px"
+            className="object-cover"
+          />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-lg font-serif font-bold text-[#182238] dark:text-white">Chưa có bài học nào</h3>
+          <p className="text-xs text-muted font-serif max-w-xs mx-auto">
+            Hiện tại chưa có chủ đề nào trong danh sách. Hãy tạo bài học mới hoặc khám phá lộ trình HSK nhé!
+          </p>
+        </div>
       </div>
     )
   }
@@ -130,7 +143,7 @@ export default function LessonListClient({ lessons, currentUserId }: { lessons: 
           return (
             <article 
               key={lesson.id} 
-              className={`relative block group rounded-2xl transition-all duration-300 border border-border shadow-sm hover:shadow-md ${isFeatured ? 'md:col-span-12 lg:col-span-8 p-6 md:p-8 bg-card-featured' : 'md:col-span-6 lg:col-span-4 p-5 bg-card hover:border-border-strong'} ${
+              className={`relative block group rounded-[22px] transition-all duration-150 border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md hover:border-[#B8322D]/40 hover:-translate-y-0.5 active:scale-[0.98] ${isFeatured ? 'md:col-span-12 lg:col-span-8 p-6 md:p-8 bg-card-featured dark:bg-[#182238]' : 'md:col-span-6 lg:col-span-4 p-5 bg-card dark:bg-[#182238]'} ${
                 isSelectMode && isOwner ? 'cursor-pointer' : 'cursor-default'
               }`}
               onClick={(e) => {

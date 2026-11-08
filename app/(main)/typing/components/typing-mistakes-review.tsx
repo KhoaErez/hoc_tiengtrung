@@ -635,7 +635,7 @@ export default function TypingMistakesReview({
     return (
       <div className="space-y-4 max-w-4xl mx-auto select-text animate-in fade-in duration-300">
         {/* Header phiên ôn tập */}
-        <div className="flex items-center justify-between gap-3 bg-card border border-[#E9DDD1] rounded-2xl p-3 sm:p-4 shadow-2xs">
+        <div className="flex items-center justify-between gap-3 bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-2xl p-3.5 sm:p-4 shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322]">
           <button
             type="button"
             onClick={exitReviewSession}
@@ -679,7 +679,7 @@ export default function TypingMistakesReview({
         {/* ================= KHỐI ĐỀ BÀI (TÁCH RIÊNG GIAO DIỆN GIỮA 2 CHẾ ĐỘ) ================= */}
         {isTransMode ? (
           /* A. GIAO DIỆN ĐỀ BÀI DỊCH VIỆT -> GÕ HÁN */
-          <div className="bg-card border-2 border-[#E9DDD1] rounded-2xl p-4 sm:p-6 md:p-8 shadow-xs space-y-4">
+          <div className="bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-4">
             <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-app-accent" />
@@ -724,7 +724,7 @@ export default function TypingMistakesReview({
           </div>
         ) : (
           /* B. GIAO DIỆN ĐỀ BÀI NGHE & GÕ (MẶC ĐỊNH ẨN CHỮ HÁN TRƯỚC KHI TRẢ LỜI) */
-          <div className="bg-card border-2 border-[#E9DDD1] rounded-2xl p-4 sm:p-6 md:p-8 shadow-xs space-y-5">
+          <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-5">
             <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -1106,7 +1106,9 @@ export default function TypingMistakesReview({
   return (
     <div className="space-y-6 select-text animate-in fade-in duration-300">
       {/* Header & Nút hành động cho chế độ hiện tại */}
-      <div className="bg-card border-2 border-[#E9DDD1] rounded-3xl p-5 sm:p-6 shadow-xs space-y-5">
+      <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_6px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-5 relative overflow-hidden">
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-title via-app-accent to-gold" />
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h2 className="text-lg sm:text-xl font-serif font-bold text-[#243047] flex items-center gap-2">

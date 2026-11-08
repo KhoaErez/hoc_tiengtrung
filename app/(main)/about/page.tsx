@@ -53,7 +53,7 @@ export default function AboutPage() {
       </div>
 
       {/* 2. Khối thông tin Tác giả & Mục đích dự án (Core Project Metadata) */}
-      <section className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <section className="bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-6 sm:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-6">
         <div className="flex items-center gap-2.5 text-app-accent">
           <User className="w-5 h-5" />
           <h2 className="text-lg font-serif font-bold text-title">Thông tin Tác giả & Dự án</h2>
@@ -91,7 +91,7 @@ export default function AboutPage() {
       </section>
 
       {/* 3. Khối tính năng cốt lõi (Core Capabilities) */}
-      <section className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-5">
+      <section className="bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-6 sm:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-5">
         <div className="flex items-center gap-2.5 text-app-accent">
           <BookOpen className="w-5 h-5" />
           <h2 className="text-lg font-serif font-bold text-title">Tính năng trọng tâm</h2>
@@ -141,7 +141,7 @@ export default function AboutPage() {
       </section>
 
       {/* 4. Tuyên bố Quyền sở hữu trí tuệ & Giấy phép (Intellectual Property & Licenses) */}
-      <section id="intellectual-property" className="bg-card border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <section id="intellectual-property" className="bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-6 sm:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-6">
         <div className="flex items-center gap-2.5 text-app-accent">
           <Scale className="w-5 h-5" />
           <h2 className="text-lg font-serif font-bold text-title">

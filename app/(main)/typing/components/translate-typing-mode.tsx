@@ -924,11 +924,11 @@ export default function TranslateTypingMode({
   return (
     <div className="space-y-4 pb-28 md:pb-12 max-w-4xl mx-auto select-text">
       {/* 1. Thanh điều khiển bài tập: Bố cục 2 hàng phân chia có chủ đích, không bao giờ bị rơi HSK 5 */}
-      <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3 sm:p-4 shadow-2xs space-y-3">
+      <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-4 sm:p-5 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-3">
         {/* Hàng 1: Badge HSK 3.0 & 5 nút chọn cấp độ HSK 1 - 5 (kích thước và chiều cao hoàn toàn đồng nhất) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#E9DDD1]/60">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b-2 border-[#182238]/15 dark:border-white/10">
           <div className="flex items-center gap-2 sm:gap-2.5 w-full">
-            <span className="text-[11px] uppercase font-mono tracking-wider px-3 rounded-xl bg-app-accent/10 text-app-accent border border-app-accent/20 font-bold shrink-0 flex items-center justify-center h-11 min-h-[44px]">
+            <span className="text-[11px] uppercase font-mono tracking-wider px-3.5 rounded-2xl bg-[#B8322D] text-white border-2 border-[#182238] shadow-[0_2px_0_#7A1D1A] font-bold shrink-0 flex items-center justify-center h-11 min-h-[44px]">
               HSK 3.0
             </span>
 
@@ -942,10 +942,10 @@ export default function TranslateTypingMode({
                     setHskLevel(lvl)
                     setSelectedLessonId('')
                   }}
-                  className={`h-11 min-h-[44px] rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-95 cursor-pointer flex items-center justify-center touch-manipulation ${
+                  className={`h-11 min-h-[44px] rounded-2xl text-xs sm:text-sm font-serif font-bold transition-all active:translate-y-0.5 cursor-pointer flex items-center justify-center touch-manipulation border-2 ${
                     hskLevel === lvl
-                      ? 'bg-[#B8322D] text-white shadow-2xs ring-1 ring-[#B8322D]'
-                      : 'bg-page border border-[#E9DDD1] text-[#243047]/80 hover:text-[#243047] hover:bg-[#FFF9F3]'
+                      ? 'bg-[#B8322D] text-white border-[#182238] shadow-[0_2px_0_#7A1D1A]'
+                      : 'bg-white dark:bg-[#1E293B] border-[#182238]/20 dark:border-white/10 text-[#182238] dark:text-slate-200 hover:border-[#182238] hover:bg-[#FAF7F2]'
                   }`}
                 >
                   HSK {lvl}
@@ -953,8 +953,8 @@ export default function TranslateTypingMode({
               ))}
             </div>
 
-            <div className="ml-auto hidden md:flex items-center gap-1.5 text-xs text-muted font-serif shrink-0">
-              <BookOpen className="w-3.5 h-3.5 text-muted" />
+            <div className="ml-auto hidden md:flex items-center gap-1.5 text-xs text-[#182238] dark:text-slate-200 font-serif font-bold shrink-0">
+              <BookOpen className="w-3.5 h-3.5 text-[#B8322D]" />
               <span>{exercises.length > 0 ? `${exercises.length} câu ví dụ` : 'HSK 3.0'}</span>
             </div>
           </div>
@@ -965,15 +965,15 @@ export default function TranslateTypingMode({
           {/* Bộ chọn bài học (5/12 cột trên tablet/desktop) */}
           <div className="sm:col-span-5 min-w-0">
             {loadingLessons ? (
-              <div className="flex items-center gap-2 text-xs text-muted font-serif px-3 h-11 min-h-[44px] bg-page border border-[#E9DDD1] rounded-xl">
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-app-accent shrink-0" />
+              <div className="flex items-center gap-2 text-xs text-muted font-serif px-3 h-11 min-h-[44px] bg-white border-2 border-[#182238]/20 rounded-2xl">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#B8322D] shrink-0" />
                 <span className="truncate">Đang tải bài học...</span>
               </div>
             ) : (
               <select
                 value={selectedLessonId}
                 onChange={(e) => setSelectedLessonId(e.target.value)}
-                className="w-full bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs sm:text-sm font-serif text-[#243047] px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
+                className="w-full bg-white dark:bg-[#1E293B] border-2 border-[#182238]/20 dark:border-white/10 hover:border-[#182238] focus:border-[#182238] rounded-2xl text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-white px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
                 title="Chọn bài học cụ thể"
               >
                 <option value="">Tất cả bài học (HSK {hskLevel})</option>
@@ -998,7 +998,7 @@ export default function TranslateTypingMode({
                     resetSentenceState()
                   }
                 }}
-                className="w-full bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs sm:text-sm font-serif text-[#243047] px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
+                className="w-full bg-white dark:bg-[#1E293B] border-2 border-[#182238]/20 dark:border-white/10 hover:border-[#182238] focus:border-[#182238] rounded-2xl text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-white px-3.5 h-11 min-h-[44px] focus:outline-none truncate cursor-pointer shadow-2xs transition-colors"
                 title="Chuyển nhanh đến câu bất kỳ"
               >
                 {exercises.map((ex, idx) => (
@@ -1008,7 +1008,7 @@ export default function TranslateTypingMode({
                 ))}
               </select>
             ) : (
-              <div className="h-11 min-h-[44px] px-3.5 bg-page/60 border border-[#E9DDD1]/60 rounded-xl text-xs font-serif text-muted flex items-center">
+              <div className="h-11 min-h-[44px] px-3.5 bg-white border-2 border-[#182238]/20 rounded-2xl text-xs font-serif text-muted flex items-center">
                 <span>Chưa có câu</span>
               </div>
             )}
@@ -1019,13 +1019,13 @@ export default function TranslateTypingMode({
             <button
               type="button"
               onClick={() => setViewMode('mistakes')}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-[#E9DDD1] bg-[#FFF9F3] hover:bg-[#F6EDE3] hover:border-app-accent/40 text-xs sm:text-sm font-serif font-semibold text-[#243047] hover:text-[#B8322D] shadow-2xs transition-all active:scale-95 cursor-pointer h-11 min-h-[44px] whitespace-nowrap"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-2xl border-2 border-[#182238] bg-[#FFF9F3] dark:bg-[#202B45] hover:bg-[#F6EDE3] text-xs sm:text-sm font-serif font-bold text-[#B8322D] shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] transition-all active:translate-y-0.5 active:shadow-none cursor-pointer h-11 min-h-[44px] whitespace-nowrap"
               title="Mở khu vực Ôn câu sai (Spaced Repetition) của chế độ Dịch"
             >
               <Flame className="w-4 h-4 text-[#B8322D] shrink-0" />
               <span className="truncate">Ôn câu sai</span>
               {reviewCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-sans font-bold bg-red-500/15 text-red-600 dark:text-red-400 shrink-0">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-[#B8322D] text-white shrink-0">
                   {reviewCount}
                 </span>
               )}
@@ -1096,40 +1096,40 @@ export default function TranslateTypingMode({
       ) : (
         <div className="space-y-4">
           {/* Card đề bài: Câu tiếng Việt */}
-          <div className="bg-card border-2 border-[#E9DDD1] rounded-2xl p-5 sm:p-7 md:p-8 shadow-xs space-y-4">
-            <div className="flex items-center justify-between gap-2 border-b border-[#E9DDD1]/60 pb-3">
+          <div className="bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-[#182238]/10 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-app-accent" />
-                <span className="text-xs sm:text-sm font-serif font-medium text-muted">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#B8322D]" />
+                <span className="text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-slate-200">
                   Dịch câu tiếng Việt sang chữ Hán:
                 </span>
               </div>
-              <span className="text-[11px] font-sans px-2.5 py-1 rounded-full bg-[#FFF9F3] border border-[#E9DDD1] text-title font-semibold shadow-2xs">
+              <span className="text-[11px] font-sans px-3 py-1 rounded-full bg-[#FAF7F2] dark:bg-[#202B45] border border-[#182238]/20 dark:border-white/20 text-[#182238] dark:text-slate-200 font-bold shadow-2xs">
                 {currentExercise.lessonTitle || `HSK ${hskLevel}`}
               </span>
             </div>
 
             {/* Câu tiếng Việt nổi bật */}
-            <div className="py-3 sm:py-4 px-4 sm:px-6 rounded-2xl bg-[#FFF9F3]/80 border border-[#E9DDD1]/80 shadow-2xs">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#243047] leading-relaxed tracking-normal select-text">
+            <div className="py-4 sm:py-5 px-5 sm:px-7 rounded-2xl bg-[#FFF9F3] dark:bg-[#202B45] border-2 border-[#182238]/15 dark:border-[#384869] shadow-2xs">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#182238] dark:text-white leading-relaxed tracking-normal select-text">
                 &ldquo;{currentExercise.vietnamesePrompt}&rdquo;
               </h2>
             </div>
 
             {/* Thanh điều khiển âm thanh TTS tiếng Trung */}
-            <div className="flex items-center justify-between gap-3 pt-3 border-t border-[#E9DDD1]/60 flex-wrap">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t-2 border-[#182238]/15 dark:border-white/10 flex-wrap">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handlePlayAudio}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-semibold transition-all active:scale-95 cursor-pointer touch-manipulation min-h-[44px] shadow-2xs ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-serif font-bold transition-all active:translate-y-0.5 cursor-pointer touch-manipulation min-h-[44px] border-2 border-[#182238] shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] active:shadow-none ${
                     isAudioPlaying
-                      ? 'bg-app-accent text-white shadow-sm ring-2 ring-app-accent/20'
-                      : 'bg-[#FFF9F3] hover:bg-[#F6EDE3] border border-[#E9DDD1] text-[#243047]'
+                      ? 'bg-[#B8322D] text-white'
+                      : 'bg-[#FFF9F3] hover:bg-[#F6EDE3] text-[#182238] dark:bg-[#182238] dark:text-white'
                   }`}
                   title="Nghe phát âm câu tiếng Trung của câu mẫu"
                 >
-                  <Volume2 className={`w-4 h-4 shrink-0 ${isAudioPlaying ? 'animate-pulse' : 'text-app-accent'}`} />
+                  <Volume2 className={`w-4 h-4 shrink-0 ${isAudioPlaying ? 'animate-pulse text-white' : 'text-[#B8322D]'}`} />
                   <span>{isAudioPlaying ? 'Đang phát...' : 'Nghe câu tiếng Trung'}</span>
                 </button>
 
@@ -1138,7 +1138,7 @@ export default function TranslateTypingMode({
                   <button
                     type="button"
                     onClick={() => setShowSpeedMenu((prev) => !prev)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-page border border-[#E9DDD1] hover:border-app-accent/50 rounded-xl text-xs font-mono font-medium text-[#243047] transition-colors touch-manipulation min-h-[44px] cursor-pointer shadow-2xs"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] hover:bg-[#FAF7F2] rounded-2xl text-xs font-mono font-bold text-[#182238] dark:text-white transition-all touch-manipulation min-h-[44px] cursor-pointer shadow-[0_2px_0_#182238] active:translate-y-0.5 active:shadow-none"
                     title="Điều chỉnh tốc độ đọc"
                   >
                     <span>{speechRate}x</span>
@@ -1146,7 +1146,7 @@ export default function TranslateTypingMode({
                   </button>
 
                   {showSpeedMenu && (
-                    <div className="absolute left-0 bottom-full mb-1 bg-card border border-[#E9DDD1] rounded-xl shadow-lg p-1 z-30 flex flex-col gap-0.5 min-w-[70px]">
+                    <div className="absolute left-0 bottom-full mb-1 bg-white dark:bg-[#182238] border-2 border-[#182238] rounded-2xl shadow-[0_4px_0_#182238] p-1.5 z-30 flex flex-col gap-0.5 min-w-[80px]">
                       {TTS_SPEED_RATES.map((rate) => (
                         <button
                           key={rate}
@@ -1269,12 +1269,12 @@ export default function TranslateTypingMode({
                     ? 'Đang chuyển câu tiếp theo...'
                     : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                 }
-                className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-white dark:bg-card border-2 rounded-2xl text-lg sm:text-2xl font-serif text-[#243047] placeholder:text-muted/70 placeholder:text-sm sm:placeholder:text-base focus:outline-none transition-all shadow-inner ${
+                className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-white dark:bg-card border-2 rounded-2xl text-lg sm:text-2xl font-serif text-[#182238] dark:text-white placeholder:text-muted/70 placeholder:text-sm sm:placeholder:text-base focus:outline-none transition-all ${
                   practiceStatus === 'correct'
-                    ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
+                    ? 'border-emerald-500 bg-emerald-50/20 shadow-[0_3px_0_#059669]'
                     : practiceStatus === 'incorrect'
-                    ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/10'
-                    : 'border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10'
+                    ? 'border-amber-500 bg-amber-50/15 shadow-[0_3px_0_#D97706]'
+                    : 'border-2 border-[#182238] dark:border-[#384869] shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] focus:border-[#B8322D] focus:shadow-[0_3px_0_#7A1D1A]'
                 }`}
                 style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
               />

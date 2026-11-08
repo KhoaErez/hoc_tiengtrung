@@ -82,9 +82,9 @@ export default function TypingResumeCard({
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-3xl border-2 border-[#B8322D]/30 bg-gradient-to-r from-card via-[#FFF9F3] to-card p-5 sm:p-6 shadow-xs animate-in fade-in slide-in-from-top-2 duration-300">
-        {/* Nền trang trí phong cách Á Đông */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#B8322D]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl border-2 border-[#182238] dark:border-[#384869] bg-white dark:bg-[#182238] p-5 sm:p-6 shadow-[0_5px_0_#182238] dark:shadow-[0_4px_0_#0D1322] animate-in fade-in slide-in-from-top-2 duration-300">
+        {/* Top accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B8322D] to-gold" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div className="space-y-3 flex-1 min-w-0">

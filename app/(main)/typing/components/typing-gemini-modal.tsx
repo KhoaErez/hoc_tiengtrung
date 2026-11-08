@@ -148,7 +148,7 @@ export default function TypingGeminiModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 md:p-7 bg-card">
+      <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto no-scrollbar p-5 md:p-7 bg-white dark:bg-[#182238] rounded-3xl border-2 border-[#182238] dark:border-[#384869] shadow-[0_8px_0_#182238] dark:shadow-[0_8px_0_#0D1322]">
         <DialogHeader className="border-b border-border pb-3">
           <DialogTitle className="font-serif font-bold text-lg md:text-xl text-title flex items-center gap-2">
             <Languages className="w-5 h-5 text-app-accent flex-shrink-0" />

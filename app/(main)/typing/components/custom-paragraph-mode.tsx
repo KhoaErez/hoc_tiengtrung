@@ -1288,7 +1288,7 @@ export default function CustomParagraphMode({
 
         {/* Tab 1: Tạo bài luyện mới */}
         {editorSubTab === 'create' && (
-          <div className="bg-card border border-border rounded-2xl p-5 md:p-8 space-y-6 shadow-2xs">
+          <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-5 sm:p-7 md:p-8 space-y-6 shadow-[0_6px_0_#182238] dark:shadow-[0_4px_0_#0D1322]">
             <div className="space-y-1">
               <h3 className="font-serif font-bold text-lg text-title flex items-center gap-2">
                 <NotebookPen className="w-5 h-5 text-app-accent" />
@@ -1472,7 +1472,7 @@ export default function CustomParagraphMode({
                 {savedExercises.map((ex) => (
                   <div
                     key={ex.id}
-                    className="p-5 rounded-2xl border border-border bg-card hover:border-app-accent/40 hover:shadow-2xs transition-all space-y-3 flex flex-col justify-between"
+                    className="p-5 rounded-3xl border-2 border-[#182238]/15 dark:border-[#384869] bg-white dark:bg-[#182238] shadow-[0_3px_0_#182238]/10 hover:shadow-[0_5px_0_#182238] hover:border-[#182238] transition-all space-y-3 flex flex-col justify-between"
                   >
                     <div className="space-y-2">
                       {/* Tiêu đề & Sửa tên */}

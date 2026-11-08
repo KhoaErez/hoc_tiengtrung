@@ -266,7 +266,7 @@ export function AuthModal() {
     >
       <div 
         ref={modalContentRef}
-        className="relative w-full max-w-[440px] bg-card border-t sm:border border-border/80 rounded-t-3xl sm:rounded-2xl shadow-2xl p-5 sm:p-7 z-10 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 select-none max-h-[92vh] overflow-y-auto no-scrollbar pb-safe"
+        className="relative w-full max-w-[440px] bg-white border-2 border-[#182238] rounded-3xl shadow-[0_8px_0_#182238] p-6 sm:p-8 z-10 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 select-none max-h-[92vh] overflow-y-auto no-scrollbar pb-safe"
       >
         {/* Mobile bottom sheet drag handle */}
         <div className="sm:hidden w-12 h-1 bg-border/80 rounded-full mx-auto mb-3" />

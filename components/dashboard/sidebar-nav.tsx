@@ -166,9 +166,9 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
     const Icon = item.icon
     const active = isNavigationItemActive(pathname, qParam, item)
 
-    const linkClassName = `flex items-center justify-between gap-2.5 px-3 py-2 text-[13.5px] sm:text-sm font-sans font-medium rounded-xl border-l-[3.5px] min-h-[40px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
+    const linkClassName = `flex items-center justify-between gap-2.5 px-3 py-2 text-[13.5px] sm:text-sm font-sans font-medium rounded-xl border-l-4 min-h-[40px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none group ${
       active
-        ? 'border-app-accent bg-[#FFF9F3] dark:bg-[#B8322D]/15 text-app-accent font-semibold shadow-2xs'
+        ? 'border-[#B8322D] bg-[#FFF9F3] dark:bg-[#B8322D]/15 text-[#B8322D] font-bold shadow-[0_2px_0_rgba(24,34,56,0.06)]'
         : 'border-transparent text-body hover:bg-black/[0.03] dark:hover:bg-white/[0.04] hover:text-title'
     }`
 
@@ -295,9 +295,9 @@ export function SidebarNav({ isLoggedIn, isAdmin, initialVocabCounts }: SidebarN
                             })
                           }
                         }}
-                        className={`flex items-center justify-between gap-2 px-3 py-2 text-[13px] sm:text-sm rounded-xl border-l-[3.5px] min-h-[38px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
+                        className={`flex items-center justify-between gap-2 px-3 py-2 text-[13px] sm:text-sm rounded-xl border-l-4 min-h-[38px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/40 select-none ${
                           active
-                            ? 'border-app-accent bg-[#FFF9F3] dark:bg-[#B8322D]/15 text-app-accent font-semibold shadow-2xs'
+                            ? 'border-[#B8322D] bg-[#FFF9F3] dark:bg-[#B8322D]/15 text-[#B8322D] font-bold shadow-[0_2px_0_rgba(24,34,56,0.06)]'
                             : 'border-transparent text-body hover:text-title hover:bg-black/[0.03] dark:hover:bg-white/[0.04]'
                         }`}
                       >

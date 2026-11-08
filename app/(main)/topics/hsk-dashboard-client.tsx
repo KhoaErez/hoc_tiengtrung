@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -56,6 +57,18 @@ type RecentVocab = {
   hanzi: string
   pinyin: string
   vi: string
+}
+
+const HSK_DASHBOARD_COVERS: Record<string, string> = {
+  'HSK 1': '/images/hsk/hsk-1-village.webp',
+  'HSK 2': '/images/hsk/hsk-2-garden.webp',
+  'HSK 3': '/images/hsk/hsk-3-city.webp',
+  'HSK 4': '/images/hsk/hsk-4-mountain.webp',
+  'HSK 5': '/images/hsk/hsk-5-academy.webp',
+  'HSK 6': '/images/hsk/hsk-6-peak.webp',
+  'HSK 7-9': '/images/hsk/hsk-7-celestial.webp',
+  'Giao tiếp': '/images/hsk/hsk-giao-tiep.webp',
+  'Công xưởng': '/images/hsk/hsk-cong-xuong.webp',
 }
 
 interface HskDashboardClientProps {
@@ -314,7 +327,7 @@ export default function HskDashboardClient({
       
       {/* 1. LEVEL SELECTOR TAB BAR (Sticky, Glassmorphic on scroll below 56px fixed header) */}
       <div className="bg-page/90 backdrop-blur-md sticky top-14 z-10 -mx-3.5 sm:-mx-6 md:-mx-8 lg:-mx-10 px-3.5 sm:px-6 md:px-8 lg:px-10 py-2 sm:py-2.5 border-b border-border/70 transition-all select-none">
-        <div className="max-w-5xl mx-auto relative">
+        <div className="w-full max-w-[1500px] mx-auto relative">
           {/* Left subtle scroll fade cue for mobile */}
           <div 
             className={`pointer-events-none absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-page via-page/80 to-transparent z-10 transition-opacity duration-200 sm:hidden ${
@@ -370,11 +383,17 @@ export default function HskDashboardClient({
 
       {isComingSoon ? (
         <div className="py-6 space-y-6">
-          <section className="bg-card border border-border p-8 sm:p-12 rounded-2xl shadow-2xs text-center space-y-6 max-w-2xl mx-auto relative overflow-hidden">
+          <section className="bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 p-6 sm:p-10 rounded-[22px] shadow-xs text-center space-y-6 max-w-2xl mx-auto relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-gold to-amber-600" />
             
-            <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
-              <Clock className="w-8 h-8 animate-pulse" />
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-2xl overflow-hidden border border-[#182238]/15 shadow-2xs bg-[#FFF9F3]">
+              <Image
+                src="/images/panda/panda-thinking.webp"
+                alt="Tiểu Bút đang biên soạn"
+                fill
+                sizes="112px"
+                className="object-cover"
+              />
             </div>
 
             <div className="space-y-2">
@@ -403,13 +422,13 @@ export default function HskDashboardClient({
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
               <Link href="/topics?q=HSK 1" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl py-3 px-6 shadow-xs text-sm flex items-center justify-center gap-2">
+                <Button className="w-full sm:w-auto min-h-[44px] font-serif bg-app-accent hover:bg-accent-hover text-white rounded-xl py-3 px-6 shadow-xs text-sm flex items-center justify-center gap-2 cursor-pointer">
                   <ArrowLeft className="w-4 h-4" />
                   <span>Quay lại lộ trình HSK 1 – 6</span>
                 </Button>
               </Link>
               <Link href="/" className="w-full sm:w-auto">
-                <Button variant="outline" className="w-full sm:w-auto font-serif border-border rounded-xl py-3 px-6 text-sm">
+                <Button variant="outline" className="w-full sm:w-auto min-h-[44px] font-serif border-border rounded-xl py-3 px-6 text-sm cursor-pointer">
                   <span>Về trang chủ</span>
                 </Button>
               </Link>
@@ -420,11 +439,34 @@ export default function HskDashboardClient({
         <div className="space-y-6 sm:space-y-8">
         
         {/* 2. HERO OVERVIEW & ACTION CARD */}
-        <section className="bg-card border border-border p-4 sm:p-6 md:p-8 rounded-2xl shadow-2xs relative overflow-hidden transition-all">
+        <section className="w-full rounded-[22px] bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md transition-all relative overflow-hidden">
           {/* Top accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
+          <div className="absolute top-0 left-0 right-0 h-1 z-10 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
 
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5 sm:gap-6">
+          {/* 3D Landscape Panorama Banner for this HSK Level */}
+          {HSK_DASHBOARD_COVERS[currentHsk] && (
+            <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] min-h-[140px] sm:min-h-[180px] overflow-hidden bg-[#FAF7F2] dark:bg-[#1F2C47]">
+              <Image
+                src={HSK_DASHBOARD_COVERS[currentHsk]}
+                alt={`Phong cảnh 3D ${currentHsk}`}
+                fill
+                priority
+                sizes="(max-width: 1200px) 100vw, 1200px"
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none" />
+              <div className="absolute bottom-3 left-3 sm:left-6 right-3 flex items-center justify-between gap-2 pointer-events-none">
+                <span className="text-[11px] sm:text-xs font-serif font-bold text-white px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-xs">
+                  {currentHsk} • {stage}
+                </span>
+                <span className="text-[11px] font-serif text-white/90 hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20">
+                  Hành trình chinh phục HSK 3.0
+                </span>
+              </div>
+            </div>
+          )}
+
+          <div className="p-4 sm:p-6 md:p-7 flex flex-col lg:flex-row lg:items-start justify-between gap-5 sm:gap-6">
             <div className="space-y-3 max-w-2xl">
               {/* Badges */}
               <div className="flex flex-wrap items-center gap-2">
@@ -721,7 +763,7 @@ export default function HskDashboardClient({
                       <Link
                         key={lesson.id}
                         href={`/lessons/${lesson.id}`}
-                        className="group block p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border bg-card hover:border-app-accent/40 hover:shadow-xs active:scale-[0.99] transition-all duration-200 relative overflow-hidden touch-manipulation"
+                        className="w-full group block p-3.5 sm:p-5 rounded-2xl border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238] shadow-xs hover:shadow-md hover:border-[#B8322D]/40 transition-all duration-200 relative overflow-hidden touch-manipulation active:scale-[0.99]"
                       >
                         <div className="flex items-center gap-3 sm:gap-5 justify-between">
                           
@@ -830,7 +872,88 @@ export default function HskDashboardClient({
 
           {/* TAB 2: VOCABULARY LIST */}
           {activeTab === 'vocab' && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Vocab Visual Banner (The Mandarin Lab inspired) */}
+              <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-5 sm:p-6 shadow-[0_5px_0_#182238] dark:shadow-[0_5px_0_#0D1322] flex flex-col md:flex-row md:items-center justify-between gap-5 relative overflow-hidden">
+                <div className="flex items-center gap-4 relative z-10">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-[#182238] dark:border-[#384869] shadow-[0_3px_0_#182238] shrink-0 relative bg-[#FFF9F3]">
+                    <Image
+                      src="/images/vocabulary/vocab-hero.webp"
+                      alt="Kho từ vựng 3D"
+                      fill
+                      className="object-cover"
+                      sizes="96px"
+                      priority
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FFF9F3] dark:bg-[#202B45] border border-[#182238]/30 dark:border-white/20 text-[11px] font-serif font-bold text-[#B8322D]">
+                      <span>Thế Giới Từ Ngữ HSK 3.0</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#182238] dark:text-white">
+                      Kho Tàng Từ Vựng {currentHsk}
+                    </h2>
+                    <p className="text-muted font-serif text-xs leading-relaxed max-w-xl">
+                      Tra cứu nghĩa, phát âm chuẩn bản xứ, mẫu câu ví dụ thực tế và bộ lọc ngữ nghĩa đa chiều.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 relative z-10 shrink-0 self-start md:self-center">
+                  <div className="px-3.5 py-2 rounded-2xl bg-[#FAF7F2] dark:bg-[#202B45] border-2 border-[#182238] dark:border-[#384869] text-center shadow-[0_2px_0_#182238]">
+                    <span className="text-[10px] uppercase font-sans font-bold text-muted block">Tổng số từ</span>
+                    <span className="text-base sm:text-lg font-bold font-serif text-[#B8322D]">{vocabTotalCount}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3D Topic Shelves for Quick Exploration */}
+              <div className="space-y-2">
+                <p className="text-xs font-serif font-bold text-muted uppercase tracking-wider">
+                  Chủ đề phổ biến (Nhấn để lọc nhanh):
+                </p>
+                <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2 sm:gap-2.5">
+                  {[
+                    { label: 'Gia đình', key: 'gia đình', cover: '/images/vocabulary/vocab-family.webp' },
+                    { label: 'Sinh hoạt', key: 'ăn', cover: '/images/vocabulary/vocab-daily.webp' },
+                    { label: 'Trường học', key: 'học', cover: '/images/vocabulary/vocab-school.webp' },
+                    { label: 'Ẩm thực', key: 'thực', cover: '/images/vocabulary/vocab-food.webp' },
+                    { label: 'Công việc', key: 'làm', cover: '/images/vocabulary/vocab-jobs.webp' },
+                    { label: 'Du lịch', key: 'đi', cover: '/images/vocabulary/vocab-travel.webp' },
+                    { label: 'Nhà cửa', key: 'nhà', cover: '/images/vocabulary/vocab-home.webp' },
+                    { label: 'Thời tiết', key: 'trời', cover: '/images/vocabulary/vocab-weather.webp' },
+                    { label: 'Động vật', key: 'con', cover: '/images/vocabulary/vocab-animals.webp' },
+                  ].map((topic) => (
+                    <button
+                      key={topic.label}
+                      type="button"
+                      onClick={() => {
+                        setVocabSearchQuery(vocabSearchQuery === topic.key ? '' : topic.key)
+                        setVocabPage(1)
+                      }}
+                      className={`p-1.5 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 text-center cursor-pointer ${
+                        vocabSearchQuery === topic.key
+                          ? 'border-[#B8322D] bg-[#FFF9F3] shadow-[0_3px_0_#B8322D]'
+                          : 'border-[#182238]/20 bg-white hover:border-[#182238] shadow-[0_2px_0_#182238]/10'
+                      }`}
+                    >
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden relative shrink-0">
+                        <Image
+                          src={topic.cover}
+                          alt={topic.label}
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="text-[10px] font-serif font-bold text-title truncate w-full">
+                        {topic.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Vocab Search Toolbar */}
               <div ref={vocabTopRef} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 scroll-mt-20">
                 <div className="relative max-w-md w-full">

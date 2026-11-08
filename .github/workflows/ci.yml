@@ -40,7 +40,7 @@ jobs:
         run: npm test
 
       - name: 🧹 Kiểm tra mã nguồn (ESLint)
-        run: npm run lint
+        run: npm run lint -- --quiet
 
   build-production:
     name: 🏗️ Đóng gói ứng dụng (Next.js Build)
@@ -77,4 +77,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.placeholder' }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'dummy_gemini_key_for_ci_build' }}
           KIE_API_KEY: ${{ secrets.KIE_API_KEY || 'dummy_kie_key_for_ci_build' }}
+          KIE_MODEL: ${{ secrets.KIE_MODEL || 'gemini-2.5-flash' }}
+          KIE_BASE_URL: ${{ secrets.KIE_BASE_URL || 'https://api.kie.ai' }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL || 'admin@chinesenotebook.com' }}
         run: npm run build

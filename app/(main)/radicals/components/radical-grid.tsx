@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect, useRef } from 'react'
+import Image from 'next/image'
 import { radicals, searchRadicals, type Radical } from '@/data/radicals'
 import RadicalCard from './radical-card'
 import {
@@ -153,55 +154,77 @@ export default function RadicalGrid() {
 
   return (
     <div className="space-y-6">
-      {/* Tiêu đề & Giới thiệu */}
-      <div className="space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-serif text-title tracking-tight font-bold">
-              214 Bộ thủ Khang Hy
-            </h1>
-            <p className="text-muted font-sans text-sm md:text-base mt-1">
-              Phân loại theo 17 nhóm số nét chuẩn, nền tảng cốt lõi để ghi nhớ chữ Hán.
-            </p>
+      {/* Tiêu đề & Giới thiệu Studio (The Mandarin Lab inspired) */}
+      <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-6 sm:p-8 shadow-[0_6px_0_#182238] dark:shadow-[0_6px_0_#0D1322] space-y-4 relative overflow-hidden">
+        {/* Subtle decorative watermark */}
+        <div className="absolute -right-6 -bottom-8 text-[8rem] font-serif font-black text-[#182238]/5 dark:text-white/5 select-none pointer-events-none" style={{ fontFamily: 'var(--font-chinese), sans-serif' }}>
+          部首
+        </div>
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="flex items-center gap-5">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-2xl overflow-hidden border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] shrink-0 relative bg-[#FFF9F3]">
+              <Image 
+                src="/images/radicals/radicals-hero.webp" 
+                alt="214 Bộ thủ 3D" 
+                fill 
+                className="object-cover" 
+                sizes="(max-width: 768px) 96px, 128px"
+                priority
+              />
+            </div>
+            <div className="space-y-2 max-w-xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF9F3] dark:bg-[#202B45] border-2 border-[#182238] dark:border-[#384869] text-xs font-serif font-bold text-[#B8322D] shadow-[0_2px_0_#182238]">
+                <span className="w-2 h-2 rounded-full bg-[#B8322D] animate-pulse" />
+                <span>Bảo Tàng 214 Bộ Thủ Khang Hy (康熙部首)</span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif text-[#182238] dark:text-white tracking-tight font-bold">
+                214 Bộ Thủ Khang Hy
+              </h1>
+              <p className="text-muted font-serif text-xs sm:text-sm leading-relaxed">
+                Phân loại theo 17 nhóm số nét chuẩn mực quốc tế, cội nguồn cấu tạo nên toàn bộ hệ thống chữ Hán và tra cứu tự điển.
+              </p>
+            </div>
           </div>
 
           {/* Các nút học tập nhanh */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <Link
               href="/radicals/flashcard"
-              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] bg-card border border-[#E9DDD1] rounded-xl text-sm font-sans font-medium text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-2xs"
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white dark:bg-[#1E293B] border-2 border-[#182238] dark:border-[#384869] rounded-2xl text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-white hover:bg-[#FAF7F2] transition-all shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] active:translate-y-0.5 active:shadow-none"
             >
-              <Layers className="w-4 h-4 text-app-accent" />
-              Flashcard
+              <Layers className="w-4 h-4 text-[#B8322D]" />
+              <span>Flashcard 3D</span>
             </Link>
             <Link
               href="/radicals/quiz"
-              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] bg-card border border-[#E9DDD1] rounded-xl text-sm font-sans font-medium text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-2xs"
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white dark:bg-[#1E293B] border-2 border-[#182238] dark:border-[#384869] rounded-2xl text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-white hover:bg-[#FAF7F2] transition-all shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] active:translate-y-0.5 active:shadow-none"
             >
-              <Brain className="w-4 h-4 text-gold" />
-              Quiz
+              <Brain className="w-4 h-4 text-[#D97706]" />
+              <span>Quiz</span>
             </Link>
             <Link
               href="/radicals/progress"
-              className="flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] bg-card border border-[#E9DDD1] rounded-xl text-sm font-sans font-medium text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-2xs"
+              className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-white dark:bg-[#1E293B] border-2 border-[#182238] dark:border-[#384869] rounded-2xl text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-white hover:bg-[#FAF7F2] transition-all shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] active:translate-y-0.5 active:shadow-none"
             >
-              <BookOpen className="w-4 h-4 text-jade" />
-              Tiến độ
+              <BookOpen className="w-4 h-4 text-[#2E7D32]" />
+              <span>Tiến độ</span>
             </Link>
           </div>
         </div>
 
         {/* Banner hướng dẫn người mới */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF9F3] border border-[#E9DDD1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF9F3] dark:bg-[#1E293B] border-2 border-[#182238]/15 dark:border-[#384869] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs relative z-10">
           <div className="flex items-start gap-3">
-            <span className="p-2.5 rounded-xl bg-app-accent/10 text-app-accent shrink-0 mt-0.5">
+            <span className="p-2.5 rounded-2xl bg-white dark:bg-[#182238] border-2 border-[#182238]/20 text-[#B8322D] shadow-2xs shrink-0 mt-0.5">
               <BookOpen className="w-5 h-5" />
             </span>
             <div className="space-y-1">
-              <h3 className="font-semibold text-title text-sm sm:text-base">
+              <h3 className="font-bold text-[#182238] dark:text-white text-sm sm:text-base font-serif">
                 Bộ thủ là gì và tại sao nên học?
               </h3>
-              <p className="text-body text-xs sm:text-sm leading-relaxed">
+              <p className="text-body font-serif text-xs sm:text-sm leading-relaxed">
                 214 bộ thủ Khang Hy là các thành phần cốt lõi cấu tạo nên toàn bộ chữ Hán. Nắm vững bộ thủ giúp bạn hiểu ý nghĩa, nhớ mặt chữ sâu hơn và tra cứu từ điển chuẩn xác. Bắt đầu ngay bằng cách bấm vào các nhóm 1–3 nét bên dưới.
               </p>
             </div>
@@ -465,10 +488,18 @@ export default function RadicalGrid() {
         </div>
       ) : (
         /* Trạng thái không có kết quả phù hợp */
-        <div className="text-center py-16 px-4 bg-card border border-border rounded-xl space-y-4">
-          <div className="text-5xl">🔍</div>
+        <div className="text-center py-12 px-6 bg-card dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] rounded-3xl space-y-4 max-w-md mx-auto">
+          <div className="relative w-28 h-28 mx-auto rounded-3xl overflow-hidden border-2 border-[#182238]/30 shadow-[0_3px_0_#182238]/15 bg-[#FFF9F3]">
+            <Image
+              src="/images/panda/panda-thinking.webp"
+              alt="Tiểu Bút đang tìm kiếm bộ thủ"
+              fill
+              sizes="112px"
+              className="object-cover"
+            />
+          </div>
           <div className="space-y-1">
-            <h3 className="font-serif text-title text-base md:text-lg font-medium">
+            <h3 className="font-serif text-[#182238] dark:text-white text-base md:text-lg font-bold">
               Không tìm thấy bộ thủ nào phù hợp
             </h3>
             <p className="text-muted font-serif text-sm max-w-md mx-auto">

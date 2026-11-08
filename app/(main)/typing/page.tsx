@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function TypingPage() {
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="w-full max-w-[1500px] mx-auto space-y-6">
       <Suspense fallback={<div className="p-12 text-center text-muted font-serif text-sm">Đang tải phòng luyện đánh máy...</div>}>
         <TypingClient />
       </Suspense>

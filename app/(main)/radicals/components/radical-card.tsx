@@ -28,7 +28,7 @@ export default function RadicalCard({ radical, variant = 'horizontal' }: Radical
     return (
       <Link
         href={`/radicals/${radical.id}`}
-        className="group relative bg-card border border-[#E9DDD1] hover:border-app-accent rounded-2xl p-3.5 md:p-4 hover:shadow-2xs transition-all duration-200 flex items-start gap-3.5 overflow-hidden"
+        className="group relative bg-card dark:bg-[#182238] border-2 border-[#182238]/20 dark:border-[#384869] hover:border-[#182238] rounded-2xl p-3.5 md:p-4 shadow-[0_2px_0_#182238]/10 hover:shadow-[0_4px_0_#182238] dark:shadow-[0_2px_0_#0D1322] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-150 flex items-start gap-3.5 overflow-hidden"
       >
         {/* Khối chữ Hán vuông nền tối (Dark tile bên trái) */}
         <div
@@ -88,7 +88,7 @@ export default function RadicalCard({ radical, variant = 'horizontal' }: Radical
   return (
     <Link
       href={`/radicals/${radical.id}`}
-      className="group relative bg-card border border-[#E9DDD1] rounded-2xl p-3.5 md:p-4 hover:border-app-accent hover:shadow-2xs transition-all duration-200 flex flex-col items-center text-center overflow-hidden"
+      className="group relative bg-card dark:bg-[#182238] border-2 border-[#182238]/20 dark:border-[#384869] hover:border-[#182238] rounded-2xl p-3.5 md:p-4 shadow-[0_2px_0_#182238]/10 hover:shadow-[0_4px_0_#182238] dark:shadow-[0_2px_0_#0D1322] hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none transition-all duration-150 flex flex-col items-center text-center overflow-hidden"
     >
       {(learned || favorite) && (
         <div className="absolute top-1.5 right-1.5 flex gap-1">

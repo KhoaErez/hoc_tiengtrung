@@ -79,22 +79,22 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
   return (
     <article
       id={`grammar-point-${item.order_index}`}
-      className={`group relative bg-white dark:bg-[#1B222C] border-2 transition-all duration-300 rounded-2xl overflow-hidden shadow-sm ${
+      className={`group relative bg-white dark:bg-[#182238] border transition-all duration-200 rounded-[22px] overflow-hidden ${
         isMastered
-          ? 'border-emerald-500/60 bg-emerald-50/[0.12] dark:bg-emerald-950/[0.1]'
-          : 'border-[#E9DDD1] dark:border-slate-700/80 hover:border-[#B8322D]/60 hover:shadow-md'
+          ? 'border-emerald-500/40 bg-emerald-50/[0.08] dark:bg-emerald-950/[0.1] shadow-xs'
+          : 'border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md'
       }`}
     >
       {/* Top Banner Accent Line */}
       <div
-        className={`h-1.5 w-full ${
+        className={`h-1 w-full ${
           isMastered
             ? 'bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400'
             : 'bg-gradient-to-r from-[#B8322D] via-[#D97706] to-[#B8322D]/40'
         }`}
       />
 
-      <div className="p-5 md:p-6 space-y-4 sm:space-y-5">
+      <div className="p-4 sm:p-5 md:p-6 space-y-4 sm:space-y-5">
         {/* Header: Số thứ tự, Thể loại, Cấp độ, Trạng thái đã học */}
         <div className="flex items-start justify-between gap-3 flex-wrap sm:flex-nowrap">
           <div className="flex items-center gap-2 flex-wrap">
@@ -113,7 +113,7 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
             {/* Cấp độ HSK */}
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#FAF4ED] dark:bg-slate-800 text-[#78350F] dark:text-amber-300 border border-[#E4D4C5] dark:border-slate-700 shadow-2xs">
               <GraduationCap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>HSK 1</span>
+              <span>{item.hsk_level || 'HSK 1'}</span>
             </span>
           </div>
 

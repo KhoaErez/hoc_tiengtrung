@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { PenTool, BrainCircuit, NotebookPen, Clock, ArrowLeft, Keyboard, BookOpen, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,25 +9,20 @@ export function WritingComingSoon() {
   return (
     <div className="max-w-3xl mx-auto py-8 sm:py-14 px-4 font-serif space-y-6">
       {/* Thẻ chính Coming Soon */}
-      <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 sm:p-12 shadow-xs text-center space-y-7">
+      <div className="relative overflow-hidden rounded-3xl border-2 border-[#182238] dark:border-[#384869] bg-white dark:bg-[#182238] p-6 sm:p-10 shadow-[0_6px_0_#182238] dark:shadow-[0_4px_0_#0D1322] text-center space-y-6">
         {/* Viền màu nhỏ phía trên thẻ (Thanh gradient Đông Phương) */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
 
-        {/* Họa tiết vân mây Á Đông trang nhã (Watermark) */}
-        <div className="absolute top-0 right-0 w-72 h-72 opacity-5 pointer-events-none text-app-accent">
-          <svg viewBox="0 0 200 200" fill="currentColor">
-            <path d="M40,120 C20,120 10,105 20,90 C15,75 30,60 45,65 C55,45 80,45 90,60 C105,45 130,50 135,70 C150,70 160,85 155,100 C165,115 150,130 135,125 C125,140 100,140 90,125 C75,140 50,135 40,120 Z" />
-          </svg>
-        </div>
-
-        {/* Cụm biểu tượng minh họa cao cấp */}
-        <div className="relative inline-flex items-center justify-center">
-          <div className="w-18 h-18 rounded-2xl bg-app-accent-soft text-app-accent border border-app-accent/25 flex items-center justify-center shadow-xs mx-auto">
-            <PenTool className="w-8 h-8" />
-          </div>
-          <span className="absolute -top-1 -right-1 p-1 rounded-full bg-gold-soft text-gold border border-gold/30 shadow-2xs">
-            <BrainCircuit className="w-3.5 h-3.5" />
-          </span>
+        {/* 3D Illustration Banner */}
+        <div className="relative w-36 h-36 sm:w-44 sm:h-44 mx-auto rounded-3xl overflow-hidden border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] bg-[#FAF7F2]">
+          <Image
+            src="/images/writing/writing-hero.webp"
+            alt="Luyện viết AI 3D"
+            fill
+            className="object-cover"
+            priority
+            sizes="176px"
+          />
         </div>
 
         {/* Tiêu đề & Thông báo trạng thái */}

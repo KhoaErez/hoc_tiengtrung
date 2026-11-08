@@ -76,12 +76,12 @@ export default function RadicalDetailClient({ radical }: { radical: Radical }) {
       </div>
 
       {/* Main card */}
-      <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+      <div className="bg-white border-2 border-[#182238] rounded-3xl overflow-hidden shadow-[0_4px_0_#182238]">
         {/* Header with large radical */}
-        <div className="bg-gradient-to-br from-accent-soft/60 to-card p-6 md:p-10 text-center border-b border-border">
+        <div className="bg-gradient-to-br from-[#FFF9F3] to-white p-6 md:p-10 text-center border-b-2 border-[#182238]/15">
           <div className="inline-block relative">
             <span
-              className="text-7xl md:text-9xl font-serif text-title leading-none"
+              className="text-7xl md:text-9xl font-serif text-[#182238] leading-none"
               style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
             >
               {radical.radical}
@@ -100,7 +100,7 @@ export default function RadicalDetailClient({ radical }: { radical: Radical }) {
             <p className="text-lg md:text-xl text-muted font-sans tracking-wide">
               {radical.pinyin}
             </p>
-            <p className="text-xl md:text-2xl font-serif text-title font-medium">
+            <p className="text-xl md:text-2xl font-serif text-[#182238] font-bold">
               {radical.meaning}
             </p>
           </div>
@@ -109,10 +109,10 @@ export default function RadicalDetailClient({ radical }: { radical: Radical }) {
           <div className="flex justify-center gap-3 mt-6">
             <button
               onClick={handleToggleLearned}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-serif transition-all border ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-serif font-bold transition-all border-2 shadow-[0_2px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] ${
                 learned
-                  ? 'bg-jade-soft border-jade/30 text-jade'
-                  : 'bg-card border-border text-muted hover:border-jade/30 hover:text-jade'
+                  ? 'bg-[#E8F5E9] border-[#182238] text-[#2E7D32]'
+                  : 'bg-white border-[#182238] text-[#182238] hover:bg-[#FAF7F2]'
               }`}
             >
               <CheckCircle className="w-4 h-4" />
@@ -120,13 +120,13 @@ export default function RadicalDetailClient({ radical }: { radical: Radical }) {
             </button>
             <button
               onClick={handleToggleFavorite}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-serif transition-all border ${
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-serif font-bold transition-all border-2 shadow-[0_2px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] ${
                 favorite
-                  ? 'bg-accent-soft border-app-accent/30 text-app-accent'
-                  : 'bg-card border-border text-muted hover:border-app-accent/30 hover:text-app-accent'
+                  ? 'bg-[#FFF9F3] border-[#182238] text-[#B8322D]'
+                  : 'bg-white border-[#182238] text-[#182238] hover:bg-[#FAF7F2]'
               }`}
             >
-              <Heart className={`w-4 h-4 ${favorite ? 'fill-current' : ''}`} />
+              <Heart className={`w-4 h-4 ${favorite ? 'fill-current text-[#B8322D]' : ''}`} />
               {favorite ? 'Đã thích' : 'Yêu thích'}
             </button>
           </div>

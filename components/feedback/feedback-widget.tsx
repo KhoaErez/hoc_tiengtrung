@@ -64,10 +64,15 @@ const CATEGORIES: {
 
 export function FeedbackWidget() {
   const pathname = usePathname() || '/'
+  const [isMounted, setIsMounted] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
   const [hasDismissedTooltip, setHasDismissedTooltip] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const [category, setCategory] = useState<FeedbackCategory>('bug')
   const [title, setTitle] = useState('')
@@ -188,30 +193,35 @@ export function FeedbackWidget() {
     ? 'hover'
     : 'idle'
 
+  // Tránh hydration mismatch do usePathname hoặc visualViewport giữa server và client
+  if (!isMounted) {
+    return null
+  }
+
   return (
     <div ref={widgetRef} className="fixed z-40 select-none">
       
       {/* 1. CHATBOT MASCOT DIALOG WINDOW */}
       {isOpen && (
         <div 
-          className="fixed z-50 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-24 right-3 sm:right-6 w-[calc(100vw-1.5rem)] sm:w-[410px] max-h-[82vh] bg-card border border-border shadow-2xl rounded-3xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed z-50 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] md:bottom-24 right-3 sm:right-6 w-[calc(100vw-1.5rem)] sm:w-[420px] max-h-[82vh] bg-white border-2 border-[#182238] shadow-[0_8px_0_#182238] rounded-3xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
           role="dialog"
           aria-labelledby="feedback-dialog-title"
           aria-modal="true"
         >
           {/* Accent decorative bar */}
-          <div className="h-1.5 bg-gradient-to-r from-app-accent via-red-500 to-gold shrink-0" />
+          <div className="h-1.5 bg-[#B8322D] shrink-0" />
 
           {/* Window Header: Mascot & Assistant Name */}
-          <div className="px-5 py-3.5 border-b border-border bg-page/95 flex items-center justify-between shrink-0">
+          <div className="px-5 py-3.5 border-b-2 border-[#182238]/15 bg-[#FAF7F2] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <div className="p-0.5 rounded-full bg-white border border-app-accent/20 shadow-xs">
+              <div className="p-0.5 rounded-full bg-white border-2 border-[#182238] shadow-[0_2px_0_#182238]">
                 <MascotAvatar state={dialogMascotState} size="sm" />
               </div>
               <div>
-                <h2 id="feedback-dialog-title" className="text-sm font-serif font-bold text-title flex items-center gap-1.5">
+                <h2 id="feedback-dialog-title" className="text-sm font-serif font-bold text-[#182238] flex items-center gap-1.5">
                   <span>Tiểu Bút</span>
-                  <span className="text-[11px] font-sans font-normal text-muted">• Trợ lý Học tập</span>
+                  <span className="text-[11px] font-sans font-bold text-muted">• Trợ lý Học tập</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="Sẵn sàng hỗ trợ" />
                 </h2>
                 <p className="text-[11px] text-muted font-serif">
@@ -223,7 +233,7 @@ export function FeedbackWidget() {
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-xl text-muted hover:text-title hover:bg-black/5 transition-colors cursor-pointer"
+              className="p-1.5 rounded-xl text-muted hover:text-[#182238] hover:bg-[#FAF7F2] border border-transparent hover:border-[#182238]/20 transition-all cursor-pointer"
               aria-label="Đóng cửa sổ"
             >
               <X className="w-4 h-4" />
@@ -279,7 +289,7 @@ export function FeedbackWidget() {
 
                 {/* 1. Category Selection Chips */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-title block">
+                  <label className="text-xs font-bold text-[#182238] block">
                     1. Bạn muốn trao đổi về chủ đề gì?
                   </label>
                   <div className="grid grid-cols-2 gap-1.5">
@@ -294,13 +304,13 @@ export function FeedbackWidget() {
                             setCategory(cat.id)
                             setErrorMessage(null)
                           }}
-                          className={`flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs transition-all border text-left cursor-pointer ${
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all border-2 text-left cursor-pointer font-serif ${
                             isSelected
-                              ? 'bg-app-accent text-white font-medium border-app-accent shadow-2xs'
-                              : 'bg-page border-border text-title hover:border-app-accent/40'
+                              ? 'bg-[#B8322D] text-white font-bold border-[#182238] shadow-[0_2px_0_#182238]'
+                              : 'bg-white border-[#182238]/20 text-[#182238] hover:border-[#182238]'
                           }`}
                         >
-                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-muted'}`} />
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : 'text-[#B8322D]'}`} />
                           <span className="truncate">{cat.label}</span>
                         </button>
                       )
@@ -384,7 +394,7 @@ export function FeedbackWidget() {
                 <Button
                   type="submit"
                   disabled={isSubmitting || cooldown > 0}
-                  className="w-full py-2.5 bg-app-accent hover:bg-accent-hover text-white rounded-xl text-xs font-serif font-medium flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                  className="w-full py-3 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-2xl text-xs font-serif font-bold flex items-center justify-center gap-2 border-2 border-[#182238] shadow-[0_3px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] transition-all cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>
@@ -426,15 +436,21 @@ export function FeedbackWidget() {
       >
         {/* Bong bóng chào hỏi thông minh (Smart Tooltip Bubble - chỉ hiển thị trên desktop khi hover) */}
         {!isOpen && showTooltip && (
-          <div className={`hidden sm:block absolute bottom-1 bg-card border border-border shadow-xl rounded-2xl p-3 w-56 sm:w-60 text-xs text-title font-serif animate-in fade-in duration-200 z-50 pointer-events-auto ${
+          <div className={`hidden sm:block absolute bottom-1 bg-[#FAF7F2] dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] shadow-[0_6px_0_#182238] dark:shadow-[0_6px_0_#0D1322] rounded-2xl p-3.5 w-60 sm:w-64 text-xs text-title font-serif animate-in fade-in duration-200 z-50 pointer-events-auto ${
             pathname.startsWith('/typing')
               ? 'left-full ml-3 slide-in-from-left-2'
               : 'right-full mr-3 slide-in-from-right-2'
           }`}>
             <div className="flex items-start justify-between gap-1.5">
-              <p className="leading-relaxed">
-                Chào bạn! Mình là <strong>Tiểu Bút</strong> 🐼. Cần hỗ trợ hoặc góp ý cứ nhấn vào mình nhé!
-              </p>
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#182238]/10 dark:bg-white/10 text-[10px] font-sans font-bold text-[#B8322D] uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Trợ lý học tập AI</span>
+                </div>
+                <p className="leading-relaxed text-[#182238] dark:text-slate-200">
+                  Chào bạn! Mình là <strong>Tiểu Bút 🐼</strong>. Bạn muốn tìm bài tập hay góp ý gì cứ nhắn mình nhé!
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={(e) => {
@@ -449,7 +465,7 @@ export function FeedbackWidget() {
               </button>
             </div>
             {/* Mũi tên trỏ vào nút mascot */}
-            <div className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-card border-border rotate-45 ${
+            <div className={`absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-[#FAF7F2] dark:bg-[#182238] border-[#182238] dark:border-[#384869] rotate-45 ${
               pathname.startsWith('/typing')
                 ? '-left-1.5 border-b border-l'
                 : '-right-1.5 border-t border-r'
@@ -457,7 +473,7 @@ export function FeedbackWidget() {
           </div>
         )}
 
-        {/* Nút bấm Mascot hình tròn cao cấp (Tối ưu kích thước gọn trên mobile 44px, desktop 56px) */}
+        {/* Nút bấm Mascot hình tròn cao cấp (Tối ưu kích thước gọn trên mobile 46px, desktop 58px) */}
         <button
           type="button"
           onClick={() => {
@@ -465,10 +481,10 @@ export function FeedbackWidget() {
             setShowTooltip(false)
             setHasDismissedTooltip(true)
           }}
-          className={`w-11 h-11 md:w-14 md:h-14 rounded-full shadow-md flex items-center justify-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-accent/50 ${
+          className={`w-12 h-12 md:w-15 md:h-15 rounded-full flex items-center justify-center transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#182238] ${
             isOpen
-              ? 'bg-title text-white rotate-0 scale-95 ring-4 ring-title/15'
-              : 'bg-page hover:bg-card border-2 border-app-accent/40 hover:border-app-accent hover:scale-105 active:scale-95 shadow-app-accent/15 ring-3 ring-app-accent/10'
+              ? 'bg-[#182238] text-white rotate-0 scale-95 border-2 border-[#182238] shadow-[0_4px_0_#182238]'
+              : 'bg-[#FAF7F2] hover:bg-white border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] hover:shadow-[0_2px_0_#182238] hover:translate-y-0.5 active:translate-y-1 active:shadow-none'
           }`}
           title="Trò chuyện & Góp ý cùng Tiểu Bút"
           aria-label={isOpen ? 'Đóng hộp thoại trợ lý' : 'Mở trợ lý Tiểu Bút'}
@@ -480,7 +496,7 @@ export function FeedbackWidget() {
               <MascotAvatar state={buttonMascotState} size="md" className="hidden sm:inline-flex" />
               <MascotAvatar state={buttonMascotState} size="sm" className="sm:hidden" />
               {/* Huy hiệu online nhỏ góc dưới */}
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-emerald-500 border-2 border-white shadow-xs animate-pulse" />
+              <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#182238] shadow-xs animate-pulse" />
             </div>
           )}
         </button>

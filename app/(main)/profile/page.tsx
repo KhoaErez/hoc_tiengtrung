@@ -61,7 +61,7 @@ export default async function ProfilePage() {
   const displayName = profile?.display_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Học viên'
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-16">
+    <div className="w-full max-w-[1500px] mx-auto space-y-8 pb-16">
       <ProfileClient
         user={{
           id: user.id,

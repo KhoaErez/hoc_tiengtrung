@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { Search, BookOpen, BookCheck, Volume2, Layers, Filter, X } from 'lucide-react'
 
 interface GrammarStatsHeaderProps {
@@ -47,10 +48,22 @@ export function GrammarStatsHeader({
 
   return (
     <div className="space-y-5">
+      {/* 3D Visual Identity Banner for Grammar Studio */}
+      <div className="relative w-full aspect-[21/9] sm:aspect-[24/7] rounded-3xl overflow-hidden border-2 border-[#182238] dark:border-[#384869] shadow-[0_6px_0_#182238] bg-[#182238]">
+        <Image
+          src="/images/grammar/grammar-hero.webp"
+          alt="Sổ tay Ngữ pháp HSK 3.0 - Chinese Notebook"
+          fill
+          priority
+          sizes="(max-width: 1536px) 100vw, 1500px"
+          className="object-cover"
+        />
+      </div>
+
       {/* Top Banner / Hero Box */}
-      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#1E2530] border-2 border-[#E9DDD1] dark:border-slate-700/80 p-5 sm:p-7 md:p-8 shadow-sm">
+      <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] p-6 sm:p-8 shadow-[0_6px_0_#182238] dark:shadow-[0_4px_0_#0D1322]">
         {/* Subtle decorative watermark */}
-        <div className="absolute -right-6 -bottom-8 select-none pointer-events-none opacity-[0.04] dark:opacity-[0.06] font-hanzi text-8xl md:text-9xl font-bold text-title">
+        <div className="absolute -right-6 -bottom-8 select-none pointer-events-none opacity-[0.06] dark:opacity-[0.08] font-hanzi text-8xl md:text-9xl font-bold text-title">
           语法
         </div>
 
@@ -63,30 +76,30 @@ export function GrammarStatsHeader({
 
           {/* Heading */}
           <div className="space-y-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#1E293B] dark:text-[#F8FAFC] tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#182238] dark:text-[#F8FAFC] tracking-tight leading-tight">
               Sổ tay Ngữ pháp {currentLevel}{' '}
               <span className="text-[#B8322D] dark:text-[#E27D60] font-hanzi">
                 ({LEVEL_HANZI[currentLevel] || '语法大纲'})
               </span>
             </h1>
-            <p className="text-sm md:text-base text-[#334155] dark:text-[#CBD5E1] font-serif leading-relaxed">
+            <p className="text-sm md:text-base text-[#243047]/80 dark:text-[#CBD5E1] font-serif leading-relaxed">
               Tổng hợp và hệ thống hóa toàn diện <strong>{totalCount} điểm ngữ pháp cốt lõi</strong> trình độ {currentLevel}. Mỗi điểm ngữ pháp đều có công thức phân tích trực quan, giải thích ngữ nghĩa cặn kẽ tiếng Việt và câu ví dụ thực tế kèm giọng đọc bản ngữ.
             </p>
           </div>
 
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="p-3.5 rounded-xl bg-[#FFF9F3] dark:bg-[#141A23] border border-[#E8DCD0] dark:border-slate-700/80 shadow-2xs">
+            <div className="p-3.5 rounded-2xl bg-[#FAF7F2] dark:bg-[#141A23] border-2 border-[#182238]/15 dark:border-slate-700 shadow-[0_2px_0_#182238]/10">
               <div className="text-xs text-[#64748B] dark:text-slate-400 flex items-center gap-1.5 font-semibold">
                 <BookCheck className="w-3.5 h-3.5 text-[#B8322D]" />
                 Tổng điểm ngữ pháp
               </div>
-              <div className="text-xl sm:text-2xl font-bold font-mono text-[#0F172A] dark:text-white mt-1">
+              <div className="text-xl sm:text-2xl font-bold font-mono text-[#182238] dark:text-white mt-1">
                 {totalCount} <span className="text-xs text-[#64748B] dark:text-slate-400 font-normal font-sans">điểm</span>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#FFF9F3] dark:bg-[#141A23] border border-[#E8DCD0] dark:border-slate-700/80 shadow-2xs">
+            <div className="p-3.5 rounded-2xl bg-[#FAF7F2] dark:bg-[#141A23] border-2 border-[#182238]/15 dark:border-slate-700 shadow-[0_2px_0_#182238]/10">
               <div className="text-xs text-[#64748B] dark:text-slate-400 flex items-center gap-1.5 font-semibold">
                 <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 Đã nắm vững
@@ -96,22 +109,22 @@ export function GrammarStatsHeader({
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#FFF9F3] dark:bg-[#141A23] border border-[#E8DCD0] dark:border-slate-700/80 shadow-2xs">
+            <div className="p-3.5 rounded-2xl bg-[#FAF7F2] dark:bg-[#141A23] border-2 border-[#182238]/15 dark:border-slate-700 shadow-[0_2px_0_#182238]/10">
               <div className="text-xs text-[#64748B] dark:text-slate-400 flex items-center gap-1.5 font-semibold">
                 <Volume2 className="w-3.5 h-3.5 text-[#B45309] dark:text-amber-400" />
                 Câu ví dụ TTS
               </div>
-              <div className="text-xl sm:text-2xl font-bold font-mono text-[#0F172A] dark:text-white mt-1">
+              <div className="text-xl sm:text-2xl font-bold font-mono text-[#182238] dark:text-white mt-1">
                 100+ <span className="text-xs text-[#64748B] dark:text-slate-400 font-normal font-sans">câu mẫu</span>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#FFF9F3] dark:bg-[#141A23] border border-[#E8DCD0] dark:border-slate-700/80 shadow-2xs">
+            <div className="p-3.5 rounded-2xl bg-[#FAF7F2] dark:bg-[#141A23] border-2 border-[#182238]/15 dark:border-slate-700 shadow-[0_2px_0_#182238]/10">
               <div className="text-xs text-[#64748B] dark:text-slate-400 flex items-center gap-1.5 font-semibold">
                 <Filter className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />
                 Nhóm chủ điểm
               </div>
-              <div className="text-xl sm:text-2xl font-bold font-mono text-[#0F172A] dark:text-white mt-1">
+              <div className="text-xl sm:text-2xl font-bold font-mono text-[#182238] dark:text-white mt-1">
                 12 <span className="text-xs text-[#64748B] dark:text-slate-400 font-normal font-sans">chủ đề</span>
               </div>
             </div>
@@ -135,12 +148,12 @@ export function GrammarStatsHeader({
                   }
                 }}
                 disabled={!lvl.isReady}
-                className={`shrink-0 relative px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                className={`shrink-0 relative px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[#B8322D] text-white shadow-sm ring-2 ring-[#B8322D]/20'
+                    ? 'bg-[#B8322D] text-white border-2 border-[#182238] shadow-[0_3px_0_#182238]'
                     : lvl.isReady
-                    ? 'bg-white dark:bg-[#1E2530] text-[#334155] dark:text-[#E2E8F0] hover:text-[#B8322D] hover:border-[#B8322D] border border-[#DAC7B6] dark:border-slate-700 shadow-2xs'
-                    : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#94A3B8] dark:text-slate-500 border border-[#E2D4C6]/60 dark:border-slate-800 cursor-not-allowed'
+                    ? 'bg-white dark:bg-[#182238] text-[#182238] dark:text-[#E2E8F0] hover:text-[#B8322D] border-2 border-[#182238]/20 dark:border-slate-700 shadow-[0_2px_0_#182238]/10 hover:border-[#182238]'
+                    : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#94A3B8] dark:text-slate-500 border-2 border-dashed border-[#182238]/10 dark:border-slate-800 cursor-not-allowed'
                 }`}
               >
                 <span>{lvl.label}</span>
@@ -162,7 +175,7 @@ export function GrammarStatsHeader({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Tìm kiếm điểm ngữ pháp theo tên tiếng Việt, Hán tự, Pinyin, công thức (ví dụ: 'Đại từ', '不', 'shì', 'biểu thị')..."
-            className="w-full pl-10 pr-10 py-3 rounded-xl bg-white dark:bg-[#1E2530] border-2 border-[#DAC7B6] dark:border-slate-700 focus:border-[#B8322D] focus:ring-2 focus:ring-[#B8322D]/20 outline-none text-sm text-[#0F172A] dark:text-white placeholder:text-[#64748B] dark:placeholder:text-slate-400 font-medium transition-all shadow-2xs"
+            className="w-full pl-10 pr-10 py-3 rounded-2xl bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] focus:outline-none focus:ring-2 focus:ring-[#B8322D]/20 text-sm text-[#182238] dark:text-white placeholder:text-[#64748B] dark:placeholder:text-slate-400 font-medium transition-all shadow-[0_3px_0_#182238] dark:shadow-[0_2px_0_#0D1322]"
           />
           {searchQuery && (
             <button

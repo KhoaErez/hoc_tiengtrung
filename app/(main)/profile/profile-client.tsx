@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   User, 
   Mail, 
@@ -121,9 +122,30 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
     <div className="space-y-10">
 
       {/* 1. THẺ THÔNG TIN TÀI KHOẢN NGƯỜI DÙNG */}
-      <div className="relative rounded-2xl border border-border bg-card p-6 md:p-8 shadow-2xs overflow-hidden">
+      <div className="relative rounded-3xl border-2 border-[#182238] dark:border-[#384869] bg-card dark:bg-[#182238] p-6 md:p-8 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] overflow-hidden">
         {/* Thanh màu trang trí trên đầu */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-title via-app-accent to-gold" />
+
+        {/* 3D Dashboard Panorama Banner */}
+        <div className="relative w-full h-28 sm:h-36 -mx-6 -mt-6 mb-6 md:-mx-8 md:-mt-8 overflow-hidden rounded-t-3xl border-b-2 border-[#182238]/15 dark:border-white/10 bg-[#FAF7F2]">
+          <Image
+            src="/images/dashboard/dashboard-hero.webp"
+            alt="Không gian học tập cá nhân 3D"
+            fill
+            priority
+            sizes="(max-width: 1200px) 100vw, 1200px"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute bottom-3 left-4 sm:left-6 flex items-center gap-2">
+            <span className="text-xs font-sans font-bold text-white px-3 py-1 rounded-full bg-black/60 backdrop-blur-xs border border-white/20 shadow-xs">
+              Học Viên Chinese Notebook
+            </span>
+            <span className="text-[11px] font-serif text-white/90 hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs border border-white/20">
+              Không gian học tập & Hành trình cá nhân
+            </span>
+          </div>
+        </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4 md:gap-5">
@@ -206,8 +228,28 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
             </div>
           </div>
 
-          {/* Nút hành động */}
-          <div className="flex items-center gap-3 self-start sm:self-center">
+          {/* Mascot Companion & Nút hành động */}
+          <div className="flex items-center gap-3.5 self-start sm:self-center">
+            <div className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-white/80 dark:bg-[#202B45] border border-[#182238]/15 dark:border-white/10 shadow-2xs">
+              <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#182238]/20 bg-white shrink-0">
+                <Image
+                  src="/images/panda/panda-studying.webp"
+                  alt="Tiểu Bút đồng hành"
+                  fill
+                  sizes="32px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="text-left">
+                <div className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#B8322D]">
+                  Đồng hành
+                </div>
+                <div className="text-xs font-serif font-bold text-title">
+                  Tiểu Bút 🐼
+                </div>
+              </div>
+            </div>
+
             <form action={logout}>
               <Button
                 type="submit"
@@ -225,7 +267,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
 
       {/* 2. 4 THẺ THỐNG KÊ TỔNG QUAN */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card className="rounded-xl shadow-2xs border border-border bg-card">
+        <Card className="rounded-[20px] shadow-xs border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238]">
           <CardContent className="p-4 md:p-5">
             <p className="text-xs font-serif font-medium text-muted uppercase tracking-wider">Từ vựng đã lưu</p>
             <div className="text-2xl md:text-3xl font-serif font-bold text-title mt-1.5">
@@ -235,7 +277,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-2xs border border-border bg-card">
+        <Card className="rounded-[20px] shadow-xs border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238]">
           <CardContent className="p-4 md:p-5">
             <p className="text-xs font-serif font-medium text-muted uppercase tracking-wider">Từ đã nhớ sâu</p>
             <div className="text-2xl md:text-3xl font-serif font-bold text-jade mt-1.5">
@@ -245,7 +287,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-2xs border border-border bg-card">
+        <Card className="rounded-[20px] shadow-xs border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238]">
           <CardContent className="p-4 md:p-5">
             <p className="text-xs font-serif font-medium text-muted uppercase tracking-wider">Bài học tự tạo</p>
             <div className="text-2xl md:text-3xl font-serif font-bold text-gold mt-1.5">
@@ -255,7 +297,7 @@ export default function ProfileClient({ user, stats }: ProfileClientProps) {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl shadow-2xs border border-border bg-card">
+        <Card className="rounded-[20px] shadow-xs border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238]">
           <CardContent className="p-4 md:p-5">
             <p className="text-xs font-serif font-medium text-muted uppercase tracking-wider">Cần ôn tập</p>
             <div className="text-2xl md:text-3xl font-serif font-bold text-app-accent mt-1.5">

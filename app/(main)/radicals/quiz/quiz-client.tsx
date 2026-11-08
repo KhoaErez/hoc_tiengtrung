@@ -167,17 +167,17 @@ export default function QuizClient() {
           </Link>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 md:p-8 space-y-6">
+        <div className="bg-white border-2 border-[#182238] rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_4px_0_#182238]">
           <div className="text-center space-y-2">
             <div className="text-5xl mb-4">🧠</div>
-            <h1 className="text-2xl font-serif text-title">Quiz Bộ thủ</h1>
+            <h1 className="text-2xl font-serif text-[#182238] font-bold">Quiz Bộ thủ</h1>
             <p className="text-muted font-serif text-sm">
               Trả lời {QUIZ_SIZE} câu hỏi trắc nghiệm để kiểm tra kiến thức về bộ thủ
             </p>
           </div>
 
           <div className="space-y-3">
-            <p className="text-xs text-muted font-serif uppercase tracking-wider">
+            <p className="text-xs text-muted font-serif uppercase tracking-wider font-bold">
               Chọn dạng câu hỏi
             </p>
             <div className="space-y-2">
@@ -185,13 +185,13 @@ export default function QuizClient() {
                 <button
                   key={type}
                   onClick={() => toggleQuizType(type)}
-                  className={`w-full text-left px-4 py-3 border rounded-lg text-sm font-serif transition-all ${quizTypes.includes(type)
-                      ? 'border-app-accent bg-accent-soft text-app-accent'
-                      : 'border-border bg-card text-muted hover:text-title hover:border-border-strong'
+                  className={`w-full text-left px-4 py-3 border-2 rounded-2xl text-sm font-serif font-medium transition-all ${quizTypes.includes(type)
+                      ? 'border-[#182238] bg-[#FFF9F3] text-[#B8322D] shadow-[0_2px_0_#182238]'
+                      : 'border-[#182238]/20 bg-white text-muted hover:text-[#182238] hover:border-[#182238]'
                     }`}
                 >
                   <span className="flex items-center gap-2">
-                    <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-xs ${quizTypes.includes(type) ? 'border-app-accent bg-app-accent text-white' : 'border-border-strong'
+                    <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-xs ${quizTypes.includes(type) ? 'border-[#182238] bg-[#B8322D] text-white' : 'border-[#182238]/40'
                       }`}>
                       {quizTypes.includes(type) && '✓'}
                     </span>
@@ -204,7 +204,7 @@ export default function QuizClient() {
 
           <button
             onClick={startQuiz}
-            className="w-full py-3 bg-title hover:bg-[#2A3250] text-white rounded-lg font-serif text-sm transition-colors"
+            className="w-full py-3.5 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-2xl font-serif font-bold text-sm border-2 border-[#182238] shadow-[0_4px_0_#182238] active:translate-y-0.5 active:shadow-[0_2px_0_#182238] transition-all"
           >
             Bắt đầu Quiz
           </button>
@@ -234,20 +234,20 @@ export default function QuizClient() {
           </Link>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 md:p-10 text-center space-y-6">
+        <div className="bg-white border-2 border-[#182238] rounded-3xl p-6 md:p-10 text-center space-y-6 shadow-[0_4px_0_#182238]">
           <div className="text-6xl">{emoji}</div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-serif text-title">{message}</h2>
+            <h2 className="text-2xl font-serif text-[#182238] font-bold">{message}</h2>
             <p className="text-muted font-serif">
-              Bạn trả lời đúng <span className="text-title font-medium">{score}</span> / <span className="text-title font-medium">{questions.length}</span> câu ({percentage}%)
+              Bạn trả lời đúng <span className="text-[#B8322D] font-bold">{score}</span> / <span className="text-[#182238] font-bold">{questions.length}</span> câu ({percentage}%)
             </p>
           </div>
 
           {/* Score visual */}
           <div className="max-w-xs mx-auto">
-            <div className="w-full bg-track h-4 rounded-full overflow-hidden">
+            <div className="w-full bg-[#E5E0D8] h-4 rounded-full overflow-hidden border border-[#182238]/20">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${percentage >= 80 ? 'bg-jade' : percentage >= 50 ? 'bg-gold' : 'bg-app-accent'
+                className={`h-full rounded-full transition-all duration-500 ${percentage >= 80 ? 'bg-[#2E7D32]' : percentage >= 50 ? 'bg-[#D97706]' : 'bg-[#B8322D]'
                   }`}
                 style={{ width: `${percentage}%` }}
               />
@@ -257,14 +257,14 @@ export default function QuizClient() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <button
               onClick={startQuiz}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-title hover:bg-[#2A3250] text-white rounded-lg font-serif text-sm transition-colors"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-2xl font-serif font-bold text-sm border-2 border-[#182238] shadow-[0_3px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] transition-all"
             >
               <RotateCcw className="w-4 h-4" />
               Làm lại
             </button>
             <Link
               href="/radicals"
-              className="flex items-center justify-center gap-2 px-6 py-2.5 border border-border bg-card rounded-lg font-serif text-sm text-muted hover:text-title transition-all"
+              className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-[#182238] bg-white rounded-2xl font-serif font-bold text-sm text-[#182238] shadow-[0_3px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] transition-all"
             >
               Về danh sách
             </Link>
@@ -311,10 +311,10 @@ export default function QuizClient() {
       </div>
 
       {/* Question */}
-      <div className="bg-card border border-border rounded-xl p-6 md:p-8 space-y-6">
+      <div className="bg-white border-2 border-[#182238] rounded-3xl p-6 md:p-8 space-y-6 shadow-[0_4px_0_#182238]">
         {/* Question prompt */}
         <div className="text-center space-y-3">
-          <span className="inline-block px-3 py-1 rounded-full bg-accent-soft text-app-accent text-xs font-serif">
+          <span className="inline-block px-3 py-1 rounded-full bg-[#FFF9F3] text-[#B8322D] border border-[#B8322D]/30 text-xs font-serif font-bold">
             {quizTypeLabels[question.type]}
           </span>
 
@@ -322,7 +322,7 @@ export default function QuizClient() {
             <>
               <p className="text-muted font-serif text-sm">Bộ thủ này có nghĩa gì?</p>
               <span
-                className="block text-7xl md:text-8xl font-serif text-title leading-none py-4"
+                className="block text-7xl md:text-8xl font-serif text-[#182238] leading-none py-4"
                 style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
               >
                 {question.radical.radical}
@@ -333,7 +333,7 @@ export default function QuizClient() {
           {question.type === 'meaning-to-radical' && (
             <>
               <p className="text-muted font-serif text-sm">
-                Chữ nào là bộ thủ có nghĩa <span className="text-title font-medium">&ldquo;{question.radical.meaning}&rdquo;</span>?
+                Chữ nào là bộ thủ có nghĩa <span className="text-[#182238] font-bold">&ldquo;{question.radical.meaning}&rdquo;</span>?
               </p>
             </>
           )}
@@ -341,7 +341,7 @@ export default function QuizClient() {
           {question.type === 'pinyin-to-radical' && (
             <>
               <p className="text-muted font-serif text-sm">
-                Chữ nào là bộ thủ đọc là <span className="text-title font-medium font-sans">{question.radical.pinyin}</span>?
+                Chữ nào là bộ thủ đọc là <span className="text-[#182238] font-bold font-sans">{question.radical.pinyin}</span>?
               </p>
             </>
           )}
@@ -350,15 +350,15 @@ export default function QuizClient() {
         {/* Options */}
         <div className="grid grid-cols-2 gap-3">
           {question.options.map((option, index) => {
-            let optionClass = 'border-border bg-card text-body hover:border-border-strong hover:bg-page'
+            let optionClass = 'border-[#182238]/20 bg-white text-[#182238] hover:border-[#182238] hover:shadow-[0_2px_0_#182238]'
 
             if (selectedAnswer !== null) {
               if (index === question.correctIndex) {
-                optionClass = 'border-jade bg-jade-soft text-jade'
+                optionClass = 'border-[#182238] bg-[#E8F5E9] text-[#2E7D32] shadow-[0_3px_0_#182238]'
               } else if (index === selectedAnswer && !isCorrect) {
-                optionClass = 'border-app-accent bg-accent-soft text-app-accent'
+                optionClass = 'border-[#182238] bg-[#FFEBEE] text-[#C62828] shadow-[0_3px_0_#182238]'
               } else {
-                optionClass = 'border-border bg-card text-muted opacity-50'
+                optionClass = 'border-[#182238]/10 bg-white text-muted opacity-40'
               }
             }
 
@@ -369,14 +369,14 @@ export default function QuizClient() {
                 key={index}
                 onClick={() => handleAnswer(index)}
                 disabled={selectedAnswer !== null}
-                className={`relative p-4 border-2 rounded-xl text-center font-serif transition-all ${optionClass} ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'
+                className={`relative p-4 border-2 rounded-2xl text-center font-serif font-bold transition-all ${optionClass} ${selectedAnswer === null ? 'cursor-pointer active:translate-y-0.5' : 'cursor-default'
                   }`}
               >
                 {selectedAnswer !== null && index === question.correctIndex && (
-                  <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-jade" />
+                  <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-[#2E7D32]" />
                 )}
                 {selectedAnswer !== null && index === selectedAnswer && !isCorrect && (
-                  <XCircle className="absolute top-2 right-2 w-4 h-4 text-app-accent" />
+                  <XCircle className="absolute top-2 right-2 w-4 h-4 text-[#C62828]" />
                 )}
                 <span
                   className={isHanzi ? 'text-3xl md:text-4xl' : 'text-sm md:text-base'}
@@ -421,7 +421,7 @@ export default function QuizClient() {
         {selectedAnswer !== null && (
           <button
             onClick={goNext}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-title hover:bg-[#2A3250] text-white rounded-lg font-serif text-sm transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-2xl font-serif font-bold text-sm border-2 border-[#182238] shadow-[0_4px_0_#182238] active:translate-y-0.5 active:shadow-[0_2px_0_#182238] transition-all"
           >
             {currentQ < questions.length - 1 ? (
               <>

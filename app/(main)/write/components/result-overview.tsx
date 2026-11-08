@@ -49,23 +49,23 @@ export function ResultOverview({
   return (
     <div className="space-y-6 font-serif">
       {/* 1. Score & Criteria Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xs">
+      <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 bg-white border-2 border-[#182238] rounded-3xl p-5 sm:p-6 shadow-[0_4px_0_#182238]">
         {/* Score Medal Badge */}
-        <div className="flex flex-col items-center justify-center p-4 bg-page/60 rounded-xl border border-border/80 text-center space-y-2">
+        <div className="flex flex-col items-center justify-center p-4 bg-[#FFF9F3] rounded-2xl border-2 border-[#182238] text-center space-y-2 shadow-[0_2px_0_#182238]">
           <div className="relative flex items-center justify-center">
-            <div className="w-24 h-24 rounded-full bg-app-accent-soft text-app-accent border-4 border-app-accent/25 flex flex-col items-center justify-center shadow-inner">
+            <div className="w-24 h-24 rounded-full bg-[#B8322D] text-white border-2 border-[#182238] flex flex-col items-center justify-center shadow-[0_2px_0_#7A1D1A]">
               <span className="text-4xl font-extrabold font-serif">{score}</span>
-              <span className="text-[10px] text-muted uppercase font-sans font-medium">/ 100 điểm</span>
+              <span className="text-[10px] text-white/80 uppercase font-sans font-bold">/ 100 điểm</span>
             </div>
           </div>
 
-          <span className={`text-xs px-2.5 py-0.5 rounded-full border font-bold ${tier.color}`}>
+          <span className={`text-xs px-3 py-1 rounded-full border-2 border-[#182238] font-bold shadow-2xs ${tier.color}`}>
             {tier.label}
           </span>
 
           <div className="pt-1">
-            <span className="text-[11px] text-muted block">Đánh giá chuẩn HSK 3.0</span>
-            <span className="bg-title text-white text-xs font-bold font-sans px-3 py-1 rounded-full inline-block mt-1 shadow-2xs">
+            <span className="text-[11px] text-muted block font-serif">Đánh giá chuẩn HSK 3.0</span>
+            <span className="bg-[#182238] text-white text-xs font-bold font-sans px-3 py-1 rounded-full inline-block mt-1 shadow-2xs border border-[#182238]">
               {level}
             </span>
           </div>
@@ -73,9 +73,9 @@ export function ResultOverview({
 
         {/* 6 Criteria Bars */}
         <div className="space-y-3.5 flex flex-col justify-center">
-          <div className="flex items-center justify-between border-b border-border pb-2">
-            <h3 className="font-bold text-sm text-title flex items-center gap-2">
-              <Award className="w-4 h-4 text-app-accent" />
+          <div className="flex items-center justify-between border-b-2 border-[#182238]/15 pb-2">
+            <h3 className="font-bold text-sm text-[#182238] flex items-center gap-2">
+              <Award className="w-4 h-4 text-[#B8322D]" />
               <span>Đánh giá chi tiết 6 tiêu chuẩn</span>
             </h3>
             <span className="text-[11px] text-muted">Thang điểm 100</span>
@@ -120,18 +120,18 @@ export function ResultOverview({
       {(strengths.length > 0 || weaknesses.length > 0) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Strengths */}
-          <div className="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
-            <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <div className="bg-[#E8F5E9]/50 border-2 border-[#182238] rounded-3xl p-5 sm:p-6 space-y-2.5 shadow-[0_3px_0_#182238]">
+            <div className="flex items-center gap-2 text-[#2E7D32] font-bold text-xs uppercase tracking-wider">
+              <CheckCircle2 className="w-4 h-4 text-[#2E7D32]" />
               <span>Những điểm viết tốt ({strengths.length})</span>
             </div>
             {strengths.length === 0 ? (
               <p className="text-xs text-muted italic">Đang phân tích...</p>
             ) : (
-              <ul className="space-y-2 text-xs text-emerald-950">
+              <ul className="space-y-2 text-xs text-[#1B5E20]">
                 {strengths.map((str, i) => (
                   <li key={i} className="flex items-start gap-2 leading-relaxed">
-                    <span className="w-4 h-4 rounded-full bg-emerald-200/70 text-emerald-800 flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                    <span className="w-4 h-4 rounded-full bg-[#C8E6C9] text-[#1B5E20] flex items-center justify-center text-[10px] shrink-0 mt-0.5 font-bold">
                       ✓
                     </span>
                     <span>{str}</span>
@@ -142,18 +142,18 @@ export function ResultOverview({
           </div>
 
           {/* Weaknesses */}
-          <div className="bg-amber-50/50 border border-amber-200/80 rounded-2xl p-4 sm:p-5 space-y-2.5">
-            <div className="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
-              <AlertTriangle className="w-4 h-4 text-amber-600" />
+          <div className="bg-[#FFF9F3] border-2 border-[#182238] rounded-3xl p-5 sm:p-6 space-y-2.5 shadow-[0_3px_0_#182238]">
+            <div className="flex items-center gap-2 text-[#D97706] font-bold text-xs uppercase tracking-wider">
+              <AlertTriangle className="w-4 h-4 text-[#D97706]" />
               <span>Điểm cần cải thiện ({weaknesses.length})</span>
             </div>
             {weaknesses.length === 0 ? (
               <p className="text-xs text-muted italic">Không có điểm yếu đáng kể!</p>
             ) : (
-              <ul className="space-y-2 text-xs text-amber-950">
+              <ul className="space-y-2 text-xs text-[#78350F]">
                 {weaknesses.map((weak, i) => (
                   <li key={i} className="flex items-start gap-2 leading-relaxed">
-                    <span className="w-4 h-4 rounded-full bg-amber-200/70 text-amber-800 flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                    <span className="w-4 h-4 rounded-full bg-[#FDE68A] text-[#78350F] flex items-center justify-center text-[10px] shrink-0 mt-0.5 font-bold">
                       !
                     </span>
                     <span>{weak}</span>

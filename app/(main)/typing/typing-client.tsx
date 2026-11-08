@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import Image from 'next/image'
 import {
   TypingMode,
   TypingExercise,
@@ -2052,37 +2053,55 @@ export default function TypingClient() {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header & Hướng dẫn sử dụng */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/80 pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-accent-soft text-app-accent flex-shrink-0">
-              <Keyboard className="w-5 h-5" />
-            </span>
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-title tracking-tight">
-              {practiceMode === 'translate'
-                ? 'Dịch Việt → Gõ Hán'
-                : mode === 'sentence'
-                ? '100 câu ca dao, tục ngữ Việt Nam'
-                : 'Luyện đánh máy'}
-            </h1>
+      {/* 1. Header Studio Banner (The Mandarin Lab inspired) */}
+      <div className="bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-[0_4px_0_#182238] sm:shadow-[0_6px_0_#182238] dark:shadow-[0_4px_0_#0D1322] flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative overflow-hidden">
+        {/* Subtle decorative background watermarks */}
+        <div className="absolute -right-8 -bottom-10 text-[6rem] sm:text-[8rem] font-serif font-black text-[#182238]/5 dark:text-white/5 select-none pointer-events-none" style={{ fontFamily: 'var(--font-chinese), sans-serif' }}>
+          键盘
+        </div>
+
+        <div className="flex items-center gap-3.5 sm:gap-5 relative z-10 max-w-3xl">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden border-2 border-[#182238] dark:border-[#384869] shadow-[0_3px_0_#182238] shrink-0 relative bg-[#FFF9F3]">
+            <Image 
+              src="/images/typing/typing-hero.webp" 
+              alt="Luyện gõ chữ Hán 3D" 
+              fill 
+              className="object-cover" 
+              sizes="(max-width: 640px) 64px, 96px"
+              priority
+            />
           </div>
-          <p className="text-muted font-serif text-sm mt-1.5 max-w-2xl">
-            {practiceMode === 'translate'
-              ? 'Tự dịch câu tiếng Việt sang chữ Hán bằng bộ gõ Pinyin IME. Nghe phát âm tiếng Trung không lộ đáp án và sử dụng hệ thống gợi ý 3 mức khi cần.'
-              : mode === 'sentence'
-              ? 'Luyện gõ chữ Hán qua 100 câu ca dao, tục ngữ Việt Nam được chuyển ngữ sang tiếng Trung giản thể. Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán.'
-              : 'Rèn luyện kỹ năng gõ chữ Hán bằng Pinyin qua bộ gõ tiếng Trung (IME). Quan sát nội dung mục tiêu và tự gõ lại để cải thiện tốc độ và phản xạ.'}
-          </p>
+          <div className="space-y-1.5 sm:space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-[#FFF9F3] dark:bg-[#202B45] border border-[#182238]/30 dark:border-[#384869] text-[10px] sm:text-xs font-serif font-bold text-[#B8322D] shadow-xs">
+              <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#B8322D] animate-pulse" />
+              <span>Phòng Luyện Đánh Máy Tiếng Trung 3D</span>
+            </div>
+
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-[#182238] dark:text-white tracking-tight">
+              {practiceMode === 'translate'
+                ? 'Dịch Việt → Gõ Hán (Chuyển ngữ tương tác)'
+                : mode === 'sentence'
+                ? '100 Câu Ca Dao, Tục Ngữ Việt Nam'
+                : 'Luyện Gõ Phím Hán Ngữ Pinyin IME'}
+            </h1>
+
+            <p className="text-muted font-serif text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-none">
+              {practiceMode === 'translate'
+                ? 'Đọc ý nghĩa tiếng Việt, tự phản xạ chuyển ngữ sang chữ Hán bằng bộ gõ IME Pinyin. Nghe phát âm tiếng Trung không lộ đáp án và tích hợp hệ thống chấm điểm chính xác.'
+                : mode === 'sentence'
+                ? 'Luyện gõ chữ Hán qua 100 câu ca dao, tục ngữ Việt Nam được chuyển ngữ sang tiếng Trung giản thể. Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán.'
+                : 'Rèn luyện phản xạ gõ chữ Hán bằng Pinyin qua bộ gõ tiếng Trung (IME). Quan sát nội dung mục tiêu và tự gõ lại để cải thiện tốc độ và phản xạ chuẩn HSK.'}
+            </p>
+          </div>
         </div>
 
         {/* Nút Lịch sử & Thống kê */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative z-10 w-full sm:w-auto">
           <button
             onClick={() => setShowHistoryModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-card border border-border rounded-xl text-xs md:text-sm font-serif text-body hover:border-app-accent/50 hover:text-app-accent transition-all shadow-xs"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-[#FAF7F2] dark:bg-[#202B45] border-2 border-[#182238] dark:border-[#384869] rounded-xl sm:rounded-2xl text-xs sm:text-sm font-serif font-bold text-[#182238] dark:text-white hover:bg-[#FFF9F3] transition-all shadow-[0_2px_0_#182238] sm:shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] active:translate-y-0.5 active:shadow-none cursor-pointer min-h-[44px]"
           >
-            <History className="w-4 h-4 text-app-accent" />
+            <History className="w-4 h-4 text-[#B8322D]" />
             <span>Lịch sử & Thống kê</span>
           </button>
         </div>
@@ -2090,26 +2109,26 @@ export default function TypingClient() {
 
       {/* 2. Hướng dẫn gõ Pinyin IME cho người học mới */}
       {showImeGuide && (
-        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+        <div className="p-4 sm:p-5 rounded-3xl bg-[#FFF9F3] dark:bg-[#1E293B] border-2 border-[#182238] dark:border-[#384869] shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
           <div className="flex items-start gap-3">
-            <span className="p-2 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5">
+            <span className="p-2.5 rounded-2xl bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] text-[#B8322D] shadow-[0_2px_0_#182238] shrink-0 mt-0.5">
               <Keyboard className="w-5 h-5" />
             </span>
             <div className="space-y-1">
-              <p className="font-semibold text-title text-sm sm:text-base">
+              <p className="font-bold font-serif text-[#182238] dark:text-white text-sm sm:text-base">
                 Hướng dẫn gõ chữ Hán bằng bộ gõ Pinyin IME
               </p>
-              <p className="text-body text-xs sm:text-sm leading-relaxed">
+              <p className="text-body font-serif text-xs sm:text-sm leading-relaxed">
                 1. Chuyển bàn phím sang tiếng Trung (<strong>Windows + Space</strong> trên Windows hoặc <strong>Ctrl + Space</strong> trên Mac).<br />
-                2. Gõ Pinyin không dấu (ví dụ: <code className="px-1.5 py-0.5 rounded bg-black/5 font-mono font-bold">nihao</code>).<br />
-                3. Nhấn <strong>phím Cách (Space)</strong> hoặc số để chọn chữ Hán <strong className="font-hanzi">你好</strong> tương ứng.
+                2. Gõ Pinyin không dấu (ví dụ: <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono font-bold text-[#B8322D]">nihao</code>).<br />
+                3. Nhấn <strong>phím Cách (Space)</strong> hoặc phím số để chọn chữ Hán <strong className="font-hanzi text-[#182238] dark:text-white">你好</strong> tương ứng.
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setShowImeGuide(false)}
-            className="self-end sm:self-center shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium text-muted hover:text-title hover:bg-black/5 transition-colors cursor-pointer"
+            className="self-end sm:self-center shrink-0 px-3.5 py-1.5 rounded-xl border border-[#182238]/20 text-xs font-serif font-bold text-muted hover:text-[#182238] hover:bg-white transition-all cursor-pointer"
             title="Đóng hướng dẫn"
           >
             Đã hiểu, đóng lại
@@ -2118,8 +2137,8 @@ export default function TypingClient() {
       )}
 
       {/* 3. Thanh chọn chế độ luyện tập chính: Nghe & Gõ vs Dịch Việt → Gõ Hán */}
-      <div className="space-y-2">
-        <div className="grid grid-cols-2 gap-2 p-1.5 bg-card border border-[#E9DDD1] rounded-2xl shadow-2xs">
+      <div className="space-y-2.5">
+        <div className="grid grid-cols-2 gap-2 p-1.5 sm:p-2 bg-[#FAF7F2] dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-2xl shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322]">
           <button
             onClick={() => {
               stopSpeech()
@@ -2127,10 +2146,10 @@ export default function TypingClient() {
               setActiveTab('practice')
               updateUrlParams({ practice: 'visual', tab: 'practice' })
             }}
-            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-sans font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-serif font-bold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
               practiceMode === 'visual'
-                ? 'bg-[#B8322D] text-white shadow-2xs'
-                : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+                ? 'bg-[#B8322D] text-white shadow-[0_2px_0_#7A1D1A]'
+                : 'text-[#182238] dark:text-slate-300 hover:text-[#182238] hover:bg-[#182238]/5 dark:hover:bg-white/5'
             }`}
           >
             <Headphones className="w-4 h-4 shrink-0" />
@@ -2144,10 +2163,10 @@ export default function TypingClient() {
               setActiveTab('practice')
               updateUrlParams({ practice: 'translate', tab: 'practice' })
             }}
-            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-sans font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
+            className={`flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-serif font-bold transition-all active:scale-[0.98] touch-manipulation min-h-[48px] cursor-pointer ${
               practiceMode === 'translate'
-                ? 'bg-[#B8322D] text-white shadow-2xs'
-                : 'text-[#243047]/75 hover:text-[#243047] hover:bg-[#FFF9F3]'
+                ? 'bg-[#B8322D] text-white shadow-[0_2px_0_#7A1D1A]'
+                : 'text-[#182238] dark:text-slate-300 hover:text-[#182238] hover:bg-[#182238]/5 dark:hover:bg-white/5'
             }`}
           >
             <PenTool className="w-4 h-4 shrink-0" />
@@ -2155,15 +2174,15 @@ export default function TypingClient() {
           </button>
         </div>
 
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#FFF9F3] border border-[#E9DDD1] text-xs sm:text-sm font-serif text-[#243047] shadow-2xs">
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#FFF9F3] dark:bg-[#202B45] border-2 border-[#182238]/15 dark:border-[#384869] text-xs sm:text-sm font-serif text-[#182238] dark:text-slate-200 shadow-2xs">
           {practiceMode === 'visual' ? (
             <>
-              <Headphones className="w-4 h-4 text-app-accent shrink-0" />
+              <Headphones className="w-4 h-4 text-[#B8322D] shrink-0" />
               <span><strong>Nghe & Gõ:</strong> Luyện phản xạ tai nghe phát âm tiếng Trung và rèn luyện kỹ năng gõ chữ Hán tương ứng.</span>
             </>
           ) : (
             <>
-              <PenTool className="w-4 h-4 text-app-accent shrink-0" />
+              <PenTool className="w-4 h-4 text-[#B8322D] shrink-0" />
               <span><strong>Dịch Việt → Gõ Hán:</strong> Đọc ý nghĩa tiếng Việt, tự phản xạ chuyển ngữ rồi gõ câu chữ Hán hoàn chỉnh bằng bộ gõ IME.</span>
             </>
           )}
@@ -3168,23 +3187,29 @@ export default function TypingClient() {
 
           {/* 6. BẢNG TỔNG KẾT SAU KHI HOÀN THÀNH BÀI */}
           {isCompleted && (
-            <div className="p-5 md:p-6 bg-page border-2 border-app-accent/30 rounded-2xl space-y-4 animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-app-accent text-white">
-                    <Award className="w-6 h-6" />
+            <div className="p-5 md:p-6 bg-page border-2 border-app-accent/30 rounded-3xl space-y-4 animate-in fade-in duration-300 shadow-[0_4px_0_#182238]/10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="relative w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#182238]/20 shadow-2xs shrink-0 bg-white">
+                    <Image
+                      src="/images/panda/panda-celebration.webp"
+                      alt="Tiểu Bút ăn mừng chiến thắng"
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
                   </div>
                   <div>
                     <h3 className="text-lg font-serif font-bold text-title">
                       {evaluation.accuracy === 100
-                        ? 'Xuất sắc! Gõ chính xác tuyệt đối!'
+                        ? 'Xuất sắc! Gõ chính xác tuyệt đối! 🎉'
                         : evaluation.accuracy >= 90
-                        ? 'Rất tốt! Tốc độ và phản xạ ổn định!'
+                        ? 'Rất tốt! Tốc độ và phản xạ ổn định! 🌟'
                         : evaluation.accuracy >= 70
                         ? 'Khá tốt! Hãy tiếp tục luyện tập!'
                         : 'Hoàn thành bài! Hãy chú ý các lỗi sai bên dưới.'}
                     </h3>
-                    <p className="text-xs text-muted font-sans">
+                    <p className="text-xs text-muted font-sans mt-0.5">
                       Thời gian: {elapsedSeconds}s • Tốc độ: {evaluation.cpm} CPM • Độ chính xác: {evaluation.accuracy}%
                     </p>
                   </div>

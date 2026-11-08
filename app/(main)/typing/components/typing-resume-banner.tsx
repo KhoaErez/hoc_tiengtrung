@@ -28,7 +28,7 @@ export default function TypingResumeBanner({
 
   return (
     <>
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/35 dark:border-amber-500/25 rounded-2xl p-4 md:p-5 shadow-xs transition-all animate-in fade-in slide-in-from-top-2 duration-300">
+      <div className="relative overflow-hidden bg-amber-500/10 border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-4 md:p-5 shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] transition-all animate-in fade-in slide-in-from-top-2 duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-800 dark:text-amber-300 shrink-0 mt-0.5">

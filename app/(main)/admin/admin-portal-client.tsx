@@ -29,8 +29,11 @@ import {
   WifiOff,
   Clock,
   Filter,
+  GraduationCap,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { MascotAvatar } from '@/components/mascot/mascot-avatar'
 import {
   AdminUserItem,
   AdminStats,
@@ -397,33 +400,52 @@ export function AdminPortalClient({
 
   return (
     <div className="space-y-6 font-serif">
-      {/* 1. Header & Navigation Hub */}
-      <div className="bg-card border border-border rounded-2xl p-6 shadow-2xs space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-app-accent-soft text-app-accent flex items-center justify-center border border-app-accent/20 shadow-2xs">
-              <ShieldCheck className="w-6 h-6" />
+      {/* 1. Header & Navigation Hub (The Mandarin Lab Inspired EdTech Style) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-white via-[#FFF9F3] to-[#FFFDF9] dark:from-[#182238] dark:to-[#1E293B] border-2 border-[#182238]/15 dark:border-[#384869] p-5 sm:p-7 shadow-[0_6px_0_#182238]/10 dark:shadow-[0_6px_0_#0D1322] space-y-4">
+        {/* Top decorative accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-title via-app-accent to-gold" />
+
+        {/* Decorative Watermark */}
+        <div className="absolute -right-4 -bottom-6 select-none pointer-events-none opacity-[0.04] dark:opacity-[0.07] font-hanzi text-8xl md:text-9xl font-bold text-title">
+          管理
+        </div>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+          <div className="flex items-center gap-3.5">
+            <div className="w-13 h-13 rounded-2xl bg-[#B8322D]/10 text-[#B8322D] flex items-center justify-center border-2 border-[#B8322D]/25 shadow-xs">
+              <ShieldCheck className="w-7 h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl md:text-2xl font-bold text-title">Trung tâm Quản trị & Phân quyền</h1>
-                <span className="bg-app-accent text-white text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
-                  Admin
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-title tracking-tight">
+                  Trung tâm Quản trị & Phân quyền
+                </h1>
+                <span className="bg-[#B8322D] text-white text-[11px] font-sans font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-2xs">
+                  Admin Portal
                 </span>
               </div>
-              <p className="text-xs md:text-sm text-muted mt-0.5">
-                Theo dõi tài khoản đang hoạt động gần thời gian thực và quản lý quyền hạn học viên
+              <p className="text-xs sm:text-sm text-muted font-serif mt-1">
+                Theo dõi học viên đang online thời gian thực và quản lý quyền hạn hệ thống
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 self-start md:self-center">
+            {/* Mascot Avatar Widget */}
+            <div className="hidden xl:flex items-center gap-2.5 px-3.5 py-1.5 rounded-2xl bg-white/80 dark:bg-[#1E2530] border border-[#182238]/15 shadow-2xs">
+              <MascotAvatar state="idle" size="sm" />
+              <div className="text-[11px] font-serif leading-tight">
+                <p className="font-bold text-[#182238] dark:text-white">Tiểu Bút 🐼</p>
+                <p className="text-muted text-[10px]">Hệ thống ổn định</p>
+              </div>
+            </div>
+
             <Link href="/admin/feedback">
               <Button
                 variant="outline"
-                className="font-serif text-xs min-h-[40px] gap-1.5 border-[#E9DDD1] hover:bg-[#FFF9F3] text-title cursor-pointer"
+                className="font-serif text-xs min-h-[44px] px-4 gap-2 rounded-2xl border-2 border-[#182238]/20 bg-white hover:bg-[#FFF9F3] text-title shadow-[0_2px_0_#182238]/10 cursor-pointer"
               >
-                <MessageSquareWarning className="w-3.5 h-3.5 text-app-accent" />
+                <MessageSquareWarning className="w-4 h-4 text-app-accent" />
                 <span>Hộp thư góp ý & Báo lỗi</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
@@ -525,88 +547,94 @@ export function AdminPortalClient({
         </div>
       )}
 
-      {/* 2. Global User Stats Cards (Tính trên toàn bộ database + Realtime Presence) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      {/* 2. Global User Stats Cards (Vibrant EdTech Cards) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Thẻ 1: Tổng số tài khoản */}
-        <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-2xs">
-          <p className="text-[11px] text-muted uppercase tracking-wider font-sans">Tổng tài khoản</p>
-          <div className="flex items-baseline justify-between mt-1.5">
-            <span className="text-xl sm:text-2xl font-bold text-title">{stats.totalUsers}</span>
-            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-muted/60" />
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-500/10 via-white to-indigo-500/5 dark:from-[#1E2530] dark:to-[#182238] border-2 border-indigo-200/80 dark:border-indigo-900/60 p-4 shadow-[0_4px_0_#C7D2FE] dark:shadow-[0_4px_0_#1E1B4B] transition-transform hover:-translate-y-0.5 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-indigo-900 dark:text-indigo-300 font-bold uppercase tracking-wider font-sans">Tổng tài khoản</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+              <Users className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-[10px] text-muted font-sans mt-1">Đã đăng ký hệ thống</p>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-extrabold text-indigo-950 dark:text-white font-serif">{stats.totalUsers}</div>
+            <p className="text-[10px] text-indigo-800/70 dark:text-indigo-300/70 font-sans mt-0.5">Đã đăng ký hệ thống</p>
+          </div>
         </div>
 
         {/* Thẻ 2: Đang Online (Realtime Presence) */}
-        <div className="bg-card border border-emerald-500/30 rounded-xl p-3.5 sm:p-4 shadow-2xs relative overflow-hidden bg-gradient-to-br from-card via-card to-emerald-50/20">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 via-white to-emerald-500/5 dark:from-[#1E2530] dark:to-[#182238] border-2 border-emerald-300 dark:border-emerald-800/80 p-4 shadow-[0_4px_0_#6EE7B7] dark:shadow-[0_4px_0_#064E3B] transition-transform hover:-translate-y-0.5 relative overflow-hidden flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <p className="text-[11px] text-emerald-800 uppercase tracking-wider font-sans font-semibold flex items-center gap-1.5">
+            <span className="text-[11px] text-emerald-900 dark:text-emerald-300 font-bold uppercase tracking-wider font-sans flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
-                {realtimeStatus === 'connected' && (
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                )}
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                  realtimeStatus === 'connected' ? 'bg-emerald-500' : realtimeStatus === 'error' ? 'bg-amber-500' : 'bg-blue-400'
-                }`}></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span>Đang online</span>
-            </p>
-            <Radio className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-          </div>
-          <div className="flex items-baseline justify-between mt-1.5">
-            <span className="text-xl sm:text-2xl font-bold text-emerald-700">
-              {onlineCount}
             </span>
-            <span className={`text-[9px] font-sans px-1.5 py-0.5 rounded-full border ${
-              realtimeStatus === 'connected'
-                ? 'bg-emerald-100/60 text-emerald-800 border-emerald-300'
-                : realtimeStatus === 'error'
-                ? 'bg-amber-100 text-amber-800 border-amber-300'
-                : 'bg-blue-50 text-blue-700 border-blue-200'
-            }`}>
-              {realtimeStatus === 'connected' ? 'Trực tiếp' : realtimeStatus === 'error' ? 'Dự phòng DB' : 'Đang kết nối'}
-            </span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+              <Radio className="w-4 h-4 animate-pulse" />
+            </div>
           </div>
-          <p className="text-[10px] text-emerald-700/80 font-sans mt-1">
-            {realtimeStatus === 'error' ? 'Dữ liệu xác nhận gần nhất' : 'Theo dõi Realtime Presence'}
-          </p>
+          <div className="mt-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-emerald-800 dark:text-emerald-300 font-serif">{onlineCount}</span>
+              <span className="text-[10px] font-sans font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700">
+                {realtimeStatus === 'connected' ? 'Trực tiếp' : 'Đang kết nối'}
+              </span>
+            </div>
+            <p className="text-[10px] text-emerald-800/70 dark:text-emerald-300/70 font-sans mt-0.5">Theo dõi Realtime Presence</p>
+          </div>
         </div>
 
         {/* Thẻ 3: Hoạt động 24h */}
-        <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-2xs">
-          <p className="text-[11px] text-muted uppercase tracking-wider font-sans">Hoạt động 24h</p>
-          <div className="flex items-baseline justify-between mt-1.5">
-            <span className="text-xl sm:text-2xl font-bold text-title">{stats.active24hCount}</span>
-            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500/70" />
+        <div className="rounded-2xl bg-gradient-to-br from-sky-500/10 via-white to-sky-500/5 dark:from-[#1E2530] dark:to-[#182238] border-2 border-sky-200/80 dark:border-sky-900/60 p-4 shadow-[0_4px_0_#BAE6FD] dark:shadow-[0_4px_0_#0C4A6E] transition-transform hover:-translate-y-0.5 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-sky-900 dark:text-sky-300 font-bold uppercase tracking-wider font-sans">Hoạt động 24h</span>
+            <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-xs">
+              <Activity className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-[10px] text-muted font-sans mt-1">Tài khoản tương tác hôm nay</p>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-extrabold text-sky-950 dark:text-white font-serif">{stats.active24hCount}</div>
+            <p className="text-[10px] text-sky-800/70 dark:text-sky-300/70 font-sans mt-0.5">Tài khoản tương tác hôm nay</p>
+          </div>
         </div>
 
         {/* Thẻ 4: Quản trị viên (Admin) */}
-        <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-2xs">
-          <p className="text-[11px] text-muted uppercase tracking-wider font-sans">Quản trị viên</p>
-          <div className="flex items-baseline justify-between mt-1.5">
-            <span className="text-xl sm:text-2xl font-bold text-app-accent">{stats.adminCount}</span>
-            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-app-accent/60" />
+        <div className="rounded-2xl bg-gradient-to-br from-rose-500/10 via-white to-rose-500/5 dark:from-[#1E2530] dark:to-[#182238] border-2 border-rose-200/80 dark:border-rose-900/60 p-4 shadow-[0_4px_0_#FECDD3] dark:shadow-[0_4px_0_#4C0519] transition-transform hover:-translate-y-0.5 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-rose-900 dark:text-rose-300 font-bold uppercase tracking-wider font-sans">Quản trị viên</span>
+            <div className="w-8 h-8 rounded-xl bg-[#B8322D] text-white flex items-center justify-center shadow-xs">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-[10px] text-muted font-sans mt-1">Quyền Admin hệ thống</p>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-extrabold text-[#B8322D] dark:text-rose-400 font-serif">{stats.adminCount}</div>
+            <p className="text-[10px] text-rose-800/70 dark:text-rose-300/70 font-sans mt-0.5">Quyền Admin hệ thống</p>
+          </div>
         </div>
 
         {/* Thẻ 5: Học viên thường */}
-        <div className="bg-card border border-border rounded-xl p-3.5 sm:p-4 shadow-2xs">
-          <p className="text-[11px] text-muted uppercase tracking-wider font-sans">Học viên thường</p>
-          <div className="flex items-baseline justify-between mt-1.5">
-            <span className="text-xl sm:text-2xl font-bold text-title">{stats.regularCount}</span>
-            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-jade/60" />
+        <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-white to-amber-500/5 dark:from-[#1E2530] dark:to-[#182238] border-2 border-amber-200/80 dark:border-amber-900/60 p-4 shadow-[0_4px_0_#FDE68A] dark:shadow-[0_4px_0_#451A03] transition-transform hover:-translate-y-0.5 flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-amber-900 dark:text-amber-300 font-bold uppercase tracking-wider font-sans">Học viên thường</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+              <GraduationCap className="w-4 h-4" />
+            </div>
           </div>
-          <p className="text-[10px] text-muted font-sans mt-1">Người học tiêu chuẩn</p>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-extrabold text-amber-950 dark:text-white font-serif">{stats.regularCount}</div>
+            <p className="text-[10px] text-amber-800/70 dark:text-amber-300/70 font-sans mt-0.5">Người học tiêu chuẩn</p>
+          </div>
         </div>
       </div>
 
       {/* 3. User Role Management Table with Server Pagination & Activity Filters */}
-      <div ref={tableTopRef} className="scroll-mt-6 bg-card border border-border rounded-2xl shadow-2xs overflow-hidden">
+      <div ref={tableTopRef} className="scroll-mt-6 bg-white dark:bg-[#182238] border-2 border-[#182238]/15 dark:border-[#384869] rounded-3xl shadow-[0_6px_0_#182238]/8 dark:shadow-[0_6px_0_#0D1322] overflow-hidden">
         {/* Table Toolbar */}
-        <div className="p-4 border-b border-border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b-2 border-[#182238]/10 dark:border-slate-700/80 bg-[#FAF7F2]/60 dark:bg-[#182238] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3.5">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
             {/* Search Input */}
             <div className="relative flex-1 max-w-sm">
@@ -616,7 +644,7 @@ export function AdminPortalClient({
                 placeholder="Tìm theo email hoặc tên..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full pl-9 pr-8 py-1.5 text-xs bg-page border border-border rounded-lg outline-none focus:border-app-accent font-sans"
+                className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-[#1E2530] border-2 border-[#182238]/15 dark:border-slate-700 rounded-xl outline-none focus:border-app-accent font-serif shadow-xs"
               />
               {searchInput && (
                 <button
@@ -630,15 +658,15 @@ export function AdminPortalClient({
               )}
             </div>
 
-            {/* Filter Tabs */}
+            {/* Filter Tabs (Tactile sticker pills) */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
               <button
                 type="button"
                 onClick={() => setRoleFilter('all')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-sans transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer whitespace-nowrap border-2 ${
                   roleFilter === 'all'
-                    ? 'bg-title text-white font-semibold'
-                    : 'bg-page text-muted hover:text-title border border-border'
+                    ? 'bg-[#182238] text-white border-[#182238] shadow-[0_2px_0_#0D1322]'
+                    : 'bg-white dark:bg-[#1E2530] text-[#182238]/80 dark:text-slate-200 hover:text-[#182238] border-[#182238]/15 dark:border-slate-700 shadow-2xs hover:bg-[#FFF9F3]'
                 }`}
               >
                 Tất cả ({totalItems})
@@ -646,22 +674,22 @@ export function AdminPortalClient({
               <button
                 type="button"
                 onClick={() => setRoleFilter('online')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-sans transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 border-2 ${
                   roleFilter === 'online'
-                    ? 'bg-emerald-600 text-white font-semibold'
-                    : 'bg-page text-muted hover:text-emerald-700 border border-border'
+                    ? 'bg-emerald-600 text-white border-emerald-700 shadow-[0_2px_0_#065F46]'
+                    : 'bg-white dark:bg-[#1E2530] text-emerald-800 dark:text-emerald-300 border-[#182238]/15 dark:border-slate-700 shadow-2xs hover:bg-emerald-50/50'
                 }`}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>Online ({onlineUserIds.size})</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRoleFilter('active24h')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-sans transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer whitespace-nowrap border-2 ${
                   roleFilter === 'active24h'
-                    ? 'bg-blue-600 text-white font-semibold'
-                    : 'bg-page text-muted hover:text-blue-700 border border-border'
+                    ? 'bg-sky-600 text-white border-sky-700 shadow-[0_2px_0_#0369A1]'
+                    : 'bg-white dark:bg-[#1E2530] text-sky-800 dark:text-sky-300 border-[#182238]/15 dark:border-slate-700 shadow-2xs hover:bg-sky-50/50'
                 }`}
               >
                 Hoạt động 24h ({stats.active24hCount})
@@ -669,10 +697,10 @@ export function AdminPortalClient({
               <button
                 type="button"
                 onClick={() => setRoleFilter('admin')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-sans transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer whitespace-nowrap border-2 ${
                   roleFilter === 'admin'
-                    ? 'bg-app-accent text-white font-semibold'
-                    : 'bg-page text-muted hover:text-app-accent border border-border'
+                    ? 'bg-[#B8322D] text-white border-[#9E2A25] shadow-[0_2px_0_#7A1D1A]'
+                    : 'bg-white dark:bg-[#1E2530] text-[#B8322D] border-[#182238]/15 dark:border-slate-700 shadow-2xs hover:bg-rose-50/50'
                 }`}
               >
                 Admin ({stats.adminCount})
@@ -680,10 +708,10 @@ export function AdminPortalClient({
               <button
                 type="button"
                 onClick={() => setRoleFilter('regular')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-sans transition-colors cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-serif font-bold transition-all cursor-pointer whitespace-nowrap border-2 ${
                   roleFilter === 'regular'
-                    ? 'bg-slate-700 text-white font-semibold'
-                    : 'bg-page text-muted hover:text-title border border-border'
+                    ? 'bg-amber-600 text-white border-amber-700 shadow-[0_2px_0_#B45309]'
+                    : 'bg-white dark:bg-[#1E2530] text-amber-900 dark:text-amber-300 border-[#182238]/15 dark:border-slate-700 shadow-2xs hover:bg-amber-50/50'
                 }`}
               >
                 Học viên ({stats.regularCount})
@@ -703,7 +731,7 @@ export function AdminPortalClient({
               size="sm"
               onClick={handleRefresh}
               disabled={isPending}
-              className="font-serif text-xs h-8 gap-1.5 border-border hover:border-app-accent"
+              className="font-serif text-xs min-h-[38px] px-3.5 rounded-xl border-2 border-[#182238]/20 bg-white hover:bg-[#FFF9F3] text-title shadow-2xs cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isPending ? 'animate-spin text-app-accent' : ''}`} />
               <span>Làm mới</span>
@@ -857,21 +885,21 @@ export function AdminPortalClient({
         <div className="hidden md:block overflow-x-auto relative">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
-              <tr className="border-b border-border bg-page/40 text-muted uppercase tracking-wider font-semibold font-sans">
-                <th className="py-3 px-4">Tài khoản</th>
-                <th className="py-3 px-4">Email</th>
-                <th className="py-3 px-4">Trạng thái / Hoạt động</th>
-                <th className="py-3 px-4">Ngày tham gia</th>
-                <th className="py-3 px-4">Vai trò hiện tại</th>
-                <th className="py-3 px-4 text-right">Hành động phân quyền</th>
+              <tr className="border-b-2 border-[#182238]/15 bg-[#FAF7F2] text-[#182238] uppercase tracking-wider font-bold font-serif text-[11px]">
+                <th className="py-3.5 px-4">Tài khoản</th>
+                <th className="py-3.5 px-4">Email</th>
+                <th className="py-3.5 px-4">Trạng thái / Hoạt động</th>
+                <th className="py-3.5 px-4">Ngày tham gia</th>
+                <th className="py-3.5 px-4">Vai trò hiện tại</th>
+                <th className="py-3.5 px-4 text-right">Hành động phân quyền</th>
               </tr>
             </thead>
-            <tbody className={`divide-y divide-border transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+            <tbody className={`divide-y divide-[#182238]/10 transition-opacity duration-150 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
               {displayedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-muted">
                     <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p className="font-semibold text-title">Không tìm thấy tài khoản nào phù hợp.</p>
+                    <p className="font-semibold text-title font-serif">Không tìm thấy tài khoản nào phù hợp.</p>
                     {debouncedSearch ? (
                       <p className="text-xs text-muted mt-1 font-sans">
                         Không có kết quả nào khớp với từ khóa &ldquo;{debouncedSearch}&rdquo;.
@@ -892,38 +920,38 @@ export function AdminPortalClient({
                   return (
                     <tr
                       key={u.id}
-                      className={`hover:bg-page/50 transition-colors ${
-                        isCurrent ? 'bg-app-accent-soft/20' : ''
+                      className={`hover:bg-[#FFF9F3] transition-colors ${
+                        isCurrent ? 'bg-[#FAF7F2]/80' : ''
                       }`}
                     >
                       {/* Name & Avatar with Online status dot */}
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2.5">
                           <div className="relative flex-shrink-0">
                             {u.avatar_url ? (
                               <img
                                 src={u.avatar_url}
                                 alt={u.display_name || u.email}
-                                className="w-7 h-7 rounded-full object-cover border border-border"
+                                className="w-8 h-8 rounded-xl object-cover border-2 border-[#182238]/20 shadow-2xs"
                               />
                             ) : (
-                              <div className="w-7 h-7 rounded-full bg-title text-white flex items-center justify-center font-bold text-xs">
+                              <div className="w-8 h-8 rounded-xl bg-[#182238] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
                                 {initial}
                               </div>
                             )}
                             {isOnline && (
                               <span
-                                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-card rounded-full"
+                                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full animate-pulse"
                                 title="Đang online"
                               />
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-bold text-title truncate">
+                            <p className="font-bold text-title font-serif text-sm truncate">
                               {u.display_name || 'Chưa đặt tên'}
                             </p>
                             {isCurrent && (
-                              <span className="text-[10px] text-app-accent font-sans font-medium">
+                              <span className="text-[10px] text-app-accent font-sans font-bold bg-app-accent-soft px-1.5 py-0.2 rounded">
                                 (Tài khoản của bạn)
                               </span>
                             )}
@@ -932,14 +960,14 @@ export function AdminPortalClient({
                       </td>
 
                       {/* Email */}
-                      <td className="py-3 px-4 font-sans text-body">
+                      <td className="py-3.5 px-4 font-sans text-body">
                         {u.email}
                       </td>
 
                       {/* Online Status / Last Active */}
-                      <td className="py-3 px-4 font-sans">
+                      <td className="py-3.5 px-4 font-sans">
                         {isOnline ? (
-                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -947,61 +975,59 @@ export function AdminPortalClient({
                             <span>Đang online</span>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1 text-muted text-xs" title={u.last_seen_at ? new Date(u.last_seen_at).toLocaleString('vi-VN') : undefined}>
-                            <Clock className="w-3 h-3 text-muted/60" />
+                          <div className="flex items-center gap-1.5 text-muted text-xs font-serif" title={u.last_seen_at ? new Date(u.last_seen_at).toLocaleString('vi-VN') : undefined}>
+                            <Clock className="w-3.5 h-3.5 text-muted/60" />
                             <span>{formatRelativeTime(u.last_seen_at)}</span>
                           </div>
                         )}
                       </td>
 
                       {/* Created Date */}
-                      <td className="py-3 px-4 text-muted font-sans whitespace-nowrap">
+                      <td className="py-3.5 px-4 text-muted font-sans whitespace-nowrap">
                         {u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : '—'}
                       </td>
 
                       {/* Role Badge */}
-                      <td className="py-3 px-4">
+                      <td className="py-3.5 px-4">
                         {u.is_admin ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-app-accent-soft text-app-accent border border-app-accent/30">
-                            <ShieldCheck className="w-3 h-3" />
-                            Admin
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-serif font-bold bg-[#B8322D]/10 text-[#B8322D] border border-[#B8322D]/30 shadow-2xs">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Admin</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-sans text-muted bg-page border border-border">
-                            <Users className="w-3 h-3" />
-                            Học viên
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-serif font-medium bg-[#182238]/5 text-[#182238] border border-[#182238]/15">
+                            <Users className="w-3.5 h-3.5 text-muted" />
+                            <span>Học viên</span>
                           </span>
                         )}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3.5 px-4 text-right">
                         {isCurrent ? (
-                          <span className="text-[11px] text-muted italic">
+                          <span className="text-[11px] text-muted italic font-serif">
                             Không thể tự hạ quyền
                           </span>
                         ) : u.is_admin ? (
-                          <Button
-                            size="sm"
-                            variant="destructive"
+                          <button
+                            type="button"
                             disabled={isPending}
                             onClick={() => handleToggleRole(u)}
-                            className="font-serif text-xs min-h-[34px] px-3 gap-1 cursor-pointer"
+                            className="font-serif text-xs min-h-[36px] px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-800 active:translate-y-0.5 text-white font-bold border-2 border-slate-900 shadow-[0_2px_0_#0F172A] cursor-pointer inline-flex items-center gap-1.5 transition-all"
                           >
-                            <UserX className="w-3 h-3" />
+                            <UserX className="w-3.5 h-3.5" />
                             <span>Hạ xuống Học viên</span>
-                          </Button>
+                          </button>
                         ) : (
-                          <Button
-                            size="sm"
-                            variant="primary"
+                          <button
+                            type="button"
                             disabled={isPending}
                             onClick={() => handleToggleRole(u)}
-                            className="font-serif text-xs min-h-[34px] px-3 gap-1 cursor-pointer"
+                            className="font-serif text-xs min-h-[36px] px-3.5 py-1.5 rounded-xl bg-[#B8322D] hover:bg-[#9E2A25] active:translate-y-0.5 text-white font-bold border-2 border-[#7A1D1A] shadow-[0_2px_0_#7A1D1A] cursor-pointer inline-flex items-center gap-1.5 transition-all"
                           >
-                            <UserCheck className="w-3 h-3" />
+                            <UserCheck className="w-3.5 h-3.5" />
                             <span>Cấp quyền Admin</span>
-                          </Button>
+                          </button>
                         )}
                       </td>
                     </tr>

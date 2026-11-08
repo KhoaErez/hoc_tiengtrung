@@ -50,15 +50,15 @@ export function ResultVocabulary({
             {vocabularySuggestions.map((item, idx) => (
               <div
                 key={idx}
-                className="bg-card border border-border rounded-xl p-4 shadow-2xs space-y-2 hover:border-app-accent/50 transition-colors"
+                className="bg-white border-2 border-[#182238] rounded-2xl p-4 shadow-[0_3px_0_#182238] space-y-2 hover:shadow-[0_5px_0_#182238] transition-all"
               >
                 {/* Word & Pinyin & Audio */}
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-baseline gap-2.5">
-                    <span className="text-xl font-bold font-serif text-app-accent">
+                    <span className="text-xl font-bold font-serif text-[#B8322D]">
                       {item.word}
                     </span>
-                    <span className="text-xs text-muted font-sans font-medium">
+                    <span className="text-xs text-muted font-sans font-bold">
                       [{item.pinyin}]
                     </span>
                   </div>
@@ -73,14 +73,14 @@ export function ResultVocabulary({
 
                 {/* Meaning */}
                 <div className="text-xs text-body leading-relaxed">
-                  <strong className="text-title font-medium">Ý nghĩa:</strong> {item.meaning}
+                  <strong className="text-[#182238] font-bold">Ý nghĩa:</strong> {item.meaning}
                 </div>
 
                 {/* Example sentence */}
                 {item.example && (
-                  <div className="p-2.5 bg-page rounded-lg border border-border/70 flex items-center justify-between gap-2 text-xs">
-                    <div className="text-slate-700 italic min-w-0">
-                      <span className="text-muted not-italic font-sans text-[11px] mr-1">Ví dụ:</span>
+                  <div className="p-2.5 bg-[#FAF7F2] rounded-xl border border-[#182238]/15 flex items-center justify-between gap-2 text-xs">
+                    <div className="text-[#182238] italic min-w-0 font-serif">
+                      <span className="text-muted not-italic font-sans text-[11px] mr-1 font-bold">Ví dụ:</span>
                       {item.example}
                     </div>
                     <AudioButton
@@ -115,12 +115,12 @@ export function ResultVocabulary({
             {learningSuggestions.map((tip, idx) => (
               <div
                 key={idx}
-                className="bg-card border border-border rounded-xl p-3.5 shadow-2xs flex items-start gap-3 hover:border-border-strong transition-colors"
+                className="bg-white border-2 border-[#182238] rounded-2xl p-4 shadow-[0_3px_0_#182238] flex items-start gap-3 hover:shadow-[0_5px_0_#182238] transition-all"
               >
-                <span className="w-5 h-5 rounded-full bg-gold-soft text-gold font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                <span className="w-5 h-5 rounded-full bg-[#FFF9F3] text-[#B8322D] border border-[#B8322D]/30 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 font-sans">
                   {idx + 1}
                 </span>
-                <p className="text-xs text-body leading-relaxed">
+                <p className="text-xs text-[#182238] leading-relaxed font-serif">
                   {tip}
                 </p>
               </div>

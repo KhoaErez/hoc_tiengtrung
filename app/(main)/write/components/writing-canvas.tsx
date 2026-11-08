@@ -65,9 +65,9 @@ export function WritingCanvas({
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl shadow-2xs overflow-hidden font-serif space-y-0">
+    <div className="bg-white border-2 border-[#182238] rounded-3xl shadow-[0_4px_0_#182238] overflow-hidden font-serif space-y-0">
       {/* 1. Canvas Top Toolbar */}
-      <div className="p-3.5 sm:p-4 border-b border-border bg-page/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="p-3.5 sm:p-4 border-b-2 border-[#182238]/15 bg-[#FAF7F2] flex flex-wrap items-center justify-between gap-3 text-xs">
         {/* HSK Level Selector */}
         <div className="flex items-center gap-2">
           <span className="font-semibold text-title flex items-center gap-1.5">
@@ -179,7 +179,7 @@ export function WritingCanvas({
             type="button"
             onClick={onSubmit}
             disabled={!text.trim() || isSubmitting || isTooLong}
-            className="font-serif text-xs sm:text-sm h-10 px-5 rounded-xl bg-app-accent hover:bg-accent-hover text-white shadow-sm hover:shadow transition-all gap-2 w-full sm:w-auto cursor-pointer"
+            className="font-serif text-xs sm:text-sm h-11 px-6 rounded-2xl bg-[#B8322D] hover:bg-[#A32A26] text-white border-2 border-[#182238] shadow-[0_3px_0_#182238] active:translate-y-0.5 active:shadow-[0_1px_0_#182238] transition-all gap-2 w-full sm:w-auto cursor-pointer font-bold"
           >
             {isSubmitting ? (
               <>

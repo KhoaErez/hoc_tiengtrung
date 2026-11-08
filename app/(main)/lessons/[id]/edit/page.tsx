@@ -41,7 +41,7 @@ export default async function EditLessonPage(props: { params: Promise<{ id: stri
         <p className="text-muted font-serif">Chỉnh sửa nội dung tiếng Trung, hệ thống sẽ phân tích lại từ đầu.</p>
       </div>
 
-      <Card className="rounded-2xl border border-border shadow-sm bg-card">
+      <Card className="rounded-3xl border-2 border-[#182238] shadow-[0_4px_0_#182238] bg-white">
         <CardHeader>
           <CardTitle className="font-serif text-title">Nội dung bài học</CardTitle>
           <CardDescription className="text-muted">Chỉnh sửa tiêu đề và nội dung bằng chữ Hán</CardDescription>
