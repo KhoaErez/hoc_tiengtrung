@@ -446,10 +446,28 @@ export default function TypingClient() {
   }, [mode, urlWord, urlVocabId, initialVocabExercises])
 
   // Danh sách bài tập hiện tại & Chỉ số bài đang làm
-  const exercises = useMemo(() => {
-    if (mode === 'vocabulary') {
+  const exercises = useMemo<TypingExercise[]>(() => {
+    if (mode === 'vocabulary' || urlWord || urlVocabId) {
       if (vocabularyExercises.length > 0) return vocabularyExercises
       if (initialVocabExercises.length > 0) return initialVocabExercises
+      if (urlWord) {
+        return [
+          {
+            id: urlVocabId ? `vocab-${urlVocabId}-word` : `vocab-${encodeURIComponent(urlWord)}-word`,
+            hanzi: urlWord,
+            pinyin: urlPinyin || '',
+            meaning: urlMeaning || 'Từ vựng tiếng Trung',
+            mode: 'vocabulary',
+            category: 'Từ vựng',
+            level: 'Từ vựng',
+            titleZh: urlWord,
+            titleVi: urlMeaning || 'Từ vựng tiếng Trung',
+            exampleHanzi: urlExHanzi || undefined,
+            examplePinyin: urlExPinyin || undefined,
+            exampleVi: urlExVi || undefined,
+          },
+        ]
+      }
       return getExercisesByMode('sentence', { level: levelFilter, category: categoryFilter })
     }
     if (mode === 'hsk') {
@@ -460,14 +478,15 @@ export default function TypingClient() {
       level: levelFilter,
       category: categoryFilter,
     })
-  }, [mode, vocabularyExercises, initialVocabExercises, levelFilter, categoryFilter, hskDynamicExercises, hskLevel])
+  }, [mode, urlWord, urlVocabId, vocabularyExercises, initialVocabExercises, urlPinyin, urlMeaning, urlExHanzi, urlExPinyin, urlExVi, levelFilter, categoryFilter, hskDynamicExercises, hskLevel])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [exerciseEpoch, setExerciseEpoch] = useState(0)
   const currentExercise = exercises[currentIndex] || exercises[0]
 
-  // Tự động khôi phục vị trí câu bài tập khi danh sách bài tập đã nạp xong
+  // Tự động khôi phục vị trí câu bài tập khi danh sách bài tập đã nạp xong (bỏ qua khi đang luyện từ vựng cụ thể)
   useEffect(() => {
+    if (urlWord || urlVocabId || mode === 'vocabulary') return
     if (!resumeSentenceId && resumeSentenceIndex === undefined) return
     if (exercises.length === 0) return
 
@@ -2472,8 +2491,8 @@ export default function TypingClient() {
             </div>
           )}
 
-          {/* 3.1. Thẻ "Tiếp tục học" thông minh riêng biệt cho Nghe & Gõ */}
-          {latestVisualProgress && (
+          {/* 3.1. Thẻ "Tiếp tục học" thông minh riêng biệt cho Nghe & Gõ (ẩn khi đang luyện gõ từ vựng cụ thể) */}
+          {latestVisualProgress && !urlWord && !urlVocabId && mode !== 'vocabulary' && (
             <TypingResumeCard
               progress={latestVisualProgress}
               onResume={handleResumeVisualLatest}
@@ -2482,8 +2501,8 @@ export default function TypingClient() {
             />
           )}
 
-          {/* Banner khôi phục tiến độ nếu có bài dở dang (chỉ hiển thị khi không có thẻ ResumeCard) */}
-          {showResumeBanner && savedProgress && !latestVisualProgress && (
+          {/* Banner khôi phục tiến độ nếu có bài dở dang (chỉ hiển thị khi không có thẻ ResumeCard và không phải luyện từ vựng) */}
+          {showResumeBanner && savedProgress && !latestVisualProgress && !urlWord && !urlVocabId && mode !== 'vocabulary' && (
             <TypingResumeBanner
               currentSentenceIndex={savedProgress.currentSentenceIndex}
               totalSentences={savedProgress.totalSentences}

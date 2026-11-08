@@ -1487,20 +1487,51 @@ export async function getTranslationExercisesAction(params: {
 export async function getVocabularyTypingExerciseAction(params: { vocabId?: string; word?: string }) {
   try {
     const supabase = await createClient()
-    let query = supabase
-      .from('vocabularies')
-      .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi, vocabulary_examples(id, chinese, pinyin, meaning_vi)')
+    let data: any = null
 
-    if (params.vocabId) {
-      query = query.eq('id', params.vocabId)
-    } else if (params.word) {
-      query = query.eq('hanzi', params.word.trim())
-    } else {
-      return { success: false, data: [] }
+    // Thử truy vấn kèm liên kết vocabulary_examples
+    try {
+      let query = supabase
+        .from('vocabularies')
+        .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi, vocabulary_examples(id, chinese, pinyin, meaning_vi)')
+
+      if (params.vocabId) {
+        query = query.eq('id', params.vocabId)
+      } else if (params.word) {
+        query = query.eq('hanzi', params.word.trim())
+      } else {
+        return { success: false, data: [] }
+      }
+
+      const { data: rows, error } = await query.limit(1)
+      if (!error && rows && rows.length > 0) {
+        data = rows[0]
+      }
+    } catch {
+      // Bỏ qua lỗi liên kết bảng nếu có
     }
 
-    const { data, error } = await query.maybeSingle()
-    if (error || !data) {
+    // Fallback nếu truy vấn có quan hệ gặp lỗi cache hoặc schema
+    if (!data) {
+      let simpleQuery = supabase
+        .from('vocabularies')
+        .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
+
+      if (params.vocabId) {
+        simpleQuery = simpleQuery.eq('id', params.vocabId)
+      } else if (params.word) {
+        simpleQuery = simpleQuery.eq('hanzi', params.word.trim())
+      } else {
+        return { success: false, data: [] }
+      }
+
+      const { data: rows } = await simpleQuery.limit(1)
+      if (rows && rows.length > 0) {
+        data = rows[0]
+      }
+    }
+
+    if (!data) {
       return { success: false, data: [] }
     }
 

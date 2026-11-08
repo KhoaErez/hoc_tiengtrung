@@ -537,7 +537,7 @@ export function VocabularyClient({
       {/* 5. PHÂN TRANG (PAGINATION)                                         */}
       {/* ================================================================== */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-4 pb-12">
+        <div className="flex items-center justify-center gap-2 pt-4 pb-2 sm:pb-4">
           <Button
             variant="outline"
             size="sm"

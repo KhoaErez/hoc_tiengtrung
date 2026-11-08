@@ -197,7 +197,7 @@ export default async function HomePage() {
   const recentExerciseTitle = recentTyping?.lesson_title || (recentTyping?.current_question_text ? `Câu: ${recentTyping.current_question_text.slice(0, 18)}...` : null)
 
   return (
-    <div className="w-full space-y-12 sm:space-y-16 md:space-y-20 pb-16">
+    <div className="w-full space-y-12 sm:space-y-16 md:space-y-20 pb-4 sm:pb-8 md:pb-12">
 
       {/* ================================================================== */}
       {/* 1. HERO SECTION (IMMERSIVE 3D · THE MANDARIN LAB INSPIRED)         */}

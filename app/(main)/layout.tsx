@@ -34,8 +34,8 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               isAdmin={isAdmin} 
             />
 
-            {/* Vùng nội dung chính (Tối ưu Mobile-First: chiếm gần toàn bộ chiều rộng điện thoại, pb-24 tránh bị Bottom Nav che) */}
-            <main className="flex-1 w-full sm:w-[94%] max-w-[1536px] 2xl:max-w-[1640px] mx-auto px-3 sm:px-4 lg:px-6 2xl:px-8 py-3.5 sm:py-6 pb-24 lg:pb-8 relative z-10 min-w-0">
+            {/* Vùng nội dung chính (Tối ưu Mobile-First: flex-initial trên mobile để footer xuất hiện tự nhiên sau nội dung) */}
+            <main className="w-full sm:w-[94%] max-w-[1536px] 2xl:max-w-[1640px] mx-auto px-3 sm:px-4 lg:px-6 2xl:px-8 py-3.5 sm:py-6 pb-4 sm:pb-6 md:pb-8 flex-initial md:flex-1 relative z-10 min-w-0">
               {children}
             </main>
 

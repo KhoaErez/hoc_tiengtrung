@@ -2,18 +2,71 @@ import React from 'react'
 import Link from 'next/link'
 import { SITE_CONFIG } from '@/lib/site-config'
 import { BrandLogo, BrandSymbol } from '@/components/ui/brand-logo'
-import { BookOpen, GraduationCap, Keyboard, BrainCircuit, Sparkles, Heart } from 'lucide-react'
+import { GraduationCap, Keyboard, Sparkles, Heart } from 'lucide-react'
 
 export function SiteFooter() {
   return (
     <footer
-      className="w-full border-t-2 border-[#E5D7CA] dark:border-[#2D3A56] bg-page/95 backdrop-blur-md select-none transition-colors mt-12"
+      className="w-full border-t-2 border-[#E5D7CA] dark:border-[#2D3A56] bg-page/95 backdrop-blur-md select-none transition-colors mt-6 sm:mt-8 md:mt-12"
       role="contentinfo"
       aria-label="Thông tin bản quyền và tác giả"
     >
-      <div className="w-[90%] sm:w-[92%] max-w-[1536px] 2xl:max-w-[1640px] mx-auto px-2 sm:px-4 lg:px-6 2xl:px-8 pt-10 pb-24 md:pb-10 space-y-8">
+      {/* ================================================================= */}
+      {/* 1. FOOTER DÀNH RIÊNG CHO MOBILE (< md: Dưới 768px)                */}
+      {/* Tối giản, hiện đại, không chiếm diện tích, không che khuất        */}
+      {/* ================================================================= */}
+      <div className="md:hidden w-[92%] max-w-md mx-auto px-2 pt-6 pb-[max(5.5rem,calc(4.75rem+env(safe-area-inset-bottom,0px)))] space-y-4">
+        {/* Brand & Slogan */}
+        <div className="flex flex-col items-center text-center space-y-1.5">
+          <BrandLogo variant="horizontal" size="sm" showSubtitle={false} className="justify-center" />
+          <p className="text-xs font-serif text-muted leading-relaxed max-w-xs">
+            Không gian học Hán ngữ hiện đại · Tiêu chuẩn HSK 3.0
+          </p>
+        </div>
+
+        {/* Footer Quick Links (Nằm cùng hàng, tự động xuống dòng linh hoạt) */}
+        <nav aria-label="Liên kết chân trang" className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-2 text-xs font-serif text-muted/90 pt-1">
+          <Link href="/topics" className="hover:text-[#B8322D] transition-colors">Lộ trình HSK</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/vocabulary" className="hover:text-[#B8322D] transition-colors">Từ vựng</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/typing" className="hover:text-[#B8322D] transition-colors">Luyện gõ</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/review" className="hover:text-[#B8322D] transition-colors">Ôn tập SM-2</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/radicals" className="hover:text-[#B8322D] transition-colors">214 Bộ thủ</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/grammar" className="hover:text-[#B8322D] transition-colors">Ngữ pháp</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/write" className="hover:text-[#B8322D] transition-colors">Luyện viết AI</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/about" className="hover:text-[#B8322D] transition-colors">Giới thiệu & Bản quyền</Link>
+          <span className="text-muted/30 select-none">•</span>
+          <Link href="/profile" className="hover:text-[#B8322D] transition-colors">Hồ sơ học viên</Link>
+        </nav>
+
+        {/* Copyright & Tác giả */}
+        <div className="pt-3 border-t border-[#E5D7CA]/60 dark:border-slate-800 text-center space-y-1 text-xs font-serif text-muted">
+          <p className="flex items-center justify-center gap-1.5 flex-wrap">
+            <BrandSymbol size={16} className="opacity-80" />
+            <span>{SITE_CONFIG.copyrightNotice}</span>
+            <span>•</span>
+            <span>Tác giả: <Link href="/about" className="font-semibold text-[#B8322D] hover:underline">{SITE_CONFIG.developer}</Link></span>
+          </p>
+          <p className="text-[11px] text-muted/75 flex items-center justify-center gap-1">
+            <span>Đồng hành cùng bạn trên từng trang Hán ngữ</span>
+            <Heart className="w-3 h-3 text-red-500 fill-red-500 inline-block mx-0.5" />
+          </p>
+        </div>
+      </div>
+
+      {/* ================================================================= */}
+      {/* 2. FOOTER ĐẦY ĐỦ CHO DESKTOP (>= md: Từ 768px trở lên)            */}
+      {/* Giữ nguyên toàn bộ 4 cột và chiều sâu giao diện hiện tại          */}
+      {/* ================================================================= */}
+      <div className="hidden md:block w-[90%] sm:w-[92%] max-w-[1536px] 2xl:max-w-[1640px] mx-auto px-4 lg:px-6 2xl:px-8 pt-10 pb-10 space-y-8">
         {/* Main Footer Grid - 4 Columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Col 1: Brand & Story */}
           <div className="space-y-3">
             <BrandLogo variant="horizontal" size="md" />
@@ -164,4 +217,3 @@ export function SiteFooter() {
     </footer>
   )
 }
-

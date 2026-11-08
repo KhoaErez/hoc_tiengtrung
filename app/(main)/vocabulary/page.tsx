@@ -48,7 +48,7 @@ export default async function VocabularyPage({
   ])
 
   return (
-    <div className="w-full max-w-[1500px] mx-auto py-2 pb-24 sm:pb-32">
+    <div className="w-full max-w-[1500px] mx-auto py-2 pb-4 sm:pb-6">
       <VocabularyClient
         initialVocabs={searchResult.vocabs}
         initialTotalCount={searchResult.totalCount}
