@@ -3084,12 +3084,10 @@ export default function TypingClient() {
                   spellCheck="false"
                   placeholder={
                     practiceStatus === 'correct'
-                      ? 'Chính xác! Nhấn Enter lần nữa để chuyển sang câu tiếp theo.'
+                      ? 'Chính xác! Nhấn Enter để sang câu tiếp theo.'
                       : practiceStatus === 'incorrect'
-                      ? 'Chưa chính xác. Chỉnh sửa câu rồi nhấn Enter để kiểm tra lại...'
-                      : mode === 'sentence'
-                      ? 'Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán...'
-                      : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
+                      ? 'Chưa đúng. Sửa lại rồi nhấn Enter...'
+                      : 'Gõ pinyin rồi chọn đúng chữ Hán...'
                   }
                   className={`w-full px-4 py-3.5 min-h-[52px] bg-card border-2 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner ${
                     practiceStatus === 'correct'
@@ -3264,56 +3262,57 @@ export default function TypingClient() {
           )}
 
           {/* Các nút hành động điều hướng */}
-          <div className="flex items-center justify-between gap-2 pt-2 pb-6 md:pb-2">
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2 pb-6 md:pb-2">
             <button
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs md:text-sm text-[#243047] hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:text-[#243047] font-serif transition-colors active:scale-[0.98] touch-manipulation min-h-[44px] rounded-xl cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-[#243047] dark:text-slate-300 hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed font-serif whitespace-nowrap transition-colors active:scale-[0.98] touch-manipulation min-h-[44px] rounded-xl cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 shrink-0" />
-              <span>Câu trước</span>
+              <span className="whitespace-nowrap">Câu trước</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 onClick={resetExercise}
-                className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2 bg-[#FFF9F3] border border-[#E9DDD1] hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-xs md:text-sm font-serif text-[#243047] transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer"
+                className="flex items-center justify-center px-2.5 sm:px-3 py-2 bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-xs sm:text-sm font-serif text-[#243047] dark:text-slate-200 transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
                 title="Làm lại từ đầu"
+                aria-label="Làm lại từ đầu"
               >
                 <RotateCcw className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline">Làm lại</span>
+                <span className="hidden sm:inline whitespace-nowrap">Làm lại</span>
               </button>
 
               {practiceStatus !== 'correct' && (
                 <button
                   onClick={handleCheckVisualAnswer}
                   disabled={userInput.trim().length === 0}
-                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs sm:text-sm font-serif whitespace-nowrap transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
                   title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
                 >
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
-                  <span>Kiểm tra</span>
+                  <span className="whitespace-nowrap">Kiểm tra</span>
                 </button>
               )}
 
               <button
                 onClick={() => handleNextVisualSentence({ isSkipManual: practiceStatus !== 'correct' })}
                 disabled={currentIndex >= exercises.length - 1 && practiceStatus === 'correct'}
-                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs md:text-sm font-serif font-medium transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer ${
+                className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-serif font-medium whitespace-nowrap transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer shrink-0 ${
                   practiceStatus === 'correct'
                     ? 'bg-[#B8322D] hover:bg-[#982923] text-white font-semibold'
-                    : 'bg-[#FFF9F3] border border-[#E9DDD1] hover:border-app-accent hover:text-app-accent text-title'
+                    : 'bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-app-accent hover:text-app-accent text-title'
                 }`}
                 title={practiceStatus === 'correct' ? 'Chuyển sang câu tiếp theo (Enter)' : 'Bỏ qua câu này (không tính đúng)'}
               >
-                <span className="truncate">
+                <span className="whitespace-nowrap">
                   {currentIndex >= exercises.length - 1
                     ? practiceStatus === 'correct'
                       ? 'Hoàn thành'
                       : 'Kết thúc bài'
                     : practiceStatus === 'correct'
                     ? mode === 'sentence' ? 'Câu tiếp' : 'Tiếp theo'
-                    : 'Bỏ qua câu này →'}
+                    : 'Bỏ qua câu này'}
                 </span>
                 <ArrowRight className="w-4 h-4 shrink-0" />
               </button>

@@ -1260,14 +1260,14 @@ export default function TranslateTypingMode({
                 spellCheck="false"
                 placeholder={
                   practiceStatus === 'correct'
-                    ? 'Đã trùng khớp câu mẫu! Nhấn Enter để sang câu tiếp theo hoặc bấm "Câu tiếp theo"...'
+                    ? 'Chính xác! Nhấn Enter để sang câu tiếp theo...'
                     : practiceStatus === 'incorrect'
-                    ? 'Chưa chính xác. Chỉnh sửa câu của bạn rồi nhấn Enter để kiểm tra...'
+                    ? 'Chưa đúng. Sửa lại rồi nhấn Enter để kiểm tra...'
                     : practiceStatus === 'checking'
                     ? 'Đang kiểm tra đáp án...'
                     : practiceStatus === 'transitioning'
                     ? 'Đang chuyển câu tiếp theo...'
-                    : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
+                    : 'Gõ pinyin rồi chọn chữ Hán tương ứng...'
                 }
                 className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-white dark:bg-card border-2 rounded-2xl text-lg sm:text-2xl font-serif text-[#182238] dark:text-white placeholder:text-muted/70 placeholder:text-sm sm:placeholder:text-base focus:outline-none transition-all ${
                   practiceStatus === 'correct'
@@ -1352,19 +1352,19 @@ export default function TranslateTypingMode({
                     type="button"
                     onClick={handleCheckAnswer}
                     disabled={userInput.trim().length === 0}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold whitespace-nowrap transition-all shadow-2xs active:scale-95 cursor-pointer"
                     title="Kiểm tra lại đáp án (hoặc nhấn Enter)"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Kiểm tra lại</span>
+                    <span className="whitespace-nowrap">Kiểm tra lại</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleNextSentence({ isSkipManual: true })}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/80 dark:bg-card border border-amber-400/50 hover:bg-white text-amber-900 dark:text-amber-300 rounded-lg text-xs font-serif font-medium transition-all shadow-2xs active:scale-95 cursor-pointer"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/80 dark:bg-card border border-amber-400/50 hover:bg-white text-amber-900 dark:text-amber-300 rounded-lg text-xs font-serif font-medium whitespace-nowrap transition-all shadow-2xs active:scale-95 cursor-pointer"
                     title="Bỏ qua câu này và chuyển sang câu tiếp theo (không tính đúng)"
                   >
-                    <span>Bỏ qua câu này →</span>
+                    <span className="whitespace-nowrap">Bỏ qua câu này →</span>
                   </button>
                 </div>
               </div>
@@ -1585,17 +1585,17 @@ export default function TranslateTypingMode({
               type="button"
               onClick={handlePrevSentence}
               disabled={currentIndex === 0 || practiceStatus === 'checking' || practiceStatus === 'transitioning'}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-[#243047] hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed font-serif transition-colors touch-manipulation min-h-[44px] cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-[#243047] hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed font-serif whitespace-nowrap transition-colors touch-manipulation min-h-[44px] cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 shrink-0" />
-              <span>Câu trước</span>
+              <span className="whitespace-nowrap">Câu trước</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleNextSentence({ isSkipManual: practiceStatus !== 'correct' })}
               disabled={currentIndex >= exercises.length - 1 && practiceStatus === 'correct'}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-medium transition-all shadow-2xs touch-manipulation min-h-[44px] cursor-pointer ml-auto ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-medium whitespace-nowrap transition-all shadow-2xs touch-manipulation min-h-[44px] cursor-pointer ml-auto ${
                 practiceStatus === 'correct'
                   ? 'bg-[#B8322D] hover:bg-[#982923] text-white font-semibold'
                   : 'bg-[#FFF9F3] border border-[#E9DDD1] hover:border-app-accent hover:text-app-accent text-title'
@@ -1606,14 +1606,14 @@ export default function TranslateTypingMode({
                   : 'Bỏ qua câu hiện tại và sang câu tiếp theo'
               }
             >
-              <span>
+              <span className="whitespace-nowrap">
                 {currentIndex >= exercises.length - 1
                   ? practiceStatus === 'correct'
                     ? 'Đã hết câu'
                     : 'Hoàn thành bài'
                   : practiceStatus === 'correct'
                   ? 'Câu tiếp theo'
-                  : 'Bỏ qua câu này →'}
+                  : 'Bỏ qua câu này'}
               </span>
               <ArrowRight className="w-4 h-4 shrink-0" />
             </button>

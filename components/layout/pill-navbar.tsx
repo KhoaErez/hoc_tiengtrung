@@ -19,7 +19,7 @@ import {
   BookMarked,
   Info,
   ChevronRight,
-  Sparkle
+  Search,
 } from 'lucide-react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
@@ -48,9 +48,9 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
     { label: 'Trang chủ', href: '/', icon: BookOpen },
     { label: 'Lộ trình HSK', href: '/topics', icon: GraduationCap },
     { label: 'Luyện gõ', href: '/typing', icon: Keyboard },
+    { label: 'Tra từ vựng', href: '/vocabulary', icon: Search },
     { label: 'Ôn tập SM-2', href: '/review', icon: Layers },
     { label: '214 Bộ thủ', href: '/radicals', icon: BookOpen },
-    { label: 'Luyện viết AI', href: '/write', icon: Sparkles },
     { label: 'Ngữ pháp', href: '/grammar', icon: Library },
   ]
 
@@ -61,6 +61,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
       items: [
         { label: 'Trang chủ', href: '/', icon: BookOpen, desc: 'Tổng quan & Hành trình' },
         { label: 'Lộ trình HSK 1–9', href: '/topics', icon: GraduationCap, desc: 'Lộ trình bài học chuẩn hóa' },
+        { label: 'Tra từ điển HSK', href: '/vocabulary', icon: Search, desc: 'Tra cứu chữ Hán, Pinyin & nghĩa' },
         { label: 'Luyện gõ phím IME', href: '/typing', icon: Keyboard, desc: 'Phản xạ gõ Hán tự Pinyin' },
         { label: 'Ôn tập thẻ nhớ SM-2', href: '/review', icon: Layers, desc: 'Lặp lại ngắt quãng thông minh' },
       ],
