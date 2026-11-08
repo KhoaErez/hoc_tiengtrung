@@ -2890,7 +2890,7 @@ export default function TypingClient() {
             isAudioFinished={isAudioFinished}
           />
 
-          <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-8 shadow-sm space-y-4 sm:space-y-6">
+          <div className="bg-card border border-border rounded-xl sm:rounded-2xl p-3.5 sm:p-5 md:p-8 shadow-sm space-y-3.5 sm:space-y-6 min-w-0 overflow-hidden">
             {/* Huy hiệu thông tin câu & Nút nghe phát âm tiếng Trung */}
             <div className="flex items-center justify-between gap-3 text-xs text-muted font-serif flex-wrap">
               <div className="flex items-center gap-2 flex-wrap">
@@ -3268,7 +3268,7 @@ export default function TypingClient() {
                       ? 'Chưa chính xác. Chỉnh sửa câu rồi nhấn Enter để kiểm tra lại...'
                       : 'Bật bộ gõ tiếng Trung (Pinyin), gõ pinyin rồi chọn chữ Hán tương ứng...'
                   }
-                  className={`w-full p-4 bg-card border-2 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner resize-none ${
+                  className={`w-full p-3.5 sm:p-4 bg-card border-2 rounded-2xl text-lg sm:text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner resize-none ${
                     practiceStatus === 'correct'
                       ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
                       : practiceStatus === 'incorrect'
@@ -3300,7 +3300,7 @@ export default function TypingClient() {
                       ? 'Chưa đúng. Sửa lại rồi nhấn Enter...'
                       : 'Gõ pinyin rồi chọn đúng chữ Hán...'
                   }
-                  className={`w-full px-4 py-3.5 min-h-[52px] bg-card border-2 rounded-2xl text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner ${
+                  className={`w-full px-3.5 sm:px-4 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] bg-card border-2 rounded-2xl text-lg sm:text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner ${
                     practiceStatus === 'correct'
                       ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
                       : practiceStatus === 'incorrect'
@@ -3313,26 +3313,26 @@ export default function TypingClient() {
 
               {/* Chỉ báo trạng thái IME Composition đang xử lý */}
               {isComposing && (
-                <div className="absolute right-3 top-3 px-2 py-1 bg-amber-500/15 border border-amber-400/30 text-amber-700 dark:text-amber-400 rounded-md text-xs font-sans flex items-center gap-1.5 animate-pulse">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span>Đang chọn chữ IME ({compositionText || 'pinyin'})...</span>
+                <div className="absolute right-2 sm:right-3 top-2.5 sm:top-3 px-2 py-0.5 sm:py-1 bg-amber-500/15 border border-amber-400/30 text-amber-700 dark:text-amber-400 rounded-md text-[11px] sm:text-xs font-sans flex items-center gap-1.5 animate-pulse max-w-[140px] sm:max-w-none">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                  <span className="truncate">IME ({compositionText || 'pinyin'})...</span>
                 </div>
               )}
             </div>
 
             {/* THÔNG BÁO TRẠNG THÁI THEO CHUẨN ENTER UX (Ngay dưới ô nhập liệu) */}
             {practiceStatus === 'correct' && (
-              <div className="p-3 sm:p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-serif flex items-center justify-between gap-3 animate-in fade-in duration-200">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span>
-                    <strong>Chính xác!</strong> Nhấn <kbd className="font-mono font-bold bg-white/90 dark:bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-400/40 text-emerald-900 dark:text-emerald-100 shadow-2xs">Enter</kbd> lần nữa để chuyển sang câu tiếp theo.
+              <div className="p-3 sm:p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-200 text-xs sm:text-sm font-serif flex items-center justify-between gap-2.5 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-xs sm:text-sm leading-snug">
+                    <strong>Chính xác!</strong> Nhấn <kbd className="font-mono font-bold bg-white/90 dark:bg-emerald-950 px-1 py-0.5 rounded border border-emerald-400/40 text-emerald-900 dark:text-emerald-100 shadow-2xs text-[11px]">Enter</kbd> lần nữa để tiếp tục.
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleNextVisualSentence()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
+                  className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0 min-h-[36px]"
                   title="Chuyển sang câu tiếp theo"
                 >
                   <span>Tiếp tục</span>
@@ -3344,17 +3344,17 @@ export default function TypingClient() {
             {practiceStatus === 'incorrect' && (
               <div className="p-3 sm:p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-serif flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-in fade-in duration-200">
                 <div className="flex items-start sm:items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
-                  <span>
-                    Bạn cần trả lời đúng để chuyển sang câu tiếp theo. Hãy kiểm tra và sửa lại đáp án, hoặc chọn <strong className="font-semibold">Bỏ qua câu này</strong> nếu muốn chuyển tiếp.
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
+                  <span className="text-xs sm:text-sm leading-snug">
+                    Chưa chính xác. Hãy sửa lại rồi nhấn Enter, hoặc chọn <strong>Bỏ qua câu này</strong>.
                   </span>
                 </div>
-                <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <div className="flex items-center gap-2 self-stretch sm:self-auto justify-end shrink-0 pt-1 sm:pt-0">
                   <button
                     type="button"
                     onClick={handleCheckVisualAnswer}
                     disabled={userInput.trim().length === 0}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold transition-all shadow-2xs active:scale-95 cursor-pointer min-h-[36px]"
                     title="Kiểm tra lại đáp án (hoặc nhấn Enter)"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
@@ -3363,34 +3363,23 @@ export default function TypingClient() {
                   <button
                     type="button"
                     onClick={() => handleNextVisualSentence({ isSkipManual: true })}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/80 dark:bg-card border border-amber-400/50 hover:bg-white text-amber-900 dark:text-amber-300 rounded-lg text-xs font-serif font-medium transition-all shadow-2xs active:scale-95 cursor-pointer"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-white/80 dark:bg-card border border-amber-400/50 hover:bg-white text-amber-900 dark:text-amber-300 rounded-lg text-xs font-serif font-medium transition-all shadow-2xs active:scale-95 cursor-pointer min-h-[36px]"
                     title="Bỏ qua câu này và chuyển sang câu tiếp theo (không tính đúng)"
                   >
-                    <span>Bỏ qua câu này →</span>
+                    <span>Bỏ qua →</span>
                   </button>
                 </div>
               </div>
             )}
 
-            <div className="flex items-center justify-between text-xs text-muted font-serif px-1 gap-2 flex-wrap">
+            {/* Bộ đếm ký tự & Phím tắt */}
+            <div className="flex items-center justify-between text-xs text-muted font-serif px-1 pt-1.5">
               <span>
-                Đã gõ: <strong className="text-title">{userInput.length}</strong> / {currentExercise.hanzi.length} ký tự
+                Đã gõ: <strong className="text-title font-sans font-semibold">{userInput.length}</strong> / {currentExercise.hanzi.length} ký tự
               </span>
-              <div className="flex items-center gap-2">
-                {practiceStatus === 'typing' && userInput.trim().length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleCheckVisualAnswer}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold shadow-2xs transition-all active:scale-95 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Kiểm tra</span>
-                  </button>
-                )}
-                <span className="hidden sm:inline text-muted/80">
-                  Phím tắt: <kbd className="px-1.5 py-0.5 rounded bg-page border border-border">Enter</kbd> {practiceStatus === 'correct' ? 'sang câu tiếp' : 'để kiểm tra'} • <kbd className="px-1.5 py-0.5 rounded bg-page border border-border">Alt + R</kbd> làm lại
-                </span>
-              </div>
+              <span className="hidden sm:inline text-muted/80">
+                Phím tắt: <kbd className="px-1.5 py-0.5 rounded bg-page border border-border font-mono text-[11px]">Enter</kbd> {practiceStatus === 'correct' ? 'sang câu tiếp' : 'để kiểm tra'} • <kbd className="px-1.5 py-0.5 rounded bg-page border border-border font-mono text-[11px]">Alt + R</kbd> làm lại
+              </span>
             </div>
           </div>
 
@@ -3473,32 +3462,104 @@ export default function TypingClient() {
           )}
 
           {/* Các nút hành động điều hướng */}
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2 pb-6 md:pb-2">
+          {/* Mobile Grid 2x2 (Hàng 1: Câu trước, Làm lại. Hàng 2: Kiểm tra, Bỏ qua câu này / Tiếp theo) */}
+          <div className="grid grid-cols-2 gap-2 sm:hidden pt-3.5 pb-2 w-full">
+            {/* Hàng 1 - Cột 1: Câu trước */}
             <button
+              type="button"
               onClick={handlePrev}
               disabled={currentIndex === 0}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 text-xs sm:text-sm text-[#243047] dark:text-slate-300 hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed font-serif whitespace-nowrap transition-colors active:scale-[0.98] touch-manipulation min-h-[44px] rounded-xl cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2.5 bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 rounded-xl text-xs font-serif text-[#243047] dark:text-slate-200 disabled:opacity-35 disabled:cursor-not-allowed transition-all active:scale-[0.98] touch-manipulation min-h-[46px] shadow-2xs cursor-pointer select-none"
+              title="Quay lại câu trước"
+            >
+              <ArrowLeft className="w-4 h-4 shrink-0" />
+              <span className="truncate font-medium">Câu trước</span>
+            </button>
+
+            {/* Hàng 1 - Cột 2: Làm lại */}
+            <button
+              type="button"
+              onClick={resetExercise}
+              className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2.5 bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-xs font-serif text-[#243047] dark:text-slate-200 transition-all active:scale-[0.98] touch-manipulation min-h-[46px] shadow-2xs cursor-pointer select-none"
+              title="Làm lại câu hiện tại"
+            >
+              <RotateCcw className="w-4 h-4 shrink-0" />
+              <span className="truncate font-medium">Làm lại</span>
+            </button>
+
+            {/* Hàng 2 - Cột 1: Kiểm tra */}
+            {practiceStatus !== 'correct' ? (
+              <button
+                type="button"
+                onClick={handleCheckVisualAnswer}
+                disabled={userInput.trim().length === 0}
+                className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2.5 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs font-serif font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[46px] shadow-2xs cursor-pointer select-none"
+                title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span className="truncate">Kiểm tra</span>
+              </button>
+            ) : (
+              <div className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 rounded-xl text-xs font-serif font-semibold min-h-[46px] select-none">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span className="truncate">Đã chính xác</span>
+              </div>
+            )}
+
+            {/* Hàng 2 - Cột 2: Bỏ qua câu này / Tiếp theo / Hoàn thành */}
+            <button
+              type="button"
+              onClick={() => handleNextVisualSentence({ isSkipManual: practiceStatus !== 'correct' })}
+              disabled={currentIndex >= exercises.length - 1 && practiceStatus === 'correct'}
+              className={`w-full flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-xs font-serif font-semibold transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[46px] cursor-pointer select-none ${
+                practiceStatus === 'correct'
+                  ? 'bg-[#B8322D] hover:bg-[#982923] text-white'
+                  : 'bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-app-accent hover:text-app-accent text-title'
+              }`}
+              title={practiceStatus === 'correct' ? 'Chuyển sang câu tiếp theo (Enter)' : 'Bỏ qua câu này (không tính đúng)'}
+            >
+              <span className="truncate">
+                {currentIndex >= exercises.length - 1
+                  ? practiceStatus === 'correct'
+                    ? 'Hoàn thành'
+                    : 'Kết thúc bài'
+                  : practiceStatus === 'correct'
+                  ? mode === 'sentence' ? 'Câu tiếp' : 'Tiếp theo'
+                  : 'Bỏ qua câu này'}
+              </span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
+            </button>
+          </div>
+
+          {/* Desktop Single-row (sm trở lên: Giữ nguyên 4 nút trên 1 hàng khi đủ không gian) */}
+          <div className="hidden sm:flex items-center justify-between gap-2 pt-2 pb-2">
+            <button
+              type="button"
+              onClick={handlePrev}
+              disabled={currentIndex === 0}
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-[#243047] dark:text-slate-300 hover:text-[#B8322D] disabled:opacity-35 disabled:cursor-not-allowed font-serif whitespace-nowrap transition-colors active:scale-[0.98] touch-manipulation min-h-[44px] rounded-xl cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 shrink-0" />
               <span className="whitespace-nowrap">Câu trước</span>
             </button>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={resetExercise}
-                className="flex items-center justify-center px-2.5 sm:px-3 py-2 bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-xs sm:text-sm font-serif text-[#243047] dark:text-slate-200 transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-[#DDD0C2] hover:bg-[#F6EDE3] rounded-xl text-sm font-serif text-[#243047] dark:text-slate-200 transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
                 title="Làm lại từ đầu"
-                aria-label="Làm lại từ đầu"
               >
                 <RotateCcw className="w-4 h-4 shrink-0" />
-                <span className="hidden sm:inline whitespace-nowrap">Làm lại</span>
+                <span className="whitespace-nowrap">Làm lại</span>
               </button>
 
               {practiceStatus !== 'correct' && (
                 <button
+                  type="button"
                   onClick={handleCheckVisualAnswer}
                   disabled={userInput.trim().length === 0}
-                  className="flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs sm:text-sm font-serif whitespace-nowrap transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-serif font-semibold whitespace-nowrap transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
                   title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
                 >
                   <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -3507,11 +3568,12 @@ export default function TypingClient() {
               )}
 
               <button
+                type="button"
                 onClick={() => handleNextVisualSentence({ isSkipManual: practiceStatus !== 'correct' })}
                 disabled={currentIndex >= exercises.length - 1 && practiceStatus === 'correct'}
-                className={`flex items-center gap-1 sm:gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-serif font-medium whitespace-nowrap transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer shrink-0 ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-serif font-semibold whitespace-nowrap transition-all shadow-2xs active:scale-[0.98] touch-manipulation min-h-[44px] cursor-pointer shrink-0 ${
                   practiceStatus === 'correct'
-                    ? 'bg-[#B8322D] hover:bg-[#982923] text-white font-semibold'
+                    ? 'bg-[#B8322D] hover:bg-[#982923] text-white'
                     : 'bg-[#FFF9F3] dark:bg-[#1F2C47] border border-[#E9DDD1] dark:border-white/10 hover:border-app-accent hover:text-app-accent text-title'
                 }`}
                 title={practiceStatus === 'correct' ? 'Chuyển sang câu tiếp theo (Enter)' : 'Bỏ qua câu này (không tính đúng)'}

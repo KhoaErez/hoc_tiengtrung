@@ -416,13 +416,13 @@ export function FeedbackWidget() {
         </div>
       )}
 
-      {/* 2. FLOATING MASCOT TRIGGER BUTTON (Tự ẩn khi bàn phím mở, đổi bên trên /typing để không che nút) */}
+      {/* 2. FLOATING MASCOT TRIGGER BUTTON (Tự động ẩn trên mobile khi ở trang /typing để không che khuất cụm nút điều khiển và ô nhập liệu) */}
       <div 
         className={`fixed z-35 group transition-all duration-200 ${
           isKeyboardOpen ? 'opacity-0 pointer-events-none translate-y-8' : 'opacity-100 translate-y-0'
         } ${
           pathname.startsWith('/typing')
-            ? 'bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] left-3 md:bottom-6 md:left-auto md:right-6'
+            ? 'hidden md:block md:bottom-6 md:right-6'
             : 'bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] right-3 md:bottom-6 md:right-6'
         }`}
         onMouseEnter={() => {
