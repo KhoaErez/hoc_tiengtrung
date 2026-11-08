@@ -484,7 +484,7 @@ export function VocabularyClient({
                 {/* Footer thẻ: Nút liên kết Luyện gõ phím IME */}
                 <div className="pt-3 border-t border-[#182238]/8 dark:border-white/8 flex items-center justify-between text-xs">
                   <Link
-                    href={`/typing?practice=visual&q=${encodeURIComponent(vocab.hanzi)}`}
+                    href={`/typing?practice=visual&mode=vocabulary&vocabId=${encodeURIComponent(vocab.id)}&word=${encodeURIComponent(vocab.hanzi)}&pinyin=${encodeURIComponent(vocab.pinyin)}&meaning=${encodeURIComponent(vocab.meaning_vi)}${vocab.example_hanzi ? `&exHanzi=${encodeURIComponent(vocab.example_hanzi)}&exPinyin=${encodeURIComponent(vocab.example_pinyin || '')}&exVi=${encodeURIComponent(vocab.example_vi || '')}` : ''}`}
                     className="inline-flex items-center gap-1.5 text-muted hover:text-[#B8322D] font-serif font-bold transition-colors cursor-pointer"
                   >
                     <Keyboard className="w-3.5 h-3.5" />

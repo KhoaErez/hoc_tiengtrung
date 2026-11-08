@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   TypingMode,
   TypingExercise,
@@ -68,6 +69,7 @@ import {
   getHskTypingExercisesAction,
   getSystemLessonsForTypingAction,
   getTypingExercisesFromDBAction,
+  getVocabularyTypingExerciseAction,
   TypingProgressDTO,
 } from './actions'
 import { useSearchParams } from 'next/navigation'
@@ -150,6 +152,13 @@ export default function TypingClient() {
   const urlLessonId = searchParams.get('lessonId')
   const urlSentenceId = searchParams.get('sentenceId')
   const urlPracticeType = searchParams.get('practiceType')
+  const urlWord = searchParams.get('word') || searchParams.get('q')
+  const urlVocabId = searchParams.get('vocabId')
+  const urlPinyin = searchParams.get('pinyin')
+  const urlMeaning = searchParams.get('meaning')
+  const urlExHanzi = searchParams.get('exHanzi')
+  const urlExPinyin = searchParams.get('exPinyin')
+  const urlExVi = searchParams.get('exVi')
 
   // Chế độ & Tab điều hướng (Tự động phục hồi từ URL khi F5 hoặc chia sẻ link)
   const [activeTab, setActiveTab] = useState<'practice' | 'mistakes'>(() => {
@@ -220,7 +229,10 @@ export default function TypingClient() {
   }, [isLoggedIn])
 
   const [mode, setMode] = useState<TypingMode>(() => {
-    if (urlMode && ['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(urlMode)) {
+    if (urlMode === 'vocabulary' || urlWord || urlVocabId) {
+      return 'vocabulary'
+    }
+    if (urlMode && ['sentence', 'paragraph', 'hsk'].includes(urlMode)) {
       return urlMode
     }
     if (urlLessonId) return 'hsk'
@@ -258,7 +270,9 @@ export default function TypingClient() {
     } else if (urlPractice === 'visual') {
       setPracticeMode('visual')
     }
-    if (urlMode && ['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(urlMode)) {
+    if (urlMode === 'vocabulary' || urlWord || urlVocabId) {
+      setMode('vocabulary')
+    } else if (urlMode && ['sentence', 'paragraph', 'hsk'].includes(urlMode)) {
       setMode(urlMode)
     }
     if (urlHskLevel) {
@@ -272,7 +286,7 @@ export default function TypingClient() {
     if (urlPracticeType === 'dictation') {
       setPreferences((prev) => ({ ...prev, hideHanzi: true }))
     }
-  }, [urlTab, urlPractice, urlMode, urlHskLevel, urlLessonId, urlPracticeType])
+  }, [urlTab, urlPractice, urlMode, urlHskLevel, urlLessonId, urlPracticeType, urlWord, urlVocabId])
 
   // Danh sách các bài học có trong cấp HSK hiện tại (fallback tĩnh)
   const availableLessons = useMemo(() => {
@@ -363,8 +377,81 @@ export default function TypingClient() {
     }
   }, [mode, hskLevel, selectedLessonId, onlyUnlearnedFilter, hskLesson, hskTarget])
 
+  // Xây dựng bài tập luyện gõ tức thì từ URL parameters (Zero latency)
+  const initialVocabExercises = useMemo<TypingExercise[]>(() => {
+    if (!urlWord) return []
+    const list: TypingExercise[] = [
+      {
+        id: urlVocabId ? `vocab-${urlVocabId}-word` : `vocab-${encodeURIComponent(urlWord)}-word`,
+        hanzi: urlWord,
+        pinyin: urlPinyin || '',
+        meaning: urlMeaning || 'Từ vựng tiếng Trung',
+        mode: 'vocabulary',
+        category: 'Từ vựng',
+        level: 'Từ vựng',
+        titleZh: urlWord,
+        titleVi: urlMeaning || 'Từ vựng tiếng Trung',
+        exampleHanzi: urlExHanzi || undefined,
+        examplePinyin: urlExPinyin || undefined,
+        exampleVi: urlExVi || undefined,
+      },
+    ]
+    if (urlExHanzi) {
+      list.push({
+        id: urlVocabId ? `vocab-${urlVocabId}-example` : `vocab-${encodeURIComponent(urlWord)}-example`,
+        hanzi: urlExHanzi,
+        pinyin: urlExPinyin || '',
+        meaning: urlExVi || `Ví dụ cho từ "${urlWord}"`,
+        mode: 'vocabulary',
+        category: `Ví dụ • ${urlWord}`,
+        level: 'Từ vựng',
+        titleZh: `${urlWord}${urlPinyin ? ` [${urlPinyin}]` : ''}`,
+        titleVi: urlMeaning || '',
+        exampleHanzi: urlWord,
+        examplePinyin: urlPinyin || undefined,
+        exampleVi: urlMeaning || undefined,
+      })
+    }
+    return list
+  }, [urlWord, urlVocabId, urlPinyin, urlMeaning, urlExHanzi, urlExPinyin, urlExVi])
+
+  const [vocabularyExercises, setVocabularyExercises] = useState<TypingExercise[]>(initialVocabExercises)
+
+  // Tải bổ sung bài tập & các ví dụ đầy đủ từ cơ sở dữ liệu nếu có
+  useEffect(() => {
+    if (mode !== 'vocabulary' || (!urlWord && !urlVocabId)) return
+    let isCancelled = false
+
+    if (initialVocabExercises.length > 0) {
+      setVocabularyExercises(initialVocabExercises)
+    }
+
+    getVocabularyTypingExerciseAction({
+      vocabId: urlVocabId || undefined,
+      word: urlWord || undefined,
+    })
+      .then((res) => {
+        if (isCancelled) return
+        if (res.success && res.data && res.data.length > 0) {
+          setVocabularyExercises(res.data as TypingExercise[])
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load vocabulary exercises:', err)
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [mode, urlWord, urlVocabId, initialVocabExercises])
+
   // Danh sách bài tập hiện tại & Chỉ số bài đang làm
   const exercises = useMemo(() => {
+    if (mode === 'vocabulary') {
+      if (vocabularyExercises.length > 0) return vocabularyExercises
+      if (initialVocabExercises.length > 0) return initialVocabExercises
+      return getExercisesByMode('sentence', { level: levelFilter, category: categoryFilter })
+    }
     if (mode === 'hsk') {
       if (hskDynamicExercises.length > 0) return hskDynamicExercises
       return getExercisesByMode('hsk', { hskLevel })
@@ -373,7 +460,7 @@ export default function TypingClient() {
       level: levelFilter,
       category: categoryFilter,
     })
-  }, [mode, levelFilter, categoryFilter, hskDynamicExercises, hskLevel])
+  }, [mode, vocabularyExercises, initialVocabExercises, levelFilter, categoryFilter, hskDynamicExercises, hskLevel])
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [exerciseEpoch, setExerciseEpoch] = useState(0)
@@ -1087,6 +1174,21 @@ export default function TypingClient() {
     }
   }, [stopSpeech, updatePracticeStatus])
 
+  // Tự động nạp câu đầu tiên khi nhận từ vựng mục tiêu từ URL hoặc khi danh sách bài tập thay đổi
+  useEffect(() => {
+    if (urlWord || urlVocabId) {
+      setCurrentIndex(0)
+      resetExercise()
+    }
+  }, [urlWord, urlVocabId, resetExercise])
+
+  useEffect(() => {
+    if (currentIndex >= exercises.length && exercises.length > 0) {
+      setCurrentIndex(0)
+      resetExercise()
+    }
+  }, [exercises.length, currentIndex, resetExercise])
+
   // Xử lý khi nhấn nút "Tiếp tục học →" từ Thẻ Tiếp tục học của Nghe & Gõ
   const handleResumeVisualLatest = useCallback((p: TypingProgressDTO) => {
     if (['sentence', 'paragraph', 'hsk', 'vocabulary'].includes(p.mode as any)) {
@@ -1434,6 +1536,8 @@ export default function TypingClient() {
             : `HSK ${hskLevel}`
           : mode === 'sentence'
           ? 'Câu mẫu'
+          : mode === 'vocabulary'
+          ? `Từ vựng: ${currentExercise.hanzi}`
           : (currentExercise as any).title || 'Đoạn văn',
       currentQuestionId: currentExercise.id,
       currentQuestionText: currentExercise.hanzi,
@@ -1601,6 +1705,8 @@ export default function TypingClient() {
                   : `HSK ${hskLevel}`
                 : mode === 'sentence'
                 ? 'Câu mẫu'
+                : mode === 'vocabulary'
+                ? `Từ vựng: ${currentExercise.hanzi}`
                 : (currentExercise as any).title || 'Đoạn văn',
             currentQuestionId: currentExercise.id,
             currentQuestionText: curSentence ? curSentence.text : (currentExercise.hanzi || ''),
@@ -1864,6 +1970,8 @@ export default function TypingClient() {
                 : `HSK ${hskLevel}`
               : mode === 'sentence'
               ? 'Câu mẫu'
+              : mode === 'vocabulary'
+              ? `Từ vựng: ${currentExercise.hanzi}`
               : (currentExercise as any).title || 'Đoạn văn',
           currentQuestionId: nextEx?.id || currentExercise.id,
           currentQuestionText: nextEx?.hanzi || currentExercise.hanzi,
@@ -2080,6 +2188,8 @@ export default function TypingClient() {
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-[#182238] dark:text-white tracking-tight">
               {practiceMode === 'translate'
                 ? 'Dịch Việt → Gõ Hán (Chuyển ngữ tương tác)'
+                : mode === 'vocabulary'
+                ? 'Luyện Gõ Từ Vựng Mục Tiêu'
                 : mode === 'sentence'
                 ? '100 Câu Ca Dao, Tục Ngữ Việt Nam'
                 : 'Luyện Gõ Phím Hán Ngữ Pinyin IME'}
@@ -2088,6 +2198,8 @@ export default function TypingClient() {
             <p className="text-muted font-serif text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-none">
               {practiceMode === 'translate'
                 ? 'Đọc ý nghĩa tiếng Việt, tự phản xạ chuyển ngữ sang chữ Hán bằng bộ gõ IME Pinyin. Nghe phát âm tiếng Trung không lộ đáp án và tích hợp hệ thống chấm điểm chính xác.'
+                : mode === 'vocabulary'
+                ? 'Luyện gõ chữ Hán chuẩn xác cho từng từ vựng và câu ví dụ minh họa. Gõ pinyin bằng IME và chọn đúng chữ Hán để củng cố trí nhớ sâu.'
                 : mode === 'sentence'
                 ? 'Luyện gõ chữ Hán qua 100 câu ca dao, tục ngữ Việt Nam được chuyển ngữ sang tiếng Trung giản thể. Bật bộ gõ Pinyin IME, gõ pinyin rồi chọn đúng chữ Hán.'
                 : 'Rèn luyện phản xạ gõ chữ Hán bằng Pinyin qua bộ gõ tiếng Trung (IME). Quan sát nội dung mục tiêu và tự gõ lại để cải thiện tốc độ và phản xạ chuẩn HSK.'}
@@ -2216,8 +2328,8 @@ export default function TypingClient() {
         />
       ) : (
         <>
-          {/* 3. Thanh chọn phân loại nội dung cho Nhìn & Gõ (4 chế độ bao gồm Ôn câu sai) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 bg-card border border-[#E9DDD1] rounded-2xl p-1.5 shadow-2xs">
+          {/* 3. Thanh chọn phân loại nội dung cho Nhìn & Gõ */}
+          <div className={`grid gap-1.5 sm:gap-2 bg-card border border-[#E9DDD1] rounded-2xl p-1.5 shadow-2xs ${mode === 'vocabulary' ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4'}`}>
             <button
               onClick={() => {
                 setActiveTab('practice')
@@ -2266,6 +2378,20 @@ export default function TypingClient() {
               <span className="truncate">Theo HSK</span>
             </button>
 
+            {mode === 'vocabulary' && (
+              <button
+                onClick={() => {
+                  setActiveTab('practice')
+                  setMode('vocabulary')
+                  updateUrlParams({ tab: 'practice' })
+                }}
+                className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 rounded-xl text-xs md:text-sm font-serif transition-all active:scale-[0.98] touch-manipulation min-h-[44px] bg-[#B8322D] text-white font-semibold shadow-2xs"
+              >
+                <Keyboard className="w-4 h-4 shrink-0" />
+                <span className="truncate">Từ vựng</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 stopSpeech()
@@ -2283,6 +2409,68 @@ export default function TypingClient() {
               )}
             </button>
           </div>
+
+          {/* Banner thông tin Từ vựng đang luyện gõ */}
+          {mode === 'vocabulary' && (
+            <div className="bg-[#FFF9F3] dark:bg-[#182238] border-2 border-[#B8322D]/30 rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-[#B8322D]/10 text-[#B8322D] flex items-center justify-center font-bold text-2xl font-hanzi shrink-0 border border-[#B8322D]/20">
+                  {urlWord?.slice(0, 2) || currentExercise?.hanzi?.slice(0, 2) || '词'}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#B8322D] text-white tracking-wider">
+                      ĐANG LUYỆN GÕ TỪ VỰNG
+                    </span>
+                    <span className="text-xs text-muted font-sans font-medium">
+                      Mục {currentIndex + 1} / {exercises.length}
+                    </span>
+                  </div>
+                  <h3 className="font-serif font-bold text-base sm:text-lg text-[#182238] dark:text-white mt-0.5 truncate">
+                    {currentIndex === 0 ? 'Từ mục tiêu: ' : 'Câu ví dụ: '}
+                    <span className="font-hanzi text-[#B8322D] font-bold text-xl">{currentExercise?.hanzi}</span>
+                    {currentExercise?.pinyin && (
+                      <span className="font-sans font-normal text-xs sm:text-sm text-muted ml-2">[{currentExercise.pinyin}]</span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-muted line-clamp-1 italic">
+                    {currentExercise?.meaning}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                {exercises.length > 1 && (
+                  <select
+                    value={currentIndex}
+                    onChange={(e) => {
+                      const idx = parseInt(e.target.value, 10)
+                      if (!isNaN(idx) && idx >= 0 && idx < exercises.length) {
+                        setCurrentIndex(idx)
+                        resetExercise()
+                      }
+                    }}
+                    className="bg-page border border-[#E9DDD1] hover:border-[#D4C5B5] focus:border-app-accent rounded-xl text-xs font-serif text-[#243047] px-2.5 h-9 min-h-[36px] focus:outline-none cursor-pointer shadow-2xs"
+                    title="Chọn bài tập"
+                  >
+                    {exercises.map((ex, idx) => (
+                      <option key={ex.id || idx} value={idx}>
+                        {idx === 0 ? `Từ vựng: ${ex.hanzi}` : `Ví dụ ${idx}: ${ex.hanzi.slice(0, 15)}...`}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <Link
+                  href="/vocabulary"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-serif font-bold bg-white dark:bg-[#202B45] border border-[#182238]/15 text-[#182238] dark:text-white hover:text-[#B8322D] hover:border-[#B8322D] transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Kho từ vựng</span>
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* 3.1. Thẻ "Tiếp tục học" thông minh riêng biệt cho Nghe & Gõ */}
           {latestVisualProgress && (
@@ -2659,11 +2847,13 @@ export default function TypingClient() {
           </span>
           <div className="min-w-0">
             <p className="text-xs text-muted font-sans truncate">
-              {mode === 'sentence' ? 'Tiến độ câu' : 'Tiến độ bài'}
+              {mode === 'sentence' ? 'Tiến độ câu' : mode === 'vocabulary' ? 'Tiến độ từ' : 'Tiến độ bài'}
             </p>
             <p className="text-lg sm:text-xl font-bold font-sans text-title tracking-tight truncate">
               {mode === 'sentence'
                 ? `Câu ${exercises.length > 0 ? currentIndex + 1 : 0}/${exercises.length}`
+                : mode === 'vocabulary'
+                ? `Mục ${exercises.length > 0 ? currentIndex + 1 : 0}/${exercises.length}`
                 : `${exercises.length > 0 ? currentIndex + 1 : 0} / ${exercises.length}`}
             </p>
           </div>
@@ -2781,6 +2971,27 @@ export default function TypingClient() {
                     )}
                   </p>
                 )}
+              </div>
+            ) : mode === 'vocabulary' ? (
+              <div className="bg-amber-500/5 dark:bg-amber-500/10 border border-[#B8322D]/25 rounded-xl p-3.5 sm:p-4 space-y-2 -mt-1 shadow-2xs">
+                <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#B8322D] text-white shadow-2xs">
+                      {currentIndex === 0 ? 'Từ vựng mục tiêu' : 'Câu ví dụ ứng dụng'}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-md text-[11px] font-serif bg-card border border-border text-title font-semibold">
+                      {currentExercise.category || 'Từ vựng'}
+                    </span>
+                  </div>
+                  <span className="text-xs font-serif font-semibold text-[#B8322D]">
+                    Mục {currentIndex + 1} / {exercises.length}
+                  </span>
+                </div>
+                <div className="pt-0.5">
+                  <p className="text-base sm:text-lg font-serif font-bold text-title">
+                    {currentExercise.titleVi || currentExercise.meaning}
+                  </p>
+                </div>
               </div>
             ) : (currentExercise.titleZh || currentExercise.titleVi) ? (
               <div className="border-b border-border/70 pb-3.5 -mt-1">

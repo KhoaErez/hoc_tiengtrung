@@ -1481,5 +1481,91 @@ export async function getTranslationExercisesAction(params: {
   }
 }
 
+/**
+ * Lấy bài tập gõ trực tiếp cho một từ vựng cụ thể (khi người dùng nhấn "Luyện gõ từ này" từ kho từ điển)
+ */
+export async function getVocabularyTypingExerciseAction(params: { vocabId?: string; word?: string }) {
+  try {
+    const supabase = await createClient()
+    let query = supabase
+      .from('vocabularies')
+      .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi, vocabulary_examples(id, chinese, pinyin, meaning_vi)')
+
+    if (params.vocabId) {
+      query = query.eq('id', params.vocabId)
+    } else if (params.word) {
+      query = query.eq('hanzi', params.word.trim())
+    } else {
+      return { success: false, data: [] }
+    }
+
+    const { data, error } = await query.maybeSingle()
+    if (error || !data) {
+      return { success: false, data: [] }
+    }
+
+    const exercises: any[] = []
+
+    // Bài 1: Gõ chính xác từ vựng mục tiêu
+    exercises.push({
+      id: `vocab-${data.id}-word`,
+      hanzi: data.hanzi,
+      pinyin: data.pinyin,
+      meaning: data.meaning_vi,
+      mode: 'vocabulary',
+      category: data.hsk_level || 'Từ vựng',
+      level: data.hsk_level || 'HSK',
+      titleZh: data.hanzi,
+      titleVi: data.meaning_vi,
+      exampleHanzi: data.example_hanzi || undefined,
+      examplePinyin: data.example_pinyin || undefined,
+      exampleVi: data.example_vi || undefined,
+    })
+
+    // Bài 2+: Nếu từ có các câu ví dụ trong DB, thêm vào chuỗi bài tập gõ tiếp theo
+    const subExamples = (data.vocabulary_examples as any[]) || []
+    if (subExamples.length > 0) {
+      for (const ex of subExamples) {
+        if (!ex.chinese) continue
+        exercises.push({
+          id: `vocab-${data.id}-ex-${ex.id}`,
+          hanzi: ex.chinese,
+          pinyin: ex.pinyin || '',
+          meaning: ex.meaning_vi || `Ví dụ cho từ "${data.hanzi}"`,
+          mode: 'vocabulary',
+          category: `Ví dụ • ${data.hanzi}`,
+          level: data.hsk_level || 'HSK',
+          titleZh: `${data.hanzi} [${data.pinyin}]`,
+          titleVi: data.meaning_vi,
+          exampleHanzi: data.hanzi,
+          examplePinyin: data.pinyin,
+          exampleVi: data.meaning_vi,
+        })
+      }
+    } else if (data.example_hanzi) {
+      exercises.push({
+        id: `vocab-${data.id}-example`,
+        hanzi: data.example_hanzi,
+        pinyin: data.example_pinyin || '',
+        meaning: data.example_vi || `Ví dụ cho từ "${data.hanzi}"`,
+        mode: 'vocabulary',
+        category: `Ví dụ • ${data.hanzi}`,
+        level: data.hsk_level || 'HSK',
+        titleZh: `${data.hanzi} [${data.pinyin}]`,
+        titleVi: data.meaning_vi,
+        exampleHanzi: data.hanzi,
+        examplePinyin: data.pinyin,
+        exampleVi: data.meaning_vi,
+      })
+    }
+
+    return { success: true, data: exercises }
+  } catch (err) {
+    console.error('getVocabularyTypingExerciseAction error:', err)
+    return { success: false, data: [] }
+  }
+}
+
+
 
 
