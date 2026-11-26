@@ -17,11 +17,11 @@ import {
   MessageCircle,
 } from 'lucide-react'
 import {
-  HSK_LEVELS,
-  HSK_RANK_META,
-  getHskAuditData,
-  getHskDisplayVocabCount,
-} from '@/data/hsk-curriculum'
+  HSK_CANONICAL_DATA,
+  HSK_LEVEL_ORDER,
+  resolveHskVocabCount,
+  type HskCanonicalLevelKey,
+} from '@/constants/hskData'
 import { getCachedSystemLessonCounts, getCachedAllVocabCounts } from '@/lib/curriculum-cache'
 import { Hero3DSection } from '@/components/home/hero-3d-section'
 import { HskRoadmapSelector, type HskRoadmapItem } from '@/components/home/hsk-roadmap-selector'
@@ -32,7 +32,6 @@ export const dynamic = 'force-dynamic'
 export default async function HomePage() {
   const supabase = await createClient()
 
-  // 1. Tải song song dữ liệu bài học, auth session và thống kê từ vựng chuẩn hóa
   const [levelLessonCounts, user, liveVocabCountsRes] = await Promise.all([
     getCachedSystemLessonCounts(),
     getCachedAuthUser(),
@@ -57,7 +56,6 @@ export default async function HomePage() {
   } | null = null
   let needReviewMistakesCount = 0
 
-  // 2. Nếu đã đăng nhập, tải tiến độ thật từ Supabase
   if (user) {
     const [profile, userVocabsRes, recentTypingRes, mistakesCountRes] = await Promise.all([
       getCachedUserProfile(user.id),
@@ -104,60 +102,48 @@ export default async function HomePage() {
     })
   }
 
-  // URL và tiêu đề bài tập tiếp tục
   const recentExerciseUrl = recentTyping
     ? `/typing?practice=${recentTyping.practice_mode || (recentTyping.mode === 'translate_hsk' ? 'translate' : 'visual')}${recentTyping.hsk_level ? `&hskLevel=${recentTyping.hsk_level}` : ''}${recentTyping.lesson_id ? `&lessonId=${recentTyping.lesson_id}` : ''}${recentTyping.current_question_id ? `&sentenceId=${recentTyping.current_question_id}` : ''}&resume=1`
     : null
 
   const recentExerciseTitle = recentTyping?.lesson_title || (recentTyping?.current_question_text ? `Câu: ${recentTyping.current_question_text.slice(0, 18)}...` : null)
 
-  // Xây dựng dữ liệu nhất quán 100% cho HskRoadmapSelector (đồng bộ với SiteFooter)
-  const roadmapItems: HskRoadmapItem[] = ([1, 2, 3, 4, 5, 6, 7] as const).map((levelNum) => {
-    const info = HSK_LEVELS[levelNum]
-    const rank = HSK_RANK_META[levelNum]
-    const audit = getHskAuditData(levelNum)
-    const totalLessons = levelLessonCounts[levelNum] || audit?.systemLessonCount || 0
-    const vocabCount = getHskDisplayVocabCount(levelNum, liveVocabCountsRes?.counts)
+  // Xây dựng dữ liệu từ Single Source of Truth (constants/hskData.ts)
+  const roadmapItems: HskRoadmapItem[] = HSK_LEVEL_ORDER.map((levelNum: HskCanonicalLevelKey) => {
+    const canonical = HSK_CANONICAL_DATA[levelNum]
+    const vocabCount = resolveHskVocabCount(levelNum, liveVocabCountsRes?.counts)
+    const totalLessons = levelLessonCounts[levelNum] ?? canonical.defaultLessons
     const learnedVocabs = userVocabsPerLevel[levelNum] || 0
-    const isComingSoon = audit?.status === 'coming_soon' || (vocabCount === 0 && totalLessons === 0)
-    const percent = user && vocabCount > 0 && !isComingSoon
+    const percent = user && vocabCount > 0 && !canonical.isComingSoon
       ? Math.min(100, Math.round((learnedVocabs / vocabCount) * 100))
       : 0
 
     return {
       id: String(levelNum),
-      tag: info.tag,
-      name: info.name,
-      title: info.title,
-      rankTitle: rank.rankTitle,
-      rankShort: rank.rankShort,
-      stageName: rank.stageName,
-      accentColor: rank.accentColor,
-      coverImage: rank.coverImage,
-      description: info.description,
+      tag: canonical.tag,
+      name: canonical.name,
+      title: canonical.title,
+      rankTitle: canonical.rankTitle,
+      rankShort: canonical.rankShort,
+      stageName: canonical.stageName,
+      accentColor: canonical.accentColor,
+      coverImage: canonical.coverImage,
+      description: canonical.summary,
       vocabCount,
-      targetVocab: info.vocabTarget,
-      charTarget: info.charTarget,
-      grammarTarget: info.grammarTarget,
+      targetVocab: canonical.targetVocab,
+      charTarget: canonical.charTarget,
+      grammarTarget: canonical.grammarTarget,
       totalLessons,
       learnedVocabs,
       percent,
-      isComingSoon,
+      isComingSoon: canonical.isComingSoon,
     }
   })
-
-  // Tổng số từ thực tế hiện có trên toàn hệ thống (HSK 1 - 6 + Chuyên đề)
-  const totalSystemVocabAvailable = ([1, 2, 3, 4, 5, 6] as const).reduce(
-    (sum, lvl) => sum + getHskDisplayVocabCount(lvl, liveVocabCountsRes?.counts),
-    0
-  )
 
   return (
     <div className="w-full space-y-14 sm:space-y-16 md:space-y-20 pb-4 sm:pb-8 md:pb-12">
 
-      {/* ================================================================== */}
-      {/* 1. HERO SECTION (CRISP & FOCUSED ORIENTAL EDTECH)                  */}
-      {/* ================================================================== */}
+      {/* 1. HERO SECTION */}
       <Hero3DSection
         displayName={displayName}
         isLoggedIn={!!user}
@@ -165,10 +151,7 @@ export default async function HomePage() {
         recentExerciseUrl={recentExerciseUrl}
       />
 
-      {/* ================================================================== */}
-      {/* SECTION 1: LỘ TRÌNH CHINH PHỤC HSK 3.0 (INTERACTIVE LEVEL SELECTOR) */}
-      {/* Loại bỏ tình trạng 7-9 card lớn xếp chồng gây quá tải thị giác    */}
-      {/* ================================================================== */}
+      {/* 2. LỘ TRÌNH CHINH PHỤC HSK 3.0 (INTERACTIVE TABS + 1 FEATURED STAGE CARD) */}
       <section id="hanh-trinh-hsk" className="space-y-6 scroll-mt-24">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#E2E8F0] dark:border-[#384869] pb-4">
           <div className="space-y-1.5">
@@ -182,27 +165,24 @@ export default async function HomePage() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-300 font-serif">
-              Chọn từng nấc thang khoa bảng để khám phá bài học, số lượng từ vựng và tiến độ ghi nhớ cá nhân.
+              Chọn cấp độ HSK bên dưới để xem thông tin chi tiết, số lượng bài học và tiến độ của bạn.
             </p>
           </div>
         </div>
 
         <HskRoadmapSelector items={roadmapItems} isLoggedIn={!!user} />
 
-        {/* Chuyên đề Ứng dụng Thực chiến: Compact 2-Column Bento Cards */}
+        {/* Chuyên đề Thực chiến (1 Title per card, concise copy, zero duplication) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 pt-2">
           <Link
             href="/topics?q=Giao tiếp"
-            className="edtech-card-interactive p-5 sm:p-6 flex items-center justify-between gap-4 group"
+            className="edtech-card-interactive p-6 flex items-center justify-between gap-4 group"
           >
             <div className="flex items-start gap-4 min-w-0">
               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800 flex items-center justify-center shrink-0">
                 <MessageCircle className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[1.75]" />
               </div>
               <div className="space-y-1 min-w-0">
-                <span className="inline-block text-[10px] font-sans font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
-                  Khẩu ngữ Đời sống
-                </span>
                 <h3 className="font-serif font-bold text-base sm:text-lg text-[#182238] dark:text-white group-hover:text-[#0D9488] transition-colors truncate">
                   Tiếng Trung Giao tiếp Thực chiến
                 </h3>
@@ -216,16 +196,13 @@ export default async function HomePage() {
 
           <Link
             href="/topics?q=Công xưởng"
-            className="edtech-card-interactive p-5 sm:p-6 flex items-center justify-between gap-4 group"
+            className="edtech-card-interactive p-6 flex items-center justify-between gap-4 group"
           >
             <div className="flex items-start gap-4 min-w-0">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
                 <Briefcase className="w-6 h-6 text-[#182238] dark:text-slate-200 stroke-[1.75]" />
               </div>
               <div className="space-y-1 min-w-0">
-                <span className="inline-block text-[10px] font-sans font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  Kỹ thuật · Hướng nghiệp
-                </span>
                 <h3 className="font-serif font-bold text-base sm:text-lg text-[#182238] dark:text-white group-hover:text-[#0D9488] transition-colors truncate">
                   Tiếng Trung Công xưởng & Nhà máy
                 </h3>
@@ -239,69 +216,48 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ================================================================== */}
-      {/* SECTION 2: THƯ VIỆN TRI THỨC HÁN NGỮ (CLEAN BENTO GRID)           */}
-      {/* Quy chuẩn Figma: Max 1 badge, 1 title, 2-line desc, metric, 1 CTA */}
-      {/* ================================================================== */}
+      {/* 3. THƯ VIỆN TRI THỨC HÁN NGỮ (MINIMAL 4-COLUMN BENTO GRID: ICON + 1 H3 + SHORT DESC + 1 LINK) */}
       <section id="thu-vien" className="space-y-6 scroll-mt-24">
         <div className="border-b border-[#E2E8F0] dark:border-[#384869] pb-4 space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#B8322D]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-[#182238] dark:text-white">
               Thư viện Tri thức Hán ngữ
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-300 font-serif">
-            Công cụ tra cứu, cẩm nang ngữ pháp, 214 bộ thủ và kho bài đọc chuẩn hóa hỗ trợ tự học hiệu quả.
+            Công cụ tra cứu, ngữ pháp, 214 bộ thủ và bài đọc chuẩn hóa giúp bạn tự học hiệu quả.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-          {/* Card 1: Từ vựng HSK 3.0 */}
+          {/* Card 1: Tra từ HSK 3.0 */}
           <Link href="/vocabulary" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-[#F0FDFA] dark:bg-teal-950/50 border border-[#0D9488]/20 flex items-center justify-center shrink-0">
-                  <Layers className="w-6 h-6 text-[#0D9488] stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#FAF9F6] dark:bg-[#202B45] text-[#0D9488] border border-[#E2E8F0]">
-                  Từ điển
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-[#F0FDFA] dark:bg-teal-950/50 border border-[#0D9488]/20 flex items-center justify-center">
+                <Layers className="w-6 h-6 text-[#0D9488] stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
                 <h3 className="font-serif font-bold text-lg text-[#182238] dark:text-white group-hover:text-[#0D9488] transition-colors">
                   Tra từ HSK 3.0
                 </h3>
                 <p className="text-xs text-[#475569] dark:text-slate-300 font-serif leading-relaxed line-clamp-2">
-                  Tra cứu Pinyin, nghĩa Hán Việt, audio phát âm chuẩn Bắc Kinh và ví dụ thực tế.
+                  Tra cứu chữ Hán, Pinyin, nghĩa tiếng Việt và audio phát âm chuẩn Bắc Kinh.
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                {formatNumber(totalSystemVocabAvailable)}+ từ sẵn sàng
-              </span>
-              <div className="pt-3 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs font-serif font-bold text-[#0D9488]">
-                <span>Tra từ điển ngay</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
+            <span className="inline-flex items-center justify-between text-xs font-serif font-bold text-[#0D9488] pt-3 border-t border-[#E2E8F0] dark:border-white/10">
+              <span>Tra từ điển ngay</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
           </Link>
 
-          {/* Card 2: Ngữ pháp hệ thống */}
+          {/* Card 2: Ngữ pháp Chuyên sâu */}
           <Link href="/grammar" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/70 dark:border-indigo-800 flex items-center justify-center shrink-0">
-                  <Library className="w-6 h-6 text-indigo-600 dark:text-indigo-400 stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#FAF9F6] dark:bg-[#202B45] text-indigo-600 dark:text-indigo-400 border border-[#E2E8F0]">
-                  Cấu trúc
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200/70 dark:border-indigo-800 flex items-center justify-center">
+                <Library className="w-6 h-6 text-indigo-600 dark:text-indigo-400 stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
                 <h3 className="font-serif font-bold text-lg text-[#182238] dark:text-white group-hover:text-indigo-600 transition-colors">
                   Ngữ pháp Chuyên sâu
@@ -311,32 +267,20 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                HSK 1 – 6 trọng tâm
-              </span>
-              <div className="pt-3 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs font-serif font-bold text-indigo-600 dark:text-indigo-400">
-                <span>Xem cẩm nang</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
+            <span className="inline-flex items-center justify-between text-xs font-serif font-bold text-indigo-600 dark:text-indigo-400 pt-3 border-t border-[#E2E8F0] dark:border-white/10">
+              <span>Xem cẩm nang</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
           </Link>
 
-          {/* Card 3: 214 Bộ thủ */}
+          {/* Card 3: 214 Bộ thủ Khang Hy */}
           <Link href="/radicals" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-[#FEF2F2] dark:bg-[#B8322D]/20 border border-[#B8322D]/20 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-6 h-6 text-[#B8322D] stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#FAF9F6] dark:bg-[#202B45] text-[#B8322D] border border-[#E2E8F0]">
-                  Chiết tự
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-[#FEF2F2] dark:bg-[#DC2626]/20 border border-[#DC2626]/20 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-[#DC2626] stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
-                <h3 className="font-serif font-bold text-lg text-[#182238] dark:text-white group-hover:text-[#B8322D] transition-colors">
+                <h3 className="font-serif font-bold text-lg text-[#182238] dark:text-white group-hover:text-[#DC2626] transition-colors">
                   214 Bộ thủ Khang Hy
                 </h3>
                 <p className="text-xs text-[#475569] dark:text-slate-300 font-serif leading-relaxed line-clamp-2">
@@ -344,30 +288,18 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                214 bộ · 17 nhóm nét
-              </span>
-              <div className="pt-3 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs font-serif font-bold text-[#B8322D]">
-                <span>Học bộ thủ</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
+            <span className="inline-flex items-center justify-between text-xs font-serif font-bold text-[#DC2626] pt-3 border-t border-[#E2E8F0] dark:border-white/10">
+              <span>Học bộ thủ</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
           </Link>
 
-          {/* Card 4: Bài học ngữ cảnh */}
+          {/* Card 4: Bài học Ngữ cảnh */}
           <Link href="/lessons" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800 flex items-center justify-center shrink-0">
-                  <BookOpen className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#FAF9F6] dark:bg-[#202B45] text-amber-700 dark:text-amber-400 border border-[#E2E8F0]">
-                  Bài đọc
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800 flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
                 <h3 className="font-serif font-bold text-lg text-[#182238] dark:text-white group-hover:text-amber-600 transition-colors">
                   Bài học Ngữ cảnh
@@ -377,23 +309,15 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                Audio đọc từng câu
-              </span>
-              <div className="pt-3 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs font-serif font-bold text-amber-700 dark:text-amber-400">
-                <span>Đọc bài học</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
+            <span className="inline-flex items-center justify-between text-xs font-serif font-bold text-amber-700 dark:text-amber-400 pt-3 border-t border-[#E2E8F0] dark:border-white/10">
+              <span>Đọc bài học</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
           </Link>
         </div>
       </section>
 
-      {/* ================================================================== */}
-      {/* SECTION 3: KHU VỰC LUYỆN TẬP THỰC CHIẾN (PRACTICE BENTO GRID)      */}
-      {/* ================================================================== */}
+      {/* 4. KHU VỰC LUYỆN TẬP THỰC CHIẾN (CLEAN 3-COLUMN BENTO GRID) */}
       <section id="luyen-tap" className="space-y-6 scroll-mt-24">
         <div className="border-b border-[#E2E8F0] dark:border-[#384869] pb-4 space-y-1.5">
           <div className="flex items-center gap-2">
@@ -408,18 +332,12 @@ export default async function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-          {/* Practice 1: Nghe & Gõ */}
-          <Link href="/typing?practice=visual&mode=listen" className="edtech-card-interactive p-6 sm:p-7 flex flex-col justify-between gap-6 group">
+          {/* Practice 1: Nghe & Gõ Chữ Hán */}
+          <Link href="/typing?practice=visual&mode=listen" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-[#F0FDFA] dark:bg-teal-950/50 border border-[#0D9488]/20 flex items-center justify-center shrink-0">
-                  <Headphones className="w-6 h-6 text-[#0D9488] stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-sans font-bold bg-[#F0FDFA] text-[#0D9488] border border-[#0D9488]/20">
-                  Thính giác · IME
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-[#F0FDFA] dark:bg-teal-950/50 border border-[#0D9488]/20 flex items-center justify-center">
+                <Headphones className="w-6 h-6 text-[#0D9488] stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
                 <h3 className="font-serif font-bold text-lg sm:text-xl text-[#182238] dark:text-white group-hover:text-[#0D9488] transition-colors">
                   Nghe & Gõ Chữ Hán
@@ -429,32 +347,20 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                Tốc độ 0.5x – 1.5x · 2-Step Enter
-              </span>
-              <div className="pt-3.5 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs sm:text-sm font-serif font-bold text-[#0D9488]">
-                <span>Bắt đầu Nghe & Gõ</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+            <div className="pt-3.5 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs sm:text-sm font-serif font-bold text-[#0D9488]">
+              <span>Bắt đầu Nghe & Gõ</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
           {/* Practice 2: Dịch Việt -> Gõ Hán */}
-          <Link href="/typing?practice=translate" className="edtech-card-interactive p-6 sm:p-7 flex flex-col justify-between gap-6 group">
+          <Link href="/typing?practice=translate" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-[#FEF2F2] dark:bg-[#B8322D]/20 border border-[#B8322D]/20 flex items-center justify-center shrink-0">
-                  <Languages className="w-6 h-6 text-[#B8322D] stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-sans font-bold bg-[#FEF2F2] text-[#B8322D] border border-[#B8322D]/20">
-                  Chuyển ngữ Chủ động
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-[#FEF2F2] dark:bg-[#DC2626]/20 border border-[#DC2626]/20 flex items-center justify-center">
+                <Languages className="w-6 h-6 text-[#DC2626] stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
-                <h3 className="font-serif font-bold text-lg sm:text-xl text-[#182238] dark:text-white group-hover:text-[#B8322D] transition-colors">
+                <h3 className="font-serif font-bold text-lg sm:text-xl text-[#182238] dark:text-white group-hover:text-[#DC2626] transition-colors">
                   Dịch Việt → Gõ Hán
                 </h3>
                 <p className="text-xs sm:text-sm text-[#475569] dark:text-slate-300 font-serif leading-relaxed line-clamp-2">
@@ -462,30 +368,18 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                Pinyin IME · Sổ câu sai riêng biệt
-              </span>
-              <div className="pt-3.5 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs sm:text-sm font-serif font-bold text-[#B8322D]">
-                <span>Bắt đầu Dịch & Gõ</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+            <div className="pt-3.5 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs sm:text-sm font-serif font-bold text-[#DC2626]">
+              <span>Bắt đầu Dịch & Gõ</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
 
-          {/* Practice 3: Ôn tập SM-2 */}
-          <Link href="/review" className="edtech-card-interactive p-6 sm:p-7 flex flex-col justify-between gap-6 group">
+          {/* Practice 3: Ôn tập Thẻ nhớ SM-2 */}
+          <Link href="/review" className="edtech-card-interactive p-6 flex flex-col justify-between gap-5 group">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800 flex items-center justify-center shrink-0">
-                  <BrainCircuit className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[1.75]" />
-                </div>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-sans font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                  Khoa học SM-2
-                </span>
+              <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/70 dark:border-amber-800 flex items-center justify-center">
+                <BrainCircuit className="w-6 h-6 text-amber-600 dark:text-amber-400 stroke-[1.75]" />
               </div>
-
               <div className="space-y-1.5">
                 <h3 className="font-serif font-bold text-lg sm:text-xl text-[#182238] dark:text-white group-hover:text-amber-600 transition-colors">
                   Ôn tập Thẻ nhớ 3D
@@ -495,23 +389,15 @@ export default async function HomePage() {
                 </p>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <span className="inline-block px-2.5 py-1 rounded-lg bg-[#FAF9F6] dark:bg-[#202B45] border border-[#E2E8F0] text-[11px] font-sans font-semibold text-[#182238] dark:text-slate-200">
-                Thuật toán Lặp lại Ngắt quãng
-              </span>
-              <div className="pt-3.5 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs sm:text-sm font-serif font-bold text-amber-700 dark:text-amber-400">
-                <span>Mở phòng ôn thẻ nhớ</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
+            <div className="pt-3.5 border-t border-[#E2E8F0] dark:border-white/10 flex items-center justify-between text-xs sm:text-sm font-serif font-bold text-amber-700 dark:text-amber-400">
+              <span>Mở phòng ôn thẻ nhớ</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
         </div>
       </section>
 
-      {/* ================================================================== */}
-      {/* SECTION 4: HUB TIẾN TRÌNH HỌC TẬP CÁ NHÂN                          */}
-      {/* ================================================================== */}
+      {/* 5. TIẾN TRÌNH HỌC TẬP CÁ NHÂN */}
       <section className="space-y-6">
         <div className="border-b border-[#E2E8F0] dark:border-[#384869] pb-4 space-y-1.5">
           <div className="flex items-center gap-2">
@@ -527,7 +413,6 @@ export default async function HomePage() {
 
         {user ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-            {/* Card 1: Smart Resume */}
             <div className="edtech-card p-6 sm:p-7 flex flex-col justify-between space-y-5">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -601,16 +486,15 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Card 2: Cần ôn tập câu sai (SM-2) */}
             <div className="edtech-card p-6 sm:p-7 flex flex-col justify-between space-y-5">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-serif font-bold text-[#B8322D] uppercase tracking-wider">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-serif font-bold text-[#DC2626] uppercase tracking-wider">
                     <RotateCcw className="w-4 h-4" />
                     Cần ôn tập & củng cố
                   </span>
                   {needReviewMistakesCount > 0 && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#FEF2F2] text-[#B8322D] border border-[#B8322D]/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-sans font-bold bg-[#FEF2F2] text-[#DC2626] border border-[#DC2626]/20">
                       {needReviewMistakesCount} câu cần ôn
                     </span>
                   )}
@@ -642,20 +526,20 @@ export default async function HomePage() {
                     <span>
                       {needReviewMistakesCount > 0 ? 'Mở phòng ôn câu sai ngay' : 'Mở kho thẻ nhớ ôn tập'}
                     </span>
-                    <ArrowRight className="w-4 h-4 text-[#B8322D]" />
+                    <ArrowRight className="w-4 h-4 text-[#DC2626]" />
                   </button>
                 </Link>
               </div>
             </div>
           </div>
         ) : (
-          /* Khách chưa đăng nhập */
           <div className="edtech-card p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
               <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-[#E2E8F0] shadow-2xs bg-[#FAF9F6] shrink-0">
                 <Image
                   src="/images/panda/panda-welcome.webp"
-                  alt="Tiểu Bút chào đón học viên"
+                  alt=""
+                  aria-hidden="true"
                   fill
                   sizes="80px"
                   className="object-cover"
@@ -664,7 +548,7 @@ export default async function HomePage() {
               <div className="space-y-1.5">
                 <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-[#F0FDFA] border border-[#0D9488]/25 text-[#0D9488] text-xs font-serif font-bold">
                   <span className="w-2 h-2 rounded-full bg-[#0D9488] animate-pulse" />
-                  <span>Hoàn toàn miễn phí • Học cùng Tiểu Bút 🐼</span>
+                  <span>Hoàn toàn miễn phí</span>
                 </div>
                 <h3 className="font-serif font-bold text-lg sm:text-xl text-[#182238] dark:text-white">
                   Lưu lại tiến trình và xây dựng thói quen học mỗi ngày

@@ -357,16 +357,16 @@ export const HSK_AUDIT_DATA: Record<string, HskLevelAuditData> = {
     level: 6,
     stage: 'Trung cấp',
     stageZh: '中等',
-    systemVocabCount: 2800,
-    uniqueWords: 2800,
+    systemVocabCount: 1798,
+    uniqueWords: 1798,
     duplicateRecords: 0,
     systemLessonCount: 173,
     standardTargetVocab: 5400,
     standardNewVocab: 1800,
     status: 'partial',
-    statusBadge: 'Đạt chuẩn 2.800/1.800',
-    sidebarBadge: '2.800 từ',
-    friendlyNotice: 'Hệ thống hiện có 2.800 từ vựng và 173 bài học. Đang tiếp tục bổ sung theo Đề cương thi HSK 3.0 (mục tiêu 5.400 từ).',
+    statusBadge: 'Đạt chuẩn 1.798/1.800',
+    sidebarBadge: '1.798 từ',
+    friendlyNotice: 'Hệ thống hiện có 1.798 từ vựng đã thẩm định và 173 bài học chuẩn hóa Đề cương thi HSK 3.0.',
   },
   'HSK 7-9': {
     tag: 'HSK 7-9',
@@ -438,64 +438,30 @@ export interface HskRankMeta {
   coverImage: string;
 }
 
-export const HSK_RANK_META: Record<number, HskRankMeta> = {
-  1: {
-    level: 1,
-    rankTitle: 'Đồng Sinh (童生)',
-    rankShort: 'Đồng Sinh',
-    stageName: 'Sơ cấp (初等)',
-    accentColor: '#0D9488',
-    coverImage: '/images/hsk/hsk-1-village.webp',
-  },
-  2: {
-    level: 2,
-    rankTitle: 'Tú Tài (秀才)',
-    rankShort: 'Tú Tài',
-    stageName: 'Sơ cấp (初等)',
-    accentColor: '#0284C7',
-    coverImage: '/images/hsk/hsk-2-garden.webp',
-  },
-  3: {
-    level: 3,
-    rankTitle: 'Cử Nhân (举人)',
-    rankShort: 'Cử Nhân',
-    stageName: 'Sơ cấp (初等)',
-    accentColor: '#D97706',
-    coverImage: '/images/hsk/hsk-3-city.webp',
-  },
-  4: {
-    level: 4,
-    rankTitle: 'Cống Sĩ (贡士)',
-    rankShort: 'Cống Sĩ',
-    stageName: 'Trung cấp (中等)',
-    accentColor: '#B8322D',
-    coverImage: '/images/hsk/hsk-4-mountain.webp',
-  },
-  5: {
-    level: 5,
-    rankTitle: 'Tiến Sĩ (进士)',
-    rankShort: 'Tiến Sĩ',
-    stageName: 'Trung cấp (中等)',
-    accentColor: '#4338CA',
-    coverImage: '/images/hsk/hsk-5-academy.webp',
-  },
-  6: {
-    level: 6,
-    rankTitle: 'Thám Hoa (探花)',
-    rankShort: 'Thám Hoa',
-    stageName: 'Trung cấp (中等)',
-    accentColor: '#7E22CE',
-    coverImage: '/images/hsk/hsk-6-peak.webp',
-  },
-  7: {
-    level: 7,
-    rankTitle: 'Trạng Nguyên (状元)',
-    rankShort: 'Trạng Nguyên',
-    stageName: 'Cao cấp (高等)',
-    accentColor: '#0F766E',
-    coverImage: '/images/hsk/hsk-7-celestial.webp',
-  },
-};
+import {
+  HSK_CANONICAL_DATA,
+  resolveHskVocabCount,
+  type HskCanonicalLevelKey,
+} from '@/constants/hskData';
+
+export { HSK_CANONICAL_DATA, resolveHskVocabCount };
+
+export const HSK_RANK_META: Record<number, HskRankMeta> = Object.fromEntries(
+  (Object.keys(HSK_CANONICAL_DATA) as unknown as HskCanonicalLevelKey[]).map((k) => {
+    const item = HSK_CANONICAL_DATA[k];
+    return [
+      k,
+      {
+        level: item.level,
+        rankTitle: item.rankTitle,
+        rankShort: item.rankShort,
+        stageName: item.stageName,
+        accentColor: item.accentColor,
+        coverImage: item.coverImage,
+      },
+    ];
+  })
+);
 
 /**
  * Nguồn chân lý duy nhất (Single Source of Truth) cho số lượng từ vựng hiển thị
@@ -505,11 +471,5 @@ export function getHskDisplayVocabCount(
   levelNum: number,
   liveCounts?: Record<string, number | null> | null
 ): number {
-  const info = HSK_LEVELS[levelNum];
-  const audit = getHskAuditData(levelNum);
-  const key = info?.name || (levelNum >= 7 ? 'HSK 7-9' : `HSK ${levelNum}`);
-  const live = liveCounts?.[key];
-  if (typeof live === 'number' && live > 0) return live;
-  if (audit && audit.systemVocabCount > 0) return audit.systemVocabCount;
-  return info?.vocabTarget || 0;
+  return resolveHskVocabCount(levelNum, liveCounts);
 }

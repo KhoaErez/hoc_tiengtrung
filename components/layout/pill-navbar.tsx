@@ -214,7 +214,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
             {/* 1. Header của Drawer */}
             <div className="p-4 sm:p-5 border-b-2 border-[#182238]/15 dark:border-white/10 flex items-center justify-between bg-white dark:bg-[#141A23]">
               <div className="flex items-center gap-2.5">
-                <BrandSymbol size={28} />
+                <BrandSymbol size={28} decorative />
                 <span className="font-serif font-bold text-sm text-[#182238] dark:text-white">
                   Danh mục học tập
                 </span>
