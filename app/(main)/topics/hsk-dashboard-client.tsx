@@ -511,7 +511,7 @@ export default function HskDashboardClient({
               </div>
 
               {/* Smart Call To Action */}
-              <div className="shrink-0 w-full sm:w-auto">
+              <div className="shrink-0 w-full sm:w-auto flex flex-col items-stretch sm:items-end gap-2.5">
                 {isLoggedIn ? (
                   reviewVocabCount > 0 ? (
                     <Link href="/review" className="block">
@@ -559,6 +559,21 @@ export default function HskDashboardClient({
                     </Button>
                   </div>
                 )}
+
+                <Link
+                  href={
+                    currentHsk === 'Công xưởng'
+                      ? '/learn?track=factory'
+                      : /^HSK [1-6]$/.test(currentHsk)
+                      ? `/learn?track=hsk&level=${currentHsk.replace('HSK ', '')}`
+                      : '/learn'
+                  }
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl border-2 border-stone-900 dark:border-[#384869] bg-[#FAF7F2] dark:bg-[#202B45] hover:bg-stone-100 text-xs font-serif font-bold text-stone-900 dark:text-white shadow-[0_2px_0_#1c1917] transition-all"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 text-[#B91C1C]" />
+                  <span>Mở Lesson Player tương tác</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
   ArrowRight,
@@ -22,7 +23,8 @@ import {
   Keyboard,
   Sparkles,
   Layers,
-  GraduationCap
+  GraduationCap,
+  PenTool,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AudioButton } from '@/components/ui/audio-button'
@@ -33,6 +35,8 @@ import { ttsEngine } from '@/lib/tts/tts-engine'
 import { toast } from 'sonner'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
 import { MascotAvatar } from '@/components/mascot/mascot-avatar'
+import LessonPlayer from '@/components/learn/lesson-player'
+import { buildDynamicCourseLessonChunk } from '@/lib/dynamic-lesson-builder'
 
 function getHanziSizeClass(hanzi: string) {
   const len = hanzi ? hanzi.trim().length : 0
@@ -80,12 +84,15 @@ export default function SystemLessonReader({
   nextLesson,
   isLoggedIn = false,
 }: SystemLessonReaderProps) {
+  const router = useRouter()
   const { speak } = useChineseTTS()
   const { openLoginRequired } = useAuthModal()
 
   // State management
   const [localUserVocabs, setLocalUserVocabs] = useState<string[]>(userVocabs)
   const [isLearning, setIsLearning] = useState(false)
+  const [isSuperChineseLearning, setIsSuperChineseLearning] = useState(false)
+  const [superChunkIndex, setSuperChunkIndex] = useState(0)
   const [learningIndex, setLearningIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [pendingLearnAction, setPendingLearnAction] = useState<'learned' | 'unlearned' | null>(null)
@@ -271,6 +278,77 @@ export default function SystemLessonReader({
     return `Chào bạn! Hãy cùng Tiểu Bút nghe phát âm, đối chiếu Pinyin và ghi nhớ từng từ vựng trong bài học này nhé!`
   }, [isAllCompleted, learnedCount, totalVocabs, progressPercent])
 
+  const dynamicChunk = useMemo(
+    () => buildDynamicCourseLessonChunk(lesson, vocabularies, superChunkIndex, 4),
+    [lesson, vocabularies, superChunkIndex]
+  )
+
+  const startSuperChineseSession = () => {
+    const firstUnlearnedIdx = vocabularies.findIndex((v) => !localUserVocabs.includes(v.id))
+    const targetChunk = firstUnlearnedIdx >= 0 ? Math.floor(firstUnlearnedIdx / 4) : 0
+    setSuperChunkIndex(targetChunk)
+    setIsLearning(false)
+    setIsSuperChineseLearning(true)
+  }
+
+  const handleSaveDynamicChunkToSm2 = async (): Promise<boolean> => {
+    if (!isLoggedIn) {
+      openLoginRequired({
+        title: 'Lưu từ vựng vào lịch ôn tập SM-2',
+        description: `Đăng nhập để lưu ${dynamicChunk.chunkVocabIds.length} từ vừa học của "${lesson.title}" vào kho SM-2 cá nhân.`,
+      })
+      return false
+    }
+
+    try {
+      await Promise.all(dynamicChunk.chunkVocabIds.map((id) => markVocabLearnedAction(id, true)))
+      setLocalUserVocabs((prev) => Array.from(new Set([...prev, ...dynamicChunk.chunkVocabIds])))
+      revalidateReviewSessionAction().catch(() => {})
+      toast.success(`Đã lưu ${dynamicChunk.chunkVocabIds.length} từ vào lịch ôn tập SM-2!`)
+      return true
+    } catch {
+      toast.error('Chưa thể lưu vào tài khoản lúc này. Vui lòng thử lại.')
+      return false
+    }
+  }
+
+  // -------------------------------------------------------------
+  // SUPERCHINESE INTERACTIVE MODE (VẼ CHỮ, SẮP XẾP TỪ, HỘI THOẠI, GÕ IME)
+  // -------------------------------------------------------------
+  if (isSuperChineseLearning && vocabularies.length > 0) {
+    const hasMoreChunks = dynamicChunk.chunkIndex + 1 < dynamicChunk.totalChunks
+    const customNextLabel = hasMoreChunks
+      ? `Học chặng tiếp (${dynamicChunk.chunkIndex + 2}/${dynamicChunk.totalChunks})`
+      : nextLesson
+      ? `Sang Bài ${nextLesson.lesson_number}`
+      : undefined
+
+    const handleNextFromSummary = hasMoreChunks
+      ? () => setSuperChunkIndex(dynamicChunk.chunkIndex + 1)
+      : nextLesson
+      ? () => {
+          setIsSuperChineseLearning(false)
+          router.push(`/lessons/${nextLesson.id}`)
+        }
+      : undefined
+
+    return (
+      <div className="fixed inset-0 z-50 bg-[#FAF9F6] dark:bg-page overflow-y-auto">
+        <LessonPlayer
+          key={`${lesson.id}-chunk-${dynamicChunk.chunkIndex}`}
+          lesson={dynamicChunk.lesson}
+          unit={dynamicChunk.unit}
+          nextLesson={null}
+          isLoggedIn={isLoggedIn}
+          onClose={() => setIsSuperChineseLearning(false)}
+          onCustomSaveSm2={handleSaveDynamicChunkToSm2}
+          customNextActionLabel={customNextLabel}
+          onCustomNextAction={handleNextFromSummary}
+        />
+      </div>
+    )
+  }
+
   // -------------------------------------------------------------
   // FLASHCARD / LEARNING MODE VIEW
   // -------------------------------------------------------------
@@ -381,7 +459,17 @@ export default function SystemLessonReader({
               <span>Thoát chế độ học</span>
             </button>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={startSuperChineseSession}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#B91C1C]/10 border border-[#B91C1C]/30 text-[#B91C1C] hover:bg-[#B91C1C] hover:text-white font-serif font-bold text-[11px] transition-colors cursor-pointer"
+                title="Chuyển sang chế độ học tương tác SuperChinese (Vẽ chữ, Sắp xếp từ, Nghe & Gõ)"
+              >
+                <PenTool className="w-3 h-3" />
+                <span className="hidden sm:inline">Học SuperChinese</span>
+                <span className="sm:hidden">SuperChinese</span>
+              </button>
               {/* Tùy chọn tốc độ âm thanh 6 mức toàn hệ thống */}
               <AudioSpeedSelector variant="dropdown" size="xs" />
               <span className="font-sans font-semibold text-title text-xs bg-page px-2 py-0.5 rounded-lg border border-border">
@@ -729,32 +817,42 @@ export default function SystemLessonReader({
           </div>
 
           <div className="grid grid-cols-1 sm:flex sm:items-center gap-2.5 w-full sm:w-auto">
-            <Link
-              href={`/typing?mode=hsk&hskLevel=${lesson.hsk_level ? lesson.hsk_level.replace('HSK', '').trim() : 1}&lessonId=${lesson.id}`}
-              className="w-full sm:w-auto"
+            <Button
+              onClick={startSuperChineseSession}
+              disabled={vocabularies.length === 0}
+              className="w-full sm:w-auto font-serif bg-[#B91C1C] hover:bg-[#991B1B] text-white min-h-[44px] px-5 text-xs sm:text-sm gap-2 border-2 border-stone-900 rounded-xl shadow-[0_3px_0_#1c1917] cursor-pointer active:translate-y-0.5 touch-manipulation font-bold"
             >
-              <Button
-                variant="outline"
-                className="w-full sm:w-auto font-serif border border-[#182238]/20 hover:border-[#B8322D] hover:bg-[#FFF9F3] text-[#182238] dark:text-white min-h-[44px] px-5 text-xs sm:text-sm gap-2 shadow-xs cursor-pointer active:translate-y-0.5 touch-manipulation"
-                title="Luyện đánh máy các câu ví dụ của bài học này"
-              >
-                <Keyboard className="w-4 h-4 text-[#B8322D]" />
-                <span>Luyện gõ bàn phím IME</span>
-              </Button>
-            </Link>
+              <PenTool className="w-4 h-4" />
+              <span>Học SuperChinese (Vẽ chữ &amp; Sắp câu)</span>
+            </Button>
 
             <Button
+              variant="outline"
               onClick={() => {
                 setLearningIndex(0)
                 setShowAnswer(false)
                 setUnlearnedInSession([])
                 setIsLearning(true)
               }}
-              className="w-full sm:w-auto font-serif bg-[#B8322D] hover:bg-[#9E2A25] text-white min-h-[44px] px-6 text-xs sm:text-sm gap-2 border border-[#9E2A25] shadow-xs cursor-pointer active:translate-y-0.5 touch-manipulation font-bold"
+              className="w-full sm:w-auto font-serif border border-[#182238]/20 hover:border-[#B8322D] hover:bg-[#FFF9F3] text-[#182238] dark:text-white min-h-[44px] px-4 text-xs sm:text-sm gap-2 shadow-xs cursor-pointer active:translate-y-0.5 touch-manipulation"
             >
-              <PlayCircle className="w-4 h-4" />
-              <span>Học Flashcard bài này</span>
+              <PlayCircle className="w-4 h-4 text-[#B8322D]" />
+              <span>Flashcard lướt</span>
             </Button>
+
+            <Link
+              href={`/typing?mode=hsk&hskLevel=${lesson.hsk_level ? lesson.hsk_level.replace('HSK', '').trim() : 1}&lessonId=${lesson.id}`}
+              className="w-full sm:w-auto"
+            >
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto font-serif border border-[#182238]/20 hover:border-[#B8322D] hover:bg-[#FFF9F3] text-[#182238] dark:text-white min-h-[44px] px-4 text-xs sm:text-sm gap-2 shadow-xs cursor-pointer active:translate-y-0.5 touch-manipulation"
+                title="Luyện đánh máy các câu ví dụ của bài học này"
+              >
+                <Keyboard className="w-4 h-4 text-[#B8322D]" />
+                <span>Luyện gõ IME</span>
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -1089,16 +1187,26 @@ export default function SystemLessonReader({
             </p>
 
             <Button
+              onClick={startSuperChineseSession}
+              disabled={vocabularies.length === 0}
+              className="w-full h-11 text-xs font-serif font-bold bg-[#B91C1C] hover:bg-[#991B1B] text-white rounded-xl flex items-center justify-center gap-2 border-2 border-[#182238] shadow-[0_3px_0_#182238] cursor-pointer active:translate-y-0.5"
+            >
+              <PenTool className="w-4 h-4" />
+              <span>Học SuperChinese (Vẽ &amp; Sắp câu)</span>
+            </Button>
+
+            <Button
+              variant="outline"
               onClick={() => {
                 setLearningIndex(0)
                 setShowAnswer(false)
                 setUnlearnedInSession([])
                 setIsLearning(true)
               }}
-              className="w-full h-11 text-xs font-serif font-bold bg-[#B8322D] hover:bg-[#9E2A25] text-white rounded-xl flex items-center justify-center gap-2 border-2 border-[#182238] shadow-[0_3px_0_#182238] cursor-pointer active:translate-y-0.5"
+              className="w-full h-11 text-xs font-serif font-bold border-2 border-[#182238] bg-white hover:bg-[#FAF7F2] text-[#182238] dark:text-white rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer active:translate-y-0.5"
             >
-              <PlayCircle className="w-4 h-4" />
-              <span>Học Flashcard thông minh</span>
+              <PlayCircle className="w-4 h-4 text-[#B8322D]" />
+              <span>Ôn Flashcard lướt</span>
             </Button>
 
             <Link

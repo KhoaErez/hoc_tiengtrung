@@ -128,6 +128,11 @@ export function SiteFooter({ liveVocabCounts }: SiteFooterProps) {
             </h4>
             <ul className="space-y-1.5 text-xs font-serif text-muted">
               <li>
+                <Link href="/learn" className="hover:text-[#0D9488] transition-colors">
+                  Học từng bài theo lộ trình
+                </Link>
+              </li>
+              <li>
                 <Link href="/vocabulary" className="hover:text-[#0D9488] transition-colors">
                   Từ điển HSK 3.0
                 </Link>

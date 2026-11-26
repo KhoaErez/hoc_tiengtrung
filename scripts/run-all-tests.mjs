@@ -33,6 +33,10 @@ const testSuites = [
     name: '6. Chuẩn hóa văn bản, IME Composition, Stateless Diff & TTS Sync (/typing)',
     file: 'test-typing-text-imei-tts.mjs',
   },
+  {
+    name: '7. Lộ trình Học từng bài & Lesson Player kiểu SuperChinese (HSK + Công Xưởng)',
+    file: 'test-lesson-player.mjs',
+  },
 ]
 
 console.log('=================================================================')

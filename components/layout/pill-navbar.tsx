@@ -3,16 +3,16 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  Sparkles, 
-  Menu, 
-  X, 
-  User as UserIcon, 
-  BookOpen, 
-  GraduationCap, 
-  Keyboard, 
-  Library, 
-  Layers, 
+import {
+  Sparkles,
+  Menu,
+  X,
+  User as UserIcon,
+  BookOpen,
+  GraduationCap,
+  Keyboard,
+  Library,
+  Layers,
   ArrowRight,
   ShieldCheck,
   LogOut,
@@ -20,6 +20,7 @@ import {
   Info,
   ChevronRight,
   Search,
+  PlayCircle,
 } from 'lucide-react'
 import { BrandLogo, BrandSymbol } from '@/components/ui/brand-logo'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
@@ -46,6 +47,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
 
   const desktopNavLinks = [
     { label: 'Trang chủ', href: '/', icon: BookOpen },
+    { label: 'Học từng bài', href: '/learn', icon: PlayCircle },
     { label: 'Lộ trình HSK', href: '/topics', icon: GraduationCap },
     { label: 'Luyện gõ', href: '/typing', icon: Keyboard },
     { label: 'Tra từ vựng', href: '/vocabulary', icon: Search },
@@ -60,6 +62,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
       groupTitle: 'Lộ trình & Luyện tập',
       items: [
         { label: 'Trang chủ', href: '/', icon: BookOpen, desc: 'Tổng quan & Hành trình' },
+        { label: 'Học từng bài theo lộ trình', href: '/learn', icon: PlayCircle, desc: 'HSK 1–6 & Tiếng Trung Công Xưởng' },
         { label: 'Lộ trình HSK 1–9', href: '/topics', icon: GraduationCap, desc: 'Lộ trình bài học chuẩn hóa' },
         { label: 'Tra từ điển HSK', href: '/vocabulary', icon: Search, desc: 'Tra cứu chữ Hán, Pinyin & nghĩa' },
         { label: 'Luyện gõ phím IME', href: '/typing', icon: Keyboard, desc: 'Phản xạ gõ Hán tự Pinyin' },
@@ -91,7 +94,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
     <>
       <header className="sticky top-2 sm:top-4 z-40 px-3 sm:px-6 w-full sm:w-[94%] max-w-[1280px] mx-auto select-none">
         {/* Khung Pill Navbar chính (The Mandarin Lab inspired) */}
-        <nav 
+        <nav
           aria-label="Thanh điều hướng chính"
           className="w-full rounded-2xl sm:rounded-full bg-[#FAF7F2]/95 dark:bg-[#182238]/95 backdrop-blur-md border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between transition-all min-h-[56px] sm:min-h-[60px]"
         >
@@ -101,14 +104,14 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
           </div>
 
           {/* 2. Ở giữa: Menu điều hướng (Desktop) */}
-          <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+          <div className="hidden lg:flex items-center gap-0.5 xl:gap-1.5">
             {desktopNavLinks.map((link) => {
               const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
               return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`px-3 py-1.5 rounded-full text-xs font-serif font-medium transition-all duration-150 ${
+                  className={`px-2.5 xl:px-3 py-1.5 rounded-full text-xs font-serif font-medium whitespace-nowrap transition-all duration-150 ${
                     isActive
                       ? 'bg-[#182238] text-white shadow-xs'
                       : 'text-[#182238] dark:text-slate-200 hover:bg-[#182238]/10 dark:hover:bg-white/10'
@@ -197,14 +200,14 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
 
       {/* FULL-HEIGHT MOBILE DRAWER / SHEET */}
       {isMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-50 lg:hidden flex justify-end"
           role="dialog"
           aria-modal="true"
           aria-label="Danh mục chức năng mobile"
         >
           {/* Lớp nền mờ Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={closeMenu}
           />
@@ -283,18 +286,16 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
                           key={item.href}
                           href={item.href}
                           onClick={closeMenu}
-                          className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${
-                            isActive
-                              ? 'bg-[#B8322D]/10 border-[#B8322D] text-[#B8322D] font-bold shadow-[0_2px_0_#B8322D]'
-                              : 'bg-white dark:bg-[#1E2530] border-[#182238]/15 dark:border-white/10 text-title hover:border-[#182238] shadow-[0_2px_0_#182238]/5'
-                          }`}
+                          className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${isActive
+                            ? 'bg-[#B8322D]/10 border-[#B8322D] text-[#B8322D] font-bold shadow-[0_2px_0_#B8322D]'
+                            : 'bg-white dark:bg-[#1E2530] border-[#182238]/15 dark:border-white/10 text-title hover:border-[#182238] shadow-[0_2px_0_#182238]/5'
+                            }`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className={`p-2 rounded-xl border ${
-                              isActive
-                                ? 'bg-[#B8322D] text-white border-[#B8322D]'
-                                : 'bg-[#FAF7F2] dark:bg-[#182238] text-title border-[#182238]/20'
-                            }`}>
+                            <span className={`p-2 rounded-xl border ${isActive
+                              ? 'bg-[#B8322D] text-white border-[#B8322D]'
+                              : 'bg-[#FAF7F2] dark:bg-[#182238] text-title border-[#182238]/20'
+                              }`}>
                               <Icon className="w-4 h-4" />
                             </span>
                             <div>
