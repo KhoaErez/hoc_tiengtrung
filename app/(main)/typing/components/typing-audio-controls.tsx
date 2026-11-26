@@ -44,6 +44,7 @@ export interface TypingAudioControlsProps {
   onPrevSentence?: () => void;
   onNextSentence?: () => void;
   isAudioFinished?: boolean;
+  embedded?: boolean;
 }
 
 // Hàm chuẩn hóa tên và thông tin giọng đọc tiếng Trung
@@ -86,6 +87,7 @@ export default function TypingAudioControls({
   onPrevSentence,
   onNextSentence,
   isAudioFinished = false,
+  embedded = false,
 }: TypingAudioControlsProps) {
   const [showVoiceDropdown, setShowVoiceDropdown] = useState(false)
   const [showHelpGuide, setShowHelpGuide] = useState(false)
@@ -136,9 +138,19 @@ export default function TypingAudioControls({
   }, [showVoiceDropdown])
 
   return (
-    <div className="bg-card border border-[#E9DDD1] rounded-2xl p-3.5 md:p-4 shadow-2xs space-y-3 transition-all">
+    <div
+      className={
+        embedded
+          ? 'pt-3.5 border-t border-stone-200 dark:border-white/10 space-y-3 transition-all'
+          : 'bg-white dark:bg-[#182238] border border-stone-300 dark:border-white/15 rounded-2xl p-3.5 md:p-4 shadow-sm space-y-3 transition-all'
+      }
+    >
       {/* 1. HÀNG TIÊU ĐỀ & TÙY CHỈNH TỐC ĐỘ, GIỌNG ĐỌC */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#E9DDD1]/80">
+      <div
+        className={`flex flex-col ${
+          embedded ? 'gap-2 pb-2.5' : 'sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5'
+        } border-b border-stone-200/80 dark:border-white/10`}
+      >
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1.5">
             <Volume2 className="w-4 h-4 text-[#B8322D] flex-shrink-0" />
@@ -170,10 +182,10 @@ export default function TypingAudioControls({
         {/* Bộ điều chỉnh Tốc độ & Giọng đọc */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Chọn tốc độ đọc (0.5x, 0.75x, 1.0x, 1.25x, 1.5x, 2.0x) */}
-          <div className="flex items-center bg-[#FFF9F3] border border-[#E9DDD1] rounded-xl p-0.5 text-xs font-serif overflow-x-auto no-scrollbar scroll-smooth touch-pan-x max-w-full">
-            <span className="px-2 py-1 text-[11px] text-[#243047]/70 flex items-center gap-1 shrink-0">
-              <Gauge className="w-3 h-3 text-[#243047]/60" />
-              <span className="hidden xs:inline">Tốc độ:</span>
+          <div className="flex items-center bg-[#FAF7F2] border border-stone-200 rounded-xl p-0.5 text-xs font-serif flex-wrap max-w-full">
+            <span className="px-1.5 py-1 text-[11px] text-stone-600 flex items-center gap-1 shrink-0">
+              <Gauge className="w-3 h-3 text-stone-500" />
+              {!embedded && <span className="hidden xs:inline">Tốc độ:</span>}
             </span>
             {[
               { rate: 0.5, label: '0.5x', desc: 'Rất chậm' },

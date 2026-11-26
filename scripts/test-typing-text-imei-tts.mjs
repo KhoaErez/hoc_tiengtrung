@@ -48,6 +48,7 @@ function loadTsModule(filePath) {
     compilerOptions: {
       module: ts.default.ModuleKind.CommonJS,
       target: ts.default.ScriptTarget.ES2022,
+      jsx: ts.default.JsxEmit.ReactJSX,
       esModuleInterop: true,
     },
   })
@@ -75,6 +76,15 @@ const {
   buildUnifiedTypingSentences,
   findSentenceIndexByCp,
 } = loadTsModule(path.join(rootDir, 'lib', 'typing-sentence-model.ts'))
+
+const {
+  buildStaticTranslationFallback,
+  resolveAvailableFallbackLevel,
+} = loadTsModule(path.join(rootDir, 'lib', 'translation-typing-fallback.ts'))
+
+const { formatFriendlyLessonName } = loadTsModule(
+  path.join(rootDir, 'app', '(main)', 'typing', 'components', 'typing-resume-card.tsx')
+)
 
 let passed = 0
 let failed = 0
@@ -311,6 +321,42 @@ console.log('\n📌 Nhóm 5: Mô hình Unified Sentences (2 chế độ hiển t
   assert(
     Boolean(triggeredNext && triggeredNext.index === 0 && triggeredNext.index + 1 < customModel.sentences.length),
     'Kích hoạt Tự động đọc câu mới (sentence index + 1) đúng 1 lần khi vượt endCp của câu hiện tại'
+  )
+}
+
+// -----------------------------------------------------------------
+// 6. TEST TRANSLATE FALLBACK DATA (ZERO DEFAULT EMPTY STATE FOR ?practice=translate)
+// -----------------------------------------------------------------
+console.log('\n📌 Nhóm 6: Dữ liệu dự phòng & Auto-fallback Dịch Việt → Gõ Hán (HSK 1–5)')
+{
+  for (const lvl of [1, 2, 3, 4, 5]) {
+    const items = buildStaticTranslationFallback(lvl, 20)
+    assert(
+      items.length > 0 && items.every((x) => Boolean(x.vietnamesePrompt) && Boolean(x.chineseAnswer)),
+      `Fallback tĩnh HSK ${lvl} trả về ${items.length} câu song ngữ hợp lệ (không rỗng)`
+    )
+  }
+  assert(
+    resolveAvailableFallbackLevel(99) === 1,
+    'resolveAvailableFallbackLevel(99) tự động fallback an toàn về cấp độ HSK 1 có dữ liệu'
+  )
+  assert(
+    formatFriendlyLessonName({
+      mode: 'translate_hsk',
+      exerciseId: 'hsk3-all',
+      lessonTitle: 'hsk3-all',
+      hskLevel: 3,
+    }) === 'HSK 3 - Tất cả bài học',
+    'formatFriendlyLessonName chuyển slug "hsk3-all" thành "HSK 3 - Tất cả bài học"'
+  )
+  assert(
+    formatFriendlyLessonName({
+      mode: 'translate_hsk',
+      exerciseId: 'hsk1-lesson-123',
+      lessonTitle: 'Bài 1: Xin chào',
+      hskLevel: 1,
+    }) === 'HSK 1 · Bài 1: Xin chào',
+    'formatFriendlyLessonName giữ nguyên tên bài học rõ ràng và kèm tiền tố HSK'
   )
 }
 

@@ -1297,17 +1297,27 @@ export interface TranslationExerciseItem {
   difficulty: 'easy' | 'medium' | 'hard'
 }
 
+export interface TranslateBootstrapData {
+  hskLevel: number
+  lessonId: string
+  lessons: { id: string; lessonNumber: number; title: string; subtitle: string; hskLevel: number }[]
+  exercises: TranslationExerciseItem[]
+  notice?: string
+}
+
 export async function getTranslationExercisesAction(params: {
   hskLevel: number
   lessonId?: string
   limit?: number
 }) {
+  const limit = params.limit || 60
+  const safeHskLevel = params.hskLevel >= 1 && params.hskLevel <= 5 ? params.hskLevel : 1
+  const hskTag = `HSK ${safeHskLevel}`
+
   try {
     const supabase = await createClient()
-    const limit = params.limit || 50
-    const hskTag = `HSK ${params.hskLevel}`
 
-    // 1. Trường hợp theo bài học cụ thể (Lesson ID)
+    // 1. Trường hợp lọc theo một bài học cụ thể (Lesson ID)
     if (params.lessonId) {
       const { data: lessonData } = await supabase
         .from('lessons')
@@ -1315,7 +1325,7 @@ export async function getTranslationExercisesAction(params: {
         .eq('id', params.lessonId)
         .maybeSingle()
 
-      const lessonTitle = lessonData?.title || `Bài học (HSK ${params.hskLevel})`
+      const lessonTitle = lessonData?.title || `Bài học (${hskTag})`
 
       const { data, error } = await supabase
         .from('lesson_vocabularies')
@@ -1341,6 +1351,7 @@ export async function getTranslationExercisesAction(params: {
       }
 
       const exercises: TranslationExerciseItem[] = []
+      const seenKeys = new Set<string>()
       for (const item of data) {
         const v = item.vocabularies as any
         if (!v) continue
@@ -1349,43 +1360,70 @@ export async function getTranslationExercisesAction(params: {
 
         if (examples.length > 0) {
           for (const ex of examples) {
-            if (!ex.chinese || !ex.meaning_vi) continue
+            const chinese = ex.chinese?.trim()
+            const meaningVi = ex.meaning_vi?.trim()
+            if (!chinese || !meaningVi) continue
+            const key = `${chinese}::${meaningVi}`
+            if (seenKeys.has(key)) continue
+            seenKeys.add(key)
+
             exercises.push({
               id: `trans-ex-${ex.id}`,
               exampleId: ex.id,
               vocabId: v.id,
-              vietnamesePrompt: ex.meaning_vi.trim(),
-              chineseAnswer: ex.chinese.trim(),
+              vietnamesePrompt: meaningVi,
+              chineseAnswer: chinese,
               pinyinAnswer: ex.pinyin?.trim() || '',
               wordHanzi: v.hanzi,
               wordPinyin: v.pinyin,
               wordMeaning: v.meaning_vi,
-              hskLevel: params.hskLevel,
+              hskLevel: safeHskLevel,
               lessonTitle,
               difficulty: ex.difficulty_level === 'basic' ? 'easy' : 'medium',
             })
           }
-        } else if (v.example_hanzi && v.example_vi) {
-          exercises.push({
-            id: `trans-v-${v.id}`,
-            vocabId: v.id,
-            vietnamesePrompt: v.example_vi.trim(),
-            chineseAnswer: v.example_hanzi.trim(),
-            pinyinAnswer: v.example_pinyin?.trim() || v.pinyin || '',
-            wordHanzi: v.hanzi,
-            wordPinyin: v.pinyin,
-            wordMeaning: v.meaning_vi,
-            hskLevel: params.hskLevel,
-            lessonTitle,
-            difficulty: 'easy',
-          })
+        } else if (v.example_hanzi?.trim() && v.example_vi?.trim()) {
+          const chinese = v.example_hanzi.trim()
+          const meaningVi = v.example_vi.trim()
+          const key = `${chinese}::${meaningVi}`
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key)
+            exercises.push({
+              id: `trans-v-${v.id}`,
+              vocabId: v.id,
+              vietnamesePrompt: meaningVi,
+              chineseAnswer: chinese,
+              pinyinAnswer: v.example_pinyin?.trim() || v.pinyin || '',
+              wordHanzi: v.hanzi,
+              wordPinyin: v.pinyin,
+              wordMeaning: v.meaning_vi,
+              hskLevel: safeHskLevel,
+              lessonTitle,
+              difficulty: 'easy',
+            })
+          }
         }
       }
 
       return { success: exercises.length > 0, data: exercises }
     }
 
-    let query = supabase
+    // 2. Trường hợp "Tất cả bài học (HSK X)": Tổng hợp đa nguồn toàn cấp độ
+    const exercises: TranslationExerciseItem[] = []
+    const seenKeys = new Set<string>()
+    const existingVocabIds = new Set<string>()
+
+    const pushExercise = (item: TranslationExerciseItem) => {
+      const key = `${item.chineseAnswer}::${item.vietnamesePrompt}`
+      if (seenKeys.has(key)) return false
+      seenKeys.add(key)
+      existingVocabIds.add(item.vocabId)
+      exercises.push(item)
+      return true
+    }
+
+    // Nguồn 2a: Bảng vocabulary_examples gắn vocabularies thuộc hskTag
+    const { data: exData } = await supabase
       .from('vocabulary_examples')
       .select(`
         id,
@@ -1406,56 +1444,131 @@ export async function getTranslationExercisesAction(params: {
       .not('meaning_vi', 'is', null)
       .not('chinese', 'is', null)
       .order('order_index', { ascending: true })
-
-    if (hskTag === 'HSK 6') {
-      query = query.in('vocabularies.validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
-    }
-
-    const { data: exData, error: exErr } = await query.limit(limit)
-
-    const exercises: TranslationExerciseItem[] = []
+      .limit(limit * 2)
 
     if (exData && exData.length > 0) {
       for (const row of exData as any[]) {
         const v = row.vocabularies
-        if (!v || !row.chinese || !row.meaning_vi) continue
-        exercises.push({
+        const chinese = row.chinese?.trim()
+        const meaningVi = row.meaning_vi?.trim()
+        if (!v || !chinese || !meaningVi) continue
+        pushExercise({
           id: `trans-ex-${row.id}`,
           exampleId: row.id,
           vocabId: v.id,
-          vietnamesePrompt: row.meaning_vi.trim(),
-          chineseAnswer: row.chinese.trim(),
+          vietnamesePrompt: meaningVi,
+          chineseAnswer: chinese,
           pinyinAnswer: row.pinyin?.trim() || '',
           wordHanzi: v.hanzi,
           wordPinyin: v.pinyin,
           wordMeaning: v.meaning_vi,
-          hskLevel: params.hskLevel,
-          lessonTitle: `HSK ${params.hskLevel}`,
+          hskLevel: safeHskLevel,
+          lessonTitle: hskTag,
           difficulty: row.difficulty_level === 'basic' ? 'easy' : 'medium',
         })
+        if (exercises.length >= limit) break
       }
     }
 
-    // Nếu số lượng câu từ bảng ví dụ chưa đủ limit, bù đắp từ câu ví dụ inline trong bảng vocabularies
+    // Nguồn 2b: Tổng hợp từ toàn bộ bài học con (lesson_vocabularies) thuộc cấp HSK đang chọn
     if (exercises.length < limit) {
-      const existingVocabIds = new Set(exercises.map((e) => e.vocabId))
-      let fbQuery = supabase
+      const { data: levelLessons } = await supabase
+        .from('lessons')
+        .select('id, title, lesson_number')
+        .eq('hsk_level', hskTag)
+        .eq('is_system', true)
+        .order('lesson_number', { ascending: true })
+
+      if (levelLessons && levelLessons.length > 0) {
+        const lessonTitleMap = new Map<string, string>(
+          levelLessons.map((l) => [l.id, l.title || hskTag])
+        )
+        const { data: lessonVocabs } = await supabase
+          .from('lesson_vocabularies')
+          .select(`
+            lesson_id,
+            sort_order,
+            vocabularies!inner(
+              id,
+              hanzi,
+              pinyin,
+              meaning_vi,
+              example_hanzi,
+              example_pinyin,
+              example_vi,
+              vocabulary_examples(id, chinese, pinyin, meaning_vi, difficulty_level, order_index)
+            )
+          `)
+          .in('lesson_id', levelLessons.map((l) => l.id))
+          .order('sort_order', { ascending: true })
+          .limit(limit * 3)
+
+        if (lessonVocabs && lessonVocabs.length > 0) {
+          for (const lv of lessonVocabs as any[]) {
+            const v = lv.vocabularies
+            if (!v) continue
+            const lessonTitle = lessonTitleMap.get(lv.lesson_id) || hskTag
+            const examples = ((v.vocabulary_examples as any[]) || []).sort(
+              (a, b) => (a.order_index || 1) - (b.order_index || 1)
+            )
+
+            if (examples.length > 0) {
+              for (const ex of examples) {
+                const chinese = ex.chinese?.trim()
+                const meaningVi = ex.meaning_vi?.trim()
+                if (!chinese || !meaningVi) continue
+                pushExercise({
+                  id: `trans-ex-${ex.id}`,
+                  exampleId: ex.id,
+                  vocabId: v.id,
+                  vietnamesePrompt: meaningVi,
+                  chineseAnswer: chinese,
+                  pinyinAnswer: ex.pinyin?.trim() || '',
+                  wordHanzi: v.hanzi,
+                  wordPinyin: v.pinyin,
+                  wordMeaning: v.meaning_vi,
+                  hskLevel: safeHskLevel,
+                  lessonTitle,
+                  difficulty: ex.difficulty_level === 'basic' ? 'easy' : 'medium',
+                })
+                if (exercises.length >= limit) break
+              }
+            } else if (v.example_hanzi?.trim() && v.example_vi?.trim()) {
+              pushExercise({
+                id: `trans-v-${v.id}`,
+                vocabId: v.id,
+                vietnamesePrompt: v.example_vi.trim(),
+                chineseAnswer: v.example_hanzi.trim(),
+                pinyinAnswer: v.example_pinyin?.trim() || v.pinyin || '',
+                wordHanzi: v.hanzi,
+                wordPinyin: v.pinyin,
+                wordMeaning: v.meaning_vi,
+                hskLevel: safeHskLevel,
+                lessonTitle,
+                difficulty: 'easy',
+              })
+            }
+
+            if (exercises.length >= limit) break
+          }
+        }
+      }
+    }
+
+    // Nguồn 2c: Bổ sung ví dụ inline từ bảng vocabularies nếu vẫn chưa đủ limit
+    if (exercises.length < limit) {
+      const { data: fallbackVocabs } = await supabase
         .from('vocabularies')
         .select('id, hanzi, pinyin, meaning_vi, hsk_level, example_hanzi, example_pinyin, example_vi')
         .eq('hsk_level', hskTag)
         .not('example_hanzi', 'is', null)
         .not('example_vi', 'is', null)
-
-      if (hskTag === 'HSK 6') {
-        fbQuery = fbQuery.in('validation_status', ['matched_target_syllabus', 'verified_target_syllabus', 'needs_tone_sense_review'])
-      }
-
-      const { data: fallbackVocabs } = await fbQuery.limit(limit * 2)
+        .limit(limit * 2)
 
       if (fallbackVocabs) {
         for (const fv of fallbackVocabs) {
-          if (!fv.example_hanzi || !fv.example_vi || existingVocabIds.has(fv.id)) continue
-          exercises.push({
+          if (!fv.example_hanzi?.trim() || !fv.example_vi?.trim() || existingVocabIds.has(fv.id)) continue
+          pushExercise({
             id: `trans-v-${fv.id}`,
             vocabId: fv.id,
             vietnamesePrompt: fv.example_vi.trim(),
@@ -1464,19 +1577,34 @@ export async function getTranslationExercisesAction(params: {
             wordHanzi: fv.hanzi,
             wordPinyin: fv.pinyin,
             wordMeaning: fv.meaning_vi,
-            hskLevel: params.hskLevel,
-            lessonTitle: `HSK ${params.hskLevel}`,
+            hskLevel: safeHskLevel,
+            lessonTitle: hskTag,
             difficulty: 'easy',
           })
-          existingVocabIds.add(fv.id)
           if (exercises.length >= limit) break
         }
       }
     }
 
-    return { success: exercises.length > 0, data: exercises }
+    // Nguồn 2d: Fallback dữ liệu tĩnh HSK nếu cơ sở dữ liệu chưa có bản ghi nào
+    if (exercises.length === 0) {
+      const { buildStaticTranslationFallback } = await import('@/lib/translation-typing-fallback')
+      const staticList = buildStaticTranslationFallback(safeHskLevel, limit)
+      return { success: staticList.length > 0, data: staticList, source: 'static' as const }
+    }
+
+    return { success: true, data: exercises, source: 'database' as const }
   } catch (err: any) {
     console.error('getTranslationExercisesAction error:', err)
+    if (!params.lessonId) {
+      try {
+        const { buildStaticTranslationFallback } = await import('@/lib/translation-typing-fallback')
+        const staticList = buildStaticTranslationFallback(safeHskLevel, limit)
+        if (staticList.length > 0) {
+          return { success: true, data: staticList, source: 'static' as const }
+        }
+      } catch {}
+    }
     return { success: false, data: [] }
   }
 }

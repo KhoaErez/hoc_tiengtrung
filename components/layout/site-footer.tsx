@@ -28,14 +28,61 @@ export function SiteFooter({ liveVocabCounts }: SiteFooterProps) {
 
   return (
     <footer
-      className="w-full border-t border-[#E2E8F0] dark:border-[#2D3A56] bg-white/85 dark:bg-[#182238]/90 backdrop-blur-md select-none transition-colors mt-8 md:mt-14"
+      className="w-full border-t border-stone-200 dark:border-[#2D3A56] bg-white/85 dark:bg-[#182238]/90 backdrop-blur-md select-none transition-colors mt-8 md:mt-12"
       role="contentinfo"
       aria-label="Thông tin bản quyền và tác giả"
     >
-      {/* Một Footer đa cột duy nhất (Single Clean Multi-Column Global Footer) */}
-      <div className="w-[92%] max-w-[1536px] 2xl:max-w-[1640px] mx-auto px-2 sm:px-4 lg:px-6 2xl:px-8 pt-10 pb-[max(5.5rem,calc(4.75rem+env(safe-area-inset-bottom,0px)))] md:pb-10 space-y-8">
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {/* Container thẳng trục 100% với PillNavbar & Main Workspace (max-w-[1280px]) */}
+      <div className="w-full sm:w-[94%] max-w-[1280px] mx-auto px-3 sm:px-6 pt-6 md:pt-9 pb-[max(5.5rem,calc(4.75rem+env(safe-area-inset-bottom,0px)))] lg:pb-8 space-y-5 md:space-y-7">
+        {/* PHIÊN BẢN MOBILE (< 768px): Rút gọn gọn gàng vì điều hướng chính đã nằm ở MobileBottomNav */}
+        <div className="md:hidden space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/" className="inline-flex items-center gap-2 group">
+              <BrandSymbol size={24} decorative />
+              <div className="leading-tight">
+                <span className="font-serif font-bold text-sm text-title group-hover:text-app-accent transition-colors">
+                  Chinese<span className="font-sans font-semibold text-app-accent">Notebook</span>
+                </span>
+                <span className="block text-[10px] font-serif text-muted">Hán Ngữ Tập Ghi</span>
+              </div>
+            </Link>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF7F2] dark:bg-[#202B45] border border-stone-200 dark:border-white/15 text-[10px] font-serif text-[#182238] dark:text-slate-200 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
+              <span>HSK 3.0</span>
+            </span>
+          </div>
+
+          <nav
+            aria-label="Liên kết nhanh chân trang di động"
+            className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs font-serif text-muted"
+          >
+            <Link href="/about" className="hover:text-[#0D9488] transition-colors">
+              Giới thiệu
+            </Link>
+            <span className="text-stone-300 dark:text-slate-700" aria-hidden="true">•</span>
+            <Link href="/vocabulary" className="hover:text-[#0D9488] transition-colors">
+              Từ điển HSK 3.0
+            </Link>
+            <span className="text-stone-300 dark:text-slate-700" aria-hidden="true">•</span>
+            <Link href="/about#intellectual-property" className="hover:text-[#0D9488] transition-colors">
+              Nguồn tài liệu
+            </Link>
+            <span className="text-stone-300 dark:text-slate-700" aria-hidden="true">•</span>
+            <Link href="/profile" className="hover:text-[#0D9488] transition-colors">
+              Hồ sơ
+            </Link>
+          </nav>
+
+          <p className="text-[11px] font-serif text-muted">
+            Phát triển bởi{' '}
+            <Link href="/about" className="font-semibold text-[#B8322D] hover:underline">
+              {SITE_CONFIG.developer}
+            </Link>
+          </p>
+        </div>
+
+        {/* PHIÊN BẢN WEB DESKTOP/TABLET (>= 768px): Đầy đủ 4 cột trên mọi trang */}
+        <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           
           {/* Col 1: Brand & Story */}
           <div className="space-y-3">
@@ -150,12 +197,12 @@ export function SiteFooter({ liveVocabCounts }: SiteFooterProps) {
         </div>
 
         {/* Bottom Bar duy nhất */}
-        <div className="pt-5 border-t border-[#E2E8F0] dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs font-serif text-muted text-center sm:text-left">
+        <div className="pt-4 md:pt-5 border-t border-stone-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-serif text-muted text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
             <BrandSymbol size={16} decorative className="opacity-85" />
             <span>{SITE_CONFIG.copyrightNotice}</span>
           </div>
-          <div className="flex items-center gap-1 text-[11px]">
+          <div className="hidden sm:flex items-center gap-1 text-[11px]">
             <span>Đồng hành cùng bạn trên từng trang Hán ngữ</span>
             <Heart className="w-3 h-3 text-[#DC2626] fill-[#DC2626] inline-block mx-0.5" />
           </div>

@@ -89,7 +89,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
 
   return (
     <>
-      <header className="sticky top-2 sm:top-4 z-40 px-2 sm:px-6 w-full sm:w-[94%] max-w-[1680px] mx-auto select-none">
+      <header className="sticky top-2 sm:top-4 z-40 px-3 sm:px-6 w-full sm:w-[94%] max-w-[1280px] mx-auto select-none">
         {/* Khung Pill Navbar chính (The Mandarin Lab inspired) */}
         <nav 
           aria-label="Thanh điều hướng chính"

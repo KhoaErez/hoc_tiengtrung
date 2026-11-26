@@ -39,11 +39,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             />
 
             {/* Vùng nội dung chính (Tối ưu Mobile-First: flex-initial trên mobile để footer xuất hiện tự nhiên sau nội dung) */}
-            <main className="w-full sm:w-[94%] max-w-[1536px] 2xl:max-w-[1640px] mx-auto px-3 sm:px-4 lg:px-6 2xl:px-8 py-3.5 sm:py-6 pb-4 sm:pb-6 md:pb-8 flex-initial md:flex-1 relative z-10 min-w-0">
+            <main className="w-full sm:w-[94%] max-w-[1280px] mx-auto px-3 sm:px-6 py-3.5 sm:py-5 pb-4 sm:pb-6 md:pb-8 flex-initial md:flex-1 relative z-10 min-w-0">
               {children}
             </main>
 
-            {/* Chân trang EdTech thống nhất (đồng bộ số liệu HSK 3.0) */}
+            {/* Chân trang EdTech thống nhất (đầy đủ 4 cột trên web, tự rút gọn gọn gàng trên mobile) */}
             <SiteFooter liveVocabCounts={vocabCountsRes?.counts} />
 
             {/* Thanh điều hướng dưới chuyên biệt cho Mobile (Bottom Navigation) */}
