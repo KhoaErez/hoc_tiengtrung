@@ -21,7 +21,7 @@ import {
   ChevronRight,
   Search,
 } from 'lucide-react'
-import { BrandLogo } from '@/components/ui/brand-logo'
+import { BrandLogo, BrandSymbol } from '@/components/ui/brand-logo'
 import { useAuthModal } from '@/components/auth/auth-modal-context'
 import { useMobileNav } from './mobile-nav-context'
 import { logout } from '@/app/auth/actions'
@@ -95,14 +95,9 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
           aria-label="Thanh điều hướng chính"
           className="w-full rounded-2xl sm:rounded-full bg-[#FAF7F2]/95 dark:bg-[#182238]/95 backdrop-blur-md border-2 border-[#182238] dark:border-[#384869] shadow-[0_4px_0_#182238] dark:shadow-[0_4px_0_#0D1322] px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between transition-all min-h-[56px] sm:min-h-[60px]"
         >
-          {/* 1. Bên trái: Logo Chinese Notebook (ẩn subtitle trên màn hình nhỏ để tránh tràn) */}
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:block">
-              <BrandLogo variant="horizontal" size="sm" />
-            </div>
-            <div className="sm:hidden">
-              <BrandLogo variant="horizontal" size="xs" showSubtitle={false} />
-            </div>
+          {/* 1. Bên trái: Logo đơn nhất Chinese Notebook (responsive gọn trên mobile, đầy đủ trên desktop) */}
+          <div className="flex items-center shrink-0">
+            <BrandLogo variant="horizontal" size="sm" compactOnMobile />
           </div>
 
           {/* 2. Ở giữa: Menu điều hướng (Desktop) */}
@@ -157,7 +152,7 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
                 <Link href="/topics" className="hidden sm:inline-flex">
                   <button
                     type="button"
-                    className="px-3.5 sm:px-4 py-1.5 rounded-full bg-[#B8322D] hover:bg-[#9E2A25] active:translate-y-0.5 text-white text-xs font-serif font-bold shadow-[0_2px_0_#7A1D1A] transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation"
+                    className="px-3.5 sm:px-4 py-1.5 rounded-full bg-[#0D9488] hover:bg-[#0F766E] active:translate-y-0.5 text-white text-xs font-serif font-bold shadow-[0_2px_0_#115E59] transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation"
                   >
                     <span>Tiếp tục học</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -177,10 +172,10 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
                 <Link href="/topics?q=HSK 1" className="hidden sm:inline-flex">
                   <button
                     type="button"
-                    className="px-3 sm:px-4 py-1.5 rounded-full bg-[#B8322D] hover:bg-[#9E2A25] active:translate-y-0.5 text-white text-xs font-serif font-bold shadow-[0_2px_0_#7A1D1A] transition-all flex items-center gap-1 cursor-pointer touch-manipulation"
+                    className="px-3 sm:px-4 py-1.5 rounded-full bg-[#0D9488] hover:bg-[#0F766E] active:translate-y-0.5 text-white text-xs font-serif font-bold shadow-[0_2px_0_#115E59] transition-all flex items-center gap-1 cursor-pointer touch-manipulation"
                   >
                     <span>Học miễn phí</span>
-                    <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+                    <Sparkles className="w-3.5 h-3.5 text-teal-100" />
                   </button>
                 </Link>
               </div>
@@ -218,7 +213,12 @@ export function PillNavbar({ user: initialUser, profile, isAdmin }: PillNavbarPr
           <div className="relative w-full max-w-sm bg-[#FAF7F2] dark:bg-[#182238] border-l-2 border-[#182238] dark:border-[#384869] h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-right duration-200 overflow-hidden font-serif">
             {/* 1. Header của Drawer */}
             <div className="p-4 sm:p-5 border-b-2 border-[#182238]/15 dark:border-white/10 flex items-center justify-between bg-white dark:bg-[#141A23]">
-              <BrandLogo variant="horizontal" size="xs" showSubtitle={false} />
+              <div className="flex items-center gap-2.5">
+                <BrandSymbol size={28} />
+                <span className="font-serif font-bold text-sm text-[#182238] dark:text-white">
+                  Danh mục học tập
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={closeMenu}

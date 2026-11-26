@@ -63,7 +63,7 @@ export function MobileBottomNav() {
   return (
     <nav
       aria-label="Thanh điều hướng nhanh phía dưới"
-      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#FAF7F2]/95 dark:bg-[#182238]/95 backdrop-blur-xl border-t-2 border-[#182238] dark:border-[#384869] shadow-[0_-4px_16px_rgba(24,34,56,0.08)] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] transition-transform duration-200"
+      className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-[#FAF9F6]/95 dark:bg-[#182238]/95 backdrop-blur-xl border-t-2 border-[#182238] dark:border-[#384869] shadow-[0_-4px_20px_rgba(24,34,56,0.08)] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] transition-transform duration-200"
     >
       <div className="flex items-center justify-around max-w-lg mx-auto">
         {BOTTOM_TABS.map((tab) => {
@@ -82,8 +82,8 @@ export function MobileBottomNav() {
                 onClick={toggleMenu}
                 className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 px-1.5 rounded-2xl transition-all cursor-pointer ${
                   isActive
-                    ? 'text-[#B8322D] bg-[#B8322D]/10 font-bold'
-                    : 'text-[#182238]/80 dark:text-slate-300 hover:text-[#B8322D] font-medium'
+                    ? 'text-[#0D9488] bg-[#0D9488]/10 font-bold'
+                    : 'text-[#182238]/80 dark:text-slate-300 hover:text-[#0D9488] font-medium'
                 }`}
                 aria-label="Mở danh mục chức năng đầy đủ"
                 aria-expanded={isMenuOpen}
@@ -105,8 +105,8 @@ export function MobileBottomNav() {
               href={tab.href}
               className={`flex flex-col items-center justify-center min-w-[56px] min-h-[44px] py-1 px-1.5 rounded-2xl transition-all cursor-pointer ${
                 isActive
-                  ? 'text-[#B8322D] bg-[#B8322D]/10 font-bold'
-                  : 'text-[#182238]/80 dark:text-slate-300 hover:text-[#B8322D] font-medium'
+                  ? 'text-[#0D9488] bg-[#0D9488]/10 font-bold'
+                  : 'text-[#182238]/80 dark:text-slate-300 hover:text-[#0D9488] font-medium'
               }`}
             >
               <div className="relative">

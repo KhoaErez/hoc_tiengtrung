@@ -79,18 +79,18 @@ export function GrammarCard({ item, isMastered = false, onToggleMastered }: Gram
   return (
     <article
       id={`grammar-point-${item.order_index}`}
-      className={`group relative bg-white dark:bg-[#182238] border transition-all duration-200 rounded-[22px] overflow-hidden ${
+      className={`group relative bg-white dark:bg-[#182238] border transition-all duration-200 rounded-2xl overflow-hidden ${
         isMastered
-          ? 'border-emerald-500/40 bg-emerald-50/[0.08] dark:bg-emerald-950/[0.1] shadow-xs'
-          : 'border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md'
+          ? 'border-[#0D9488]/40 bg-teal-50/[0.12] dark:bg-teal-950/[0.15] shadow-[0_8px_30px_rgba(13,148,136,0.06)]'
+          : 'border-[#E2E8F0] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.04)] hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:-translate-y-0.5'
       }`}
     >
       {/* Top Banner Accent Line */}
       <div
         className={`h-1 w-full ${
           isMastered
-            ? 'bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400'
-            : 'bg-gradient-to-r from-[#B8322D] via-[#D97706] to-[#B8322D]/40'
+            ? 'bg-gradient-to-r from-[#0D9488] via-emerald-500 to-teal-400'
+            : 'bg-gradient-to-r from-[#0D9488] via-[#B8322D] to-amber-500/60'
         }`}
       />
 

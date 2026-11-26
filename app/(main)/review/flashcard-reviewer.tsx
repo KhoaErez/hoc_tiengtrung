@@ -435,9 +435,9 @@ export default function FlashcardReviewer({
             <span>Tiến độ: {progressPercent}%</span>
             <span>Đã nhớ: {rememberedCount} • Cần ôn: {forgotCount}</span>
           </div>
-          <div className="w-full bg-[#E5DFD5] dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+          <div className="w-full bg-[#E2E8F0] dark:bg-slate-700 h-2 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-[#B8322D] to-[#F59E0B] rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-[#0D9488] to-emerald-500 rounded-full transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -481,9 +481,9 @@ export default function FlashcardReviewer({
           {/* 2. Thanh hành trình Milestone Nodes (25%, 50%, 75%, 100%) */}
           <div className="hidden lg:block relative py-2">
             {/* Thanh nền */}
-            <div className="w-full bg-[#E5DFD5] dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+            <div className="w-full bg-[#E2E8F0] dark:bg-slate-700 h-2 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-[#B8322D] to-[#F59E0B] rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-[#0D9488] to-emerald-500 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -522,7 +522,7 @@ export default function FlashcardReviewer({
               onClick={handleFlip}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
-              className={`transform-style-3d transition-transform duration-300 ease-out relative w-full grid grid-cols-1 grid-rows-1 min-h-[380px] sm:min-h-[440px] cursor-pointer touch-pan-y ${
+              className={`transform-style-3d transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] relative w-full grid grid-cols-1 grid-rows-1 min-h-[380px] sm:min-h-[440px] cursor-pointer touch-pan-y ${
                 showAnswer ? 'rotate-y-180' : ''
               }`}
               role="button"
@@ -696,7 +696,7 @@ export default function FlashcardReviewer({
               /* Nút lật thẻ khi đang ở mặt trước */
               <Button 
                 onClick={handleFlip}
-                className="w-full h-14 text-base font-serif font-bold rounded-2xl bg-[#B8322D] hover:bg-[#9E2A25] text-white border border-[#B8322D]/40 shadow-xs hover:shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] select-none"
+                className="w-full h-14 text-base font-serif font-bold rounded-2xl bg-[#0D9488] hover:bg-[#0F766E] text-white border border-[#0F766E]/40 shadow-[0_3px_0_#115E59] hover:shadow-[0_4px_0_#115E59] flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] select-none"
               >
                 <span>Lật thẻ xem đáp án</span>
                 <kbd className="hidden sm:inline-block px-2 py-0.5 bg-white/20 rounded-md text-xs font-mono text-white">

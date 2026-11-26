@@ -5,6 +5,7 @@ interface BrandLogoProps {
   variant?: 'horizontal' | 'symbol' | 'stacked'
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   showSubtitle?: boolean
+  compactOnMobile?: boolean
   href?: string
   className?: string
   isDark?: boolean
@@ -106,13 +107,14 @@ export function BrandLogo({
   variant = 'horizontal',
   size = 'md',
   showSubtitle = true,
+  compactOnMobile = false,
   href = '/',
   className = '',
   isDark = false,
 }: BrandLogoProps) {
   const sizeMap = {
     xs: { symbol: 24, textTitle: 'text-sm', textSub: 'text-[9px]', gap: 'gap-2' },
-    sm: { symbol: 32, textTitle: 'text-base', textSub: 'text-[10px]', gap: 'gap-2.5' },
+    sm: { symbol: 32, textTitle: compactOnMobile ? 'text-sm sm:text-base' : 'text-base', textSub: 'text-[10px]', gap: compactOnMobile ? 'gap-2 sm:gap-2.5' : 'gap-2.5' },
     md: { symbol: 40, textTitle: 'text-lg', textSub: 'text-[11px]', gap: 'gap-3' },
     lg: { symbol: 48, textTitle: 'text-xl', textSub: 'text-xs', gap: 'gap-3.5' },
     xl: { symbol: 64, textTitle: 'text-2xl', textSub: 'text-sm', gap: 'gap-4' },
@@ -127,7 +129,10 @@ export function BrandLogo({
       } ${currentSize.gap} ${className}`}
     >
       {/* 1. Biểu tượng Khai Quyển Hán Tự */}
-      <BrandSymbol size={currentSize.symbol} />
+      <BrandSymbol
+        size={currentSize.symbol}
+        className={compactOnMobile ? 'w-7 h-7 sm:w-8 sm:h-8' : ''}
+      />
 
       {/* 2. Cụm chữ Typography (nếu không phải chỉ hiện symbol) */}
       {variant !== 'symbol' && (
@@ -152,8 +157,8 @@ export function BrandLogo({
           {showSubtitle && (
             <span
               className={`font-sans uppercase tracking-[0.2em] font-medium mt-1 leading-none ${
-                currentSize.textSub
-              } ${isDark ? 'text-white/60' : 'text-muted'}`}
+                compactOnMobile ? 'hidden sm:block' : ''
+              } ${currentSize.textSub} ${isDark ? 'text-white/60' : 'text-muted'}`}
             >
               Hán Ngữ Tập Ghi
             </span>

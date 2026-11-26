@@ -7,15 +7,19 @@ import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 import { MobileNavProvider } from '@/components/layout/mobile-nav-context'
 import { SiteFooter } from '@/components/layout/site-footer'
 import { AuthModal } from '@/components/auth/auth-modal'
+import { getCachedAllVocabCounts } from '@/lib/curriculum-cache'
 
 export default async function MarketingLayout({ children }: { children: ReactNode }) {
-  const { isAdmin, user, profile } = await checkIsAdmin()
+  const [{ isAdmin, user, profile }, vocabCountsRes] = await Promise.all([
+    checkIsAdmin(),
+    getCachedAllVocabCounts(),
+  ])
 
   return (
     <AuthModalProvider initialUser={user}>
       <AdminNotificationProvider adminId={isAdmin ? user?.id : null}>
         <MobileNavProvider>
-          <div className="min-h-screen bg-page text-title font-sans flex flex-col relative overflow-x-clip selection:bg-[#B8322D]/15 selection:text-[#B8322D]">
+          <div className="min-h-screen bg-[#FAF9F6] dark:bg-page text-title font-sans flex flex-col relative overflow-x-clip selection:bg-[#0D9488]/15 selection:text-[#0D9488]">
             {/* Nền giấy Tuyên Chỉ (Rice Paper Pattern) với độ trong suốt tinh tế */}
             <div className="fixed inset-0 bg-[url('/patterns/rice-paper.png')] opacity-25 pointer-events-none mix-blend-multiply z-0" />
 
@@ -39,8 +43,8 @@ export default async function MarketingLayout({ children }: { children: ReactNod
               {children}
             </main>
 
-            {/* Chân trang EdTech 4 cột toàn diện */}
-            <SiteFooter />
+            {/* Chân trang EdTech thống nhất (đồng bộ số liệu HSK 3.0) */}
+            <SiteFooter liveVocabCounts={vocabCountsRes?.counts} />
 
             {/* Thanh điều hướng dưới chuyên biệt cho Mobile (Bottom Navigation) */}
             <MobileBottomNav />

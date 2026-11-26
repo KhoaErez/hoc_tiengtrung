@@ -234,7 +234,7 @@ export function VocabularyClient({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Tra bằng Chữ Hán, Pinyin hoặc Tiếng Việt (VD: 朋友, ni hao, học bài)..."
-                className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl border border-[#182238]/20 dark:border-white/15 bg-[#FAF7F2] dark:bg-[#141A23] text-sm sm:text-base font-serif text-[#182238] dark:text-white placeholder:text-muted/70 focus:outline-none focus:border-[#B8322D] focus:ring-4 focus:ring-[#B8322D]/10 transition-all shadow-inner"
+                className="w-full pl-12 pr-24 py-3.5 sm:py-4 rounded-2xl border border-[#E2E8F0] dark:border-white/15 bg-[#FAF9F6] dark:bg-[#141A23] text-sm sm:text-base font-serif text-[#182238] dark:text-white placeholder:text-muted/70 focus:outline-none focus:border-[#0D9488] focus:ring-4 focus:ring-[#0D9488]/15 transition-all shadow-inner"
               />
 
               {search && (
@@ -252,7 +252,7 @@ export function VocabularyClient({
               <button
                 type="submit"
                 disabled={isPending}
-                className="absolute right-2 px-4 py-2 rounded-xl bg-[#B8322D] hover:bg-[#9E2A25] text-white text-xs sm:text-sm font-serif font-bold shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                className="absolute right-2 px-4 py-2 rounded-xl bg-[#0D9488] hover:bg-[#0F766E] text-white text-xs sm:text-sm font-serif font-bold shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                 aria-label="Thực hiện tìm kiếm"
               >
                 {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Tra từ'}
@@ -388,10 +388,10 @@ export function VocabularyClient({
             return (
               <div
                 key={vocab.id}
-                className="w-full rounded-[22px] bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md transition-all p-5 flex flex-col justify-between space-y-4 group relative overflow-hidden"
+                className="edtech-card p-5 sm:p-6 flex flex-col justify-between space-y-4 group relative overflow-hidden hover:-translate-y-0.5"
               >
                 {/* Dải màu accent đầu card */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#B8322D]/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#0D9488]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
                 <div className="space-y-3.5">
                   {/* Header thẻ: Badge HSK, Word Type & Nút Bookmark SM-2 */}

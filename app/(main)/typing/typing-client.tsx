@@ -3289,10 +3289,10 @@ export default function TypingClient() {
                   }
                   className={`w-full p-3.5 sm:p-4 bg-card border-2 rounded-2xl text-lg sm:text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner resize-none ${
                     practiceStatus === 'correct'
-                      ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
+                      ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/15'
                       : practiceStatus === 'incorrect'
-                      ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/10'
-                      : 'border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10'
+                      ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/15'
+                      : 'border-[#E2E8F0] focus:border-[#0D9488] focus:ring-4 focus:ring-[#0D9488]/15'
                   }`}
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 />
@@ -3321,10 +3321,10 @@ export default function TypingClient() {
                   }
                   className={`w-full px-3.5 sm:px-4 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] bg-card border-2 rounded-2xl text-lg sm:text-xl md:text-2xl font-hanzi text-title placeholder:text-muted placeholder:text-xs sm:placeholder:text-sm placeholder:font-sans focus:outline-none transition-all shadow-inner ${
                     practiceStatus === 'correct'
-                      ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/10'
+                      ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/15'
                       : practiceStatus === 'incorrect'
-                      ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/10'
-                      : 'border-[#E9DDD1] focus:border-app-accent focus:ring-4 focus:ring-app-accent/10'
+                      ? 'border-amber-500/80 bg-amber-50/15 ring-4 ring-amber-500/15'
+                      : 'border-[#E2E8F0] focus:border-[#0D9488] focus:ring-4 focus:ring-[#0D9488]/15'
                   }`}
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 />

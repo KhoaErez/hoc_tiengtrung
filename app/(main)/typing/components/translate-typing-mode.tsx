@@ -1271,10 +1271,10 @@ export default function TranslateTypingMode({
                 }
                 className={`w-full px-4 sm:px-5 py-3.5 sm:py-4 bg-white dark:bg-card border-2 rounded-2xl text-lg sm:text-2xl font-serif text-[#182238] dark:text-white placeholder:text-muted/70 placeholder:text-sm sm:placeholder:text-base focus:outline-none transition-all ${
                   practiceStatus === 'correct'
-                    ? 'border-emerald-500 bg-emerald-50/20 shadow-[0_3px_0_#059669]'
+                    ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/15 shadow-[0_3px_0_#059669]'
                     : practiceStatus === 'incorrect'
-                    ? 'border-amber-500 bg-amber-50/15 shadow-[0_3px_0_#D97706]'
-                    : 'border-2 border-[#182238] dark:border-[#384869] shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] focus:border-[#B8322D] focus:shadow-[0_3px_0_#7A1D1A]'
+                    ? 'border-amber-500 bg-amber-50/15 ring-4 ring-amber-500/15 shadow-[0_3px_0_#D97706]'
+                    : 'border-2 border-[#182238] dark:border-[#384869] shadow-[0_3px_0_#182238] dark:shadow-[0_3px_0_#0D1322] focus:border-[#0D9488] focus:ring-4 focus:ring-[#0D9488]/15 focus:shadow-[0_3px_0_#0F766E]'
                 }`}
                 style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
               />

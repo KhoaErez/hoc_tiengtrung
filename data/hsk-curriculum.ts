@@ -428,3 +428,88 @@ export function getHskAuditData(key: string | number): HskLevelAuditData | undef
   const formatted = `HSK ${key}`;
   return HSK_AUDIT_DATA[formatted];
 }
+
+export interface HskRankMeta {
+  level: number;
+  rankTitle: string;
+  rankShort: string;
+  stageName: string;
+  accentColor: string;
+  coverImage: string;
+}
+
+export const HSK_RANK_META: Record<number, HskRankMeta> = {
+  1: {
+    level: 1,
+    rankTitle: 'Đồng Sinh (童生)',
+    rankShort: 'Đồng Sinh',
+    stageName: 'Sơ cấp (初等)',
+    accentColor: '#0D9488',
+    coverImage: '/images/hsk/hsk-1-village.webp',
+  },
+  2: {
+    level: 2,
+    rankTitle: 'Tú Tài (秀才)',
+    rankShort: 'Tú Tài',
+    stageName: 'Sơ cấp (初等)',
+    accentColor: '#0284C7',
+    coverImage: '/images/hsk/hsk-2-garden.webp',
+  },
+  3: {
+    level: 3,
+    rankTitle: 'Cử Nhân (举人)',
+    rankShort: 'Cử Nhân',
+    stageName: 'Sơ cấp (初等)',
+    accentColor: '#D97706',
+    coverImage: '/images/hsk/hsk-3-city.webp',
+  },
+  4: {
+    level: 4,
+    rankTitle: 'Cống Sĩ (贡士)',
+    rankShort: 'Cống Sĩ',
+    stageName: 'Trung cấp (中等)',
+    accentColor: '#B8322D',
+    coverImage: '/images/hsk/hsk-4-mountain.webp',
+  },
+  5: {
+    level: 5,
+    rankTitle: 'Tiến Sĩ (进士)',
+    rankShort: 'Tiến Sĩ',
+    stageName: 'Trung cấp (中等)',
+    accentColor: '#4338CA',
+    coverImage: '/images/hsk/hsk-5-academy.webp',
+  },
+  6: {
+    level: 6,
+    rankTitle: 'Thám Hoa (探花)',
+    rankShort: 'Thám Hoa',
+    stageName: 'Trung cấp (中等)',
+    accentColor: '#7E22CE',
+    coverImage: '/images/hsk/hsk-6-peak.webp',
+  },
+  7: {
+    level: 7,
+    rankTitle: 'Trạng Nguyên (状元)',
+    rankShort: 'Trạng Nguyên',
+    stageName: 'Cao cấp (高等)',
+    accentColor: '#0F766E',
+    coverImage: '/images/hsk/hsk-7-celestial.webp',
+  },
+};
+
+/**
+ * Nguồn chân lý duy nhất (Single Source of Truth) cho số lượng từ vựng hiển thị
+ * của từng cấp độ HSK 3.0 giữa Trang chủ, Footer và Lộ trình học.
+ */
+export function getHskDisplayVocabCount(
+  levelNum: number,
+  liveCounts?: Record<string, number | null> | null
+): number {
+  const info = HSK_LEVELS[levelNum];
+  const audit = getHskAuditData(levelNum);
+  const key = info?.name || (levelNum >= 7 ? 'HSK 7-9' : `HSK ${levelNum}`);
+  const live = liveCounts?.[key];
+  if (typeof live === 'number' && live > 0) return live;
+  if (audit && audit.systemVocabCount > 0) return audit.systemVocabCount;
+  return info?.vocabTarget || 0;
+}
