@@ -15,28 +15,66 @@ const __dirname = path.dirname(__filename)
 const rootDir = path.resolve(__dirname, '..')
 
 // Transpile TypeScript nhẹ bằng ts compiler API có sẵn trong node_modules/typescript
+import { createRequire } from 'node:module'
+const nodeRequire = createRequire(import.meta.url)
 const ts = await import('typescript')
-const utilsTsPath = path.join(rootDir, 'lib', 'typing-text-utils.ts')
-const utilsTsSource = fs.readFileSync(utilsTsPath, 'utf8')
-const compiled = ts.default.transpileModule(utilsTsSource, {
-  compilerOptions: {
-    module: ts.default.ModuleKind.CommonJS,
-    target: ts.default.ScriptTarget.ES2022,
-  },
-})
 
-const moduleObj = { exports: {} }
-const fn = new vm.Script(compiled.outputText, { filename: 'typing-text-utils.js' })
-const wrapper = `(function(exports, module) { ${compiled.outputText} \n})`
-const compiledFn = vm.runInThisContext(wrapper)
-compiledFn(moduleObj.exports, moduleObj)
+const tsModuleCache = new Map()
+function resolveTsPath(specifier, fromFile) {
+  let basePath = null
+  if (specifier.startsWith('./') || specifier.startsWith('../')) {
+    basePath = path.resolve(path.dirname(fromFile), specifier)
+  } else if (specifier.startsWith('@/')) {
+    basePath = path.join(rootDir, specifier.slice(2))
+  } else {
+    return null
+  }
+  const candidates = [basePath, `${basePath}.ts`, `${basePath}.tsx`, path.join(basePath, 'index.ts')]
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
+      return candidate
+    }
+  }
+  return null
+}
+
+function loadTsModule(filePath) {
+  const absPath = path.resolve(filePath)
+  if (tsModuleCache.has(absPath)) {
+    return tsModuleCache.get(absPath).exports
+  }
+  const source = fs.readFileSync(absPath, 'utf8')
+  const compiled = ts.default.transpileModule(source, {
+    compilerOptions: {
+      module: ts.default.ModuleKind.CommonJS,
+      target: ts.default.ScriptTarget.ES2022,
+      esModuleInterop: true,
+    },
+  })
+  const mod = { exports: {} }
+  tsModuleCache.set(absPath, mod)
+  const customRequire = (spec) => {
+    const resolvedTs = resolveTsPath(spec, absPath)
+    if (resolvedTs) return loadTsModule(resolvedTs)
+    return nodeRequire(spec)
+  }
+  const wrapper = `(function(exports, module, require, __filename, __dirname) { ${compiled.outputText} \n})`
+  const compiledFn = vm.runInThisContext(wrapper, { filename: absPath })
+  compiledFn(mod.exports, mod, customRequire, absPath, path.dirname(absPath))
+  return mod.exports
+}
 
 const {
   sanitizeTargetText,
   buildIndexedChars,
   evaluateTypingStateless,
   isTypingCharMatch,
-} = moduleObj.exports
+} = loadTsModule(path.join(rootDir, 'lib', 'typing-text-utils.ts'))
+
+const {
+  buildUnifiedTypingSentences,
+  findSentenceIndexByCp,
+} = loadTsModule(path.join(rootDir, 'lib', 'typing-sentence-model.ts'))
 
 let passed = 0
 let failed = 0
@@ -217,10 +255,69 @@ console.log('\n📌 Nhóm 4: Ánh xạ TTS boundary charIndex & charLength (kể
   assert(rWord2.startCp === 4 && rWord2.endCp === 6, 'Highlight chính xác cụm "我们" ([4, 6))')
 }
 
+// -----------------------------------------------------------------
+// 5. TEST UNIFIED SENTENCE MODEL (PINYIN-PRO, GEMINI SEGMENTS & 2 DISPLAY MODES SYNC)
+// -----------------------------------------------------------------
+console.log('\n📌 Nhóm 5: Mô hình Unified Sentences (2 chế độ hiển thị, pinyin-pro & Auto-speak Next)')
+{
+  const customRaw = '今天天气真好！ \r\n 我们去公园吧。'
+  const cleanedCustom = sanitizeTargetText(customRaw)
+  const customModel = buildUnifiedTypingSentences(cleanedCustom)
+  assert(customModel.sentences.length === 2, 'Tách đúng 2 câu từ văn bản cá nhân đã sanitize')
+  assert(customModel.hasAnyMeaning === false, 'Văn bản cá nhân chưa dịch có hasAnyMeaning = false (ẩn dòng dịch)')
+  assert(
+    Boolean(customModel.sentences[0].pinyin && customModel.sentences[0].pinyin.includes('tiān')),
+    'Tự động sinh Pinyin có dấu thanh điệu qua pinyin-pro khi chưa có phân tích Gemini'
+  )
+  assert(
+    customModel.sentences[0].startIndex === 0 &&
+      customModel.sentences[0].endCp === Array.from('今天天气真好！').length,
+    'Chỉ mục startIndex & endCp câu 1 khớp chính xác trên fullCleanedText'
+  )
+  assert(
+    customModel.sentences[1].startCp > customModel.sentences[0].endCp &&
+      cleanedCustom.slice(customModel.sentences[1].startIndex, customModel.sentences[1].endIndex) === '我们去公园吧。',
+    'Câu 2 giữ nguyên global offset kể cả sau dấu xuống dòng \\n'
+  )
+  assert(
+    customModel.sentences.every((s) =>
+      s.words.every((w) => Array.from(cleanedCustom).slice(w.startCp, w.endCp).join('') === w.text)
+    ),
+    'Toàn bộ TypingWordUnit trong 2 chế độ dùng chung 1 global cpIdx chính xác tuyệt đối'
+  )
+
+  // Khớp preset Pinyin + nghĩa theo từng câu khi số câu trùng 1-1
+  const presetModel = buildUnifiedTypingSentences(cleanedCustom, {
+    presetPinyin: 'Jīntiān tiānqì zhēn hǎo! Wǒmen qù gōngyuán ba.',
+    overallMeaning: 'Hôm nay thời tiết thật đẹp! Chúng ta đi công viên nhé.',
+  })
+  assert(presetModel.hasAnyMeaning === true, 'Preset có nghĩa khớp từng câu -> hasAnyMeaning = true')
+  assert(
+    presetModel.sentences[0].meaning_vi === 'Hôm nay thời tiết thật đẹp!' &&
+      presetModel.sentences[1].meaning_vi === 'Chúng ta đi công viên nhé.',
+    'Tách nghĩa tiếng Việt 1-1 chính xác vào từng Sentence Card'
+  )
+
+  // Kiểm tra findSentenceIndexByCp & Auto-speak Next vượt endCp trong cùng committed state khi đổi chế độ
+  assert(findSentenceIndexByCp(customModel.sentences, 0) === 0, 'Ở đầu bài -> active câu 0')
+  const prevCp = customModel.sentences[0].endCp - 1
+  const nextCp = customModel.sentences[0].endCp
+  assert(
+    findSentenceIndexByCp(customModel.sentences, prevCp) === 0 &&
+      findSentenceIndexByCp(customModel.sentences, nextCp) === 1,
+    'Vừa gõ xong ký tự cuối câu 1 -> findSentenceIndexByCp chuyển ngay sang câu 1 (câu 2)'
+  )
+  const triggeredNext = customModel.sentences.find((s) => prevCp < s.endCp && nextCp >= s.endCp)
+  assert(
+    Boolean(triggeredNext && triggeredNext.index === 0 && triggeredNext.index + 1 < customModel.sentences.length),
+    'Kích hoạt Tự động đọc câu mới (sentence index + 1) đúng 1 lần khi vượt endCp của câu hiện tại'
+  )
+}
+
 console.log('\n=================================================================')
 console.log(`🏁 KẾT QUẢ KIỂM THỬ: ${passed} PASSED / ${failed} FAIL`)
 console.log('=================================================================')
 if (failed > 0) {
   process.exit(1)
 }
-console.log('🎉 TẤT CẢ KIỂM THỬ SANITIZE + IME + STATELESS DIFF + TTS ĐỀU ĐẠT 100%!')
+console.log('🎉 TẤT CẢ KIỂM THỬ SANITIZE + IME + STATELESS DIFF + TTS + 2 MODES ĐỀU ĐẠT 100%!')

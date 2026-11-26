@@ -1,6 +1,6 @@
 'use client'
 
-import React, { Fragment, useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   CustomTypingExercise,
   TypingSegment,
@@ -15,22 +15,24 @@ import {
   getTypingPreferences,
   saveTypingPreferences,
 } from '@/lib/typing-storage'
-import { mapSegmentsToIndices } from '@/lib/typing-gemini-validator'
 import {
   ChineseSentenceItem,
-  extractChineseSentences,
-  findCurrentSentenceIndex,
   playTypingSfx,
   getChineseVoices,
   speakChineseCharacter,
 } from '@/lib/typing-sound'
-import { segmentAndAlignChinese } from '@/lib/tts/chinese-word-segmenter'
 import {
   sanitizeTargetText,
   buildIndexedChars,
   evaluateTypingStateless,
   isTypingCharMatch,
 } from '@/lib/typing-text-utils'
+import {
+  buildUnifiedTypingSentences,
+  findSentenceIndexByCp,
+  type TypingDisplayMode,
+  type UnifiedTypingSentence,
+} from '@/lib/typing-sentence-model'
 import {
   ttsEngine,
   retainUtterance,
@@ -39,6 +41,7 @@ import {
 } from '@/lib/tts/tts-engine'
 import TypingGeminiModal from './typing-gemini-modal'
 import TypingAudioControls from './typing-audio-controls'
+import TypingTargetViewer from './target-text-viewer'
 import { toast } from 'sonner'
 import {
   FileText,
@@ -153,6 +156,10 @@ export default function CustomParagraphMode({
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null)
   const activeCharRef = useRef<HTMLSpanElement | null>(null)
+  const activeCardRef = useRef<HTMLDivElement | null>(null)
+
+  // Chế độ hiển thị văn bản mẫu: Từng câu (Pinyin & Dịch) | Cả đoạn dài (Tập trung gõ)
+  const [displayMode, setDisplayMode] = useState<TypingDisplayMode>('sentence_cards')
 
   // Thời gian & Trạng thái luyện tập
   const [isStarted, setIsStarted] = useState(false)
@@ -183,14 +190,15 @@ export default function CustomParagraphMode({
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('')
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
   const [hasVoiceWarning, setHasVoiceWarning] = useState<boolean>(false)
-  const [autoSpeakNext, setAutoSpeakNext] = useState<boolean>(false)
+  const [autoSpeakNext, setAutoSpeakNext] = useState<boolean>(true)
 
   const readingModeRef = useRef<'all' | 'sentence' | null>(null)
   const resumeModeRef = useRef<'all' | 'sentence'>('all')
   const speechRateRef = useRef<number>(1)
   const selectedVoiceURIRef = useRef<string>('')
   const sentencesRef = useRef<ChineseSentenceItem[]>([])
-  const autoSpeakNextRef = useRef<boolean>(false)
+  const unifiedSentencesRef = useRef<UnifiedTypingSentence[]>([])
+  const autoSpeakNextRef = useRef<boolean>(true)
   const utteranceIdRef = useRef<number>(0)
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -320,45 +328,48 @@ export default function CustomParagraphMode({
     [currentText, committedInput, elapsedSeconds, strictMode, normalizePunctuation, isCompleted]
   )
 
-  // Auto-scroll mượt mà vào ký tự active khi người dùng đang luyện gõ bài dài
+  // Auto-scroll mượt mà vào ký tự hoặc thẻ câu active khi người dùng đang luyện gõ
   useEffect(() => {
     if (viewState !== 'practice' || hideSample || isCompleted || !isStarted) return
-    activeCharRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [viewState, hideSample, isCompleted, isStarted, evaluation.activeCharIndex, strictMode])
+    const targetEl = activeCharRef.current ?? activeCardRef.current
+    targetEl?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [viewState, hideSample, isCompleted, isStarted, evaluation.activeCharIndex, strictMode, displayMode])
 
-  // Tính toán mapping các khối 3 lớp (Chữ Hán - Pinyin - Nghĩa)
-  const mappedBlocks = useMemo(() => {
-    if (!currentHasPinyinAndMeaning || !currentSegments || currentSegments.length === 0) {
-      return []
-    }
-    return mapSegmentsToIndices(currentText, currentSegments)
-  }, [currentText, currentSegments, currentHasPinyinAndMeaning])
+  // Cấu trúc câu thống nhất `UnifiedTypingSentence[]` bám sát chỉ mục toàn cục trên fullCleanedText (currentText)
+  // Hỗ trợ đồng thời Pinyin từ Gemini hoặc tự động sinh Pinyin theo ngữ cảnh bằng pinyin-pro
+  const { sentences: unifiedSentences, hasAnyMeaning } = useMemo(
+    () =>
+      buildUnifiedTypingSentences(currentText, {
+        segments: currentHasPinyinAndMeaning ? currentSegments : undefined,
+      }),
+    [currentText, currentSegments, currentHasPinyinAndMeaning]
+  )
 
-  // Phân đoạn từ tiếng Trung và căn chỉnh Pinyin 1-1 cho từng khối câu
-  const tokenizedBlocks = useMemo(() => {
-    return mappedBlocks.map((b) => {
-      const sentenceText = b.segment.chinese || currentText.slice(b.startIndex, b.endIndex)
-      const words = segmentAndAlignChinese(sentenceText, b.segment.pinyin)
-      return {
-        ...b,
-        words,
-      }
-    })
-  }, [mappedBlocks, currentText])
+  const hasAnyPinyin = useMemo(
+    () => unifiedSentences.some((s) => s.words.some((w) => Boolean(w.pinyin))),
+    [unifiedSentences]
+  )
 
-  // Phân tách câu tiếng Trung trên chuỗi currentText đã chuẩn hóa
-  const chineseSentences = useMemo(() => {
-    return extractChineseSentences(currentText, mappedBlocks)
-  }, [currentText, mappedBlocks])
+  const chineseSentences = useMemo<ChineseSentenceItem[]>(
+    () =>
+      unifiedSentences.map((s) => ({
+        index: s.index,
+        startIndex: s.startIndex,
+        endIndex: s.endIndex,
+        text: s.chinese,
+      })),
+    [unifiedSentences]
+  )
 
   useEffect(() => {
     sentencesRef.current = chineseSentences
-  }, [chineseSentences])
+    unifiedSentencesRef.current = unifiedSentences
+  }, [chineseSentences, unifiedSentences])
 
-  // Câu người dùng đang gõ hiện tại
+  // Câu người dùng đang gõ hiện tại dựa theo global code-point index
   const currentTypingSentenceIndex = useMemo(() => {
-    return findCurrentSentenceIndex(chineseSentences, committedInput.length)
-  }, [chineseSentences, committedInput.length])
+    return findSentenceIndexByCp(unifiedSentences, evaluation.inputChars.length)
+  }, [unifiedSentences, evaluation.inputChars.length])
 
   // Reset câu audio khi đổi văn bản luyện
   useEffect(() => {
@@ -766,59 +777,37 @@ export default function CustomParagraphMode({
     saveTypingPreferences({ autoSpeakNext: nextVal })
   }
 
-  // Hàm render từng ký tự dựa trên Stateless Evaluation & SpeechHighlightRange
-  const renderCharSpan = (cpIdx: number) => {
-    const char = evaluation.targetChars[cpIdx]
-    if (char === undefined) return null
+  // Chuyển đổi giữa 2 chế độ hiển thị ("Từng câu (Pinyin & Dịch)" <-> "Cả đoạn dài (Tập trung gõ)")
+  // Giữ nguyên 100% inputValue, committedInput, bộ đếm Đúng/Sai/Còn thiếu và vị trí âm thanh hiện tại
+  const handleSwitchDisplayMode = useCallback(
+    (nextMode: TypingDisplayMode) => {
+      if (nextMode === displayMode) return
+      const preservedIdx = audioSentenceIndexRef.current
+      const preservedOffset = pausedUtf16OffsetRef.current
+      const wasPlaying = speechStatusRef.current === 'playing'
 
-    const status = evaluation.charStates[cpIdx] ?? 'pending'
-    const isAudioHighlighted =
-      speechHighlightRange !== null &&
-      cpIdx >= speechHighlightRange.startCp &&
-      cpIdx < speechHighlightRange.endCp
+      if (wasPlaying) {
+        const currentReadMode = readingModeRef.current || 'all'
+        setDisplayMode(nextMode)
+        startSpeechUtterance({
+          mode: currentReadMode,
+          startUtf16Offset: preservedOffset,
+          targetSentenceIdx: preservedIdx,
+        })
+      } else {
+        cancelSpeechHardware()
+        pausedUtf16OffsetRef.current = preservedOffset
+        setAudioSentenceIndex(preservedIdx)
+        setDisplayMode(nextMode)
+      }
 
-    let charStyle = 'text-title/80'
-    if (status === 'correct') {
-      charStyle = isAudioHighlighted
-        ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 font-bold rounded px-0.5 ring-1 ring-amber-400'
-        : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
-    } else if (status === 'incorrect') {
-      charStyle =
-        'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
-    } else if (status === 'active') {
-      charStyle = 'border-b-2 border-app-accent bg-accent-soft/45 text-title font-bold animate-pulse rounded-t px-0.5'
-    } else if (status === 'ignored') {
-      charStyle = 'text-muted/35'
-    } else if (isAudioHighlighted) {
-      charStyle =
-        'bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold ring-1 ring-amber-400/80 rounded px-0.5'
-    }
-
-    if (char === '\n') {
-      return (
-        <Fragment key={cpIdx}>
-          <span
-            ref={status === 'active' ? activeCharRef : undefined}
-            className={`inline-flex items-center justify-center px-1 mx-0.5 rounded text-xs font-mono align-baseline select-none transition-colors ${charStyle}`}
-            title="Xuống dòng (Enter)"
-          >
-            ↵
-          </span>
-          <span className="basis-full h-0" aria-hidden="true" />
-        </Fragment>
-      )
-    }
-
-    return (
-      <span
-        key={cpIdx}
-        ref={status === 'active' ? activeCharRef : undefined}
-        className={`inline-block transition-colors ${charStyle}`}
-      >
-        {char}
-      </span>
-    )
-  }
+      setTimeout(() => {
+        const targetEl = activeCharRef.current ?? activeCardRef.current
+        targetEl?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 60)
+    },
+    [displayMode, cancelSpeechHardware, startSpeechUtterance]
+  )
 
   // Bắt đầu vào bài luyện (tự động chuẩn hóa targetText trước khi lưu state và render)
   const startPractice = (
@@ -1086,7 +1075,6 @@ export default function CustomParagraphMode({
     (newVal: string) => {
       if (newVal === lastCommittedTextRef.current) return
 
-      const prevText = lastCommittedTextRef.current
       const prevCpLen = lastCommittedCpLenRef.current
       const nextCpChars = Array.from(newVal)
       const nextCpLen = nextCpChars.length
@@ -1120,19 +1108,26 @@ export default function CustomParagraphMode({
         playTypingSfx(allCorrect ? 'correct' : 'error')
       }
 
-      // Phát âm (TTS) chữ Hán vừa được chọn ngay lập tức (chỉ khi không đang đọc toàn bài/câu)
-      const newlyTypedText = nextCpChars.slice(prevCpLen).join('')
-      if (soundEnabled && newlyTypedText.trim() && speechStatusRef.current !== 'playing') {
-        speakChineseCharacter(newlyTypedText, selectedVoiceURIRef.current, speechRateRef.current)
-      }
+      // Kiểm tra xem người dùng vừa hoàn thành ký tự cuối cùng của câu hiện tại (endCp) hay chưa
+      const completedSentences = unifiedSentencesRef.current.filter(
+        (s) => prevCpLen < s.endCp && nextCpLen >= s.endCp
+      )
+      const lastCompleted = completedSentences[completedSentences.length - 1]
+      const shouldAutoSpeakNext = Boolean(
+        autoSpeakNextRef.current &&
+          unifiedSentencesRef.current.length > 1 &&
+          lastCompleted &&
+          lastCompleted.index + 1 < unifiedSentencesRef.current.length
+      )
 
-      // Tự đọc câu tiếp theo khi gõ xong câu hiện tại
-      if (autoSpeakNextRef.current && sentencesRef.current.length > 1) {
-        const curSentence = sentencesRef.current.find(
-          (s) => prevText.length < s.endIndex && newVal.length >= s.endIndex
-        )
-        if (curSentence && curSentence.index + 1 < sentencesRef.current.length) {
-          startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: curSentence.index + 1 })
+      if (shouldAutoSpeakNext && lastCompleted) {
+        // Tự động kích hoạt đọc câu tiếp theo khi gõ xong ký tự cuối cùng của câu hiện tại (ở cả 2 chế độ)
+        startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: lastCompleted.index + 1 })
+      } else {
+        // Phát âm (TTS) chữ Hán vừa được chọn ngay lập tức (chỉ khi không đang đọc toàn bài/câu)
+        const newlyTypedText = nextCpChars.slice(prevCpLen).join('')
+        if (soundEnabled && newlyTypedText.trim() && speechStatusRef.current !== 'playing') {
+          speakChineseCharacter(newlyTypedText, selectedVoiceURIRef.current, speechRateRef.current)
         }
       }
     },
@@ -1629,57 +1624,55 @@ export default function CustomParagraphMode({
           <div className="flex items-center gap-1.5 flex-wrap">
             <button
               onClick={() => setShowPinyin(!showPinyin)}
-              disabled={!currentHasPinyinAndMeaning}
+              disabled={!hasAnyPinyin}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-serif transition-colors ${
-                !currentHasPinyinAndMeaning
+                !hasAnyPinyin
                   ? 'opacity-40 cursor-not-allowed bg-page border-border text-muted'
                   : showPinyin
                   ? 'bg-accent-soft/80 border-app-accent/50 text-app-accent font-medium'
                   : 'bg-page border-border text-muted hover:text-title'
               }`}
-              title={currentHasPinyinAndMeaning ? 'Bật / Tắt hiển thị Pinyin' : 'Chưa có Pinyin. Bấm nút Bổ sung Pinyin & Nghĩa'}
+              title={hasAnyPinyin ? 'Bật / Tắt hiển thị Pinyin' : 'Văn bản không có chữ Hán để tạo Pinyin'}
             >
               Pinyin
             </button>
 
             <button
               onClick={() => setShowMeaning(!showMeaning)}
-              disabled={!currentHasPinyinAndMeaning}
+              disabled={!hasAnyMeaning}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-serif transition-colors ${
-                !currentHasPinyinAndMeaning
+                !hasAnyMeaning
                   ? 'opacity-40 cursor-not-allowed bg-page border-border text-muted'
                   : showMeaning
                   ? 'bg-accent-soft/80 border-app-accent/50 text-app-accent font-medium'
                   : 'bg-page border-border text-muted hover:text-title'
               }`}
-              title={currentHasPinyinAndMeaning ? 'Bật / Tắt hiển thị Nghĩa tiếng Việt' : 'Chưa có Nghĩa. Bấm nút Bổ sung Pinyin & Nghĩa'}
+              title={hasAnyMeaning ? 'Bật / Tắt hiển thị Nghĩa tiếng Việt' : 'Văn bản chưa có dịch tiếng Việt (có thể bổ sung bằng Gemini)'}
             >
               Nghĩa
             </button>
 
-            <button
-              onClick={() => {
-                if (!currentHasPinyinAndMeaning) return
-                if (showPinyin && showMeaning) {
-                  setShowPinyin(false)
-                  setShowMeaning(false)
-                } else {
-                  setShowPinyin(true)
-                  setShowMeaning(true)
-                }
-              }}
-              disabled={!currentHasPinyinAndMeaning}
-              className={`px-2.5 py-1.5 rounded-xl border text-xs font-serif transition-colors ${
-                !currentHasPinyinAndMeaning
-                  ? 'opacity-40 cursor-not-allowed bg-page border-border text-muted'
-                  : showPinyin && showMeaning
-                  ? 'bg-title text-white font-medium border-title'
-                  : 'bg-page border-border text-muted hover:text-title'
-              }`}
-              title="Hiện cả Pinyin và Nghĩa hoặc chỉ Chữ Hán"
-            >
-              {showPinyin && showMeaning ? 'Chỉ hiện chữ Hán' : 'Hiện cả hai'}
-            </button>
+            {hasAnyMeaning && (
+              <button
+                onClick={() => {
+                  if (showPinyin && showMeaning) {
+                    setShowPinyin(false)
+                    setShowMeaning(false)
+                  } else {
+                    setShowPinyin(true)
+                    setShowMeaning(true)
+                  }
+                }}
+                className={`px-2.5 py-1.5 rounded-xl border text-xs font-serif transition-colors ${
+                  showPinyin && showMeaning
+                    ? 'bg-title text-white font-medium border-title'
+                    : 'bg-page border-border text-muted hover:text-title'
+                }`}
+                title="Hiện cả Pinyin và Nghĩa hoặc chỉ Chữ Hán"
+              >
+                {showPinyin && showMeaning ? 'Chỉ hiện chữ Hán' : 'Hiện cả hai'}
+              </button>
+            )}
 
             {/* Nút mở Gemini Modal trong khi luyện bài */}
             <Button
@@ -1691,10 +1684,10 @@ export default function CustomParagraphMode({
                   ? 'border-border text-muted hover:text-title'
                   : 'border-app-accent/40 text-app-accent hover:bg-app-accent-soft/30 font-medium'
               }`}
-              title="Sử dụng Gemini cá nhân tạo Pinyin & Nghĩa"
+              title="Sử dụng Gemini cá nhân tạo Pinyin & Nghĩa tiếng Việt"
             >
               <Languages className="w-3.5 h-3.5 text-app-accent" />
-              <span>{currentHasPinyinAndMeaning ? 'Cập nhật Pinyin/Nghĩa' : 'Bổ sung Pinyin & Nghĩa'}</span>
+              <span>{currentHasPinyinAndMeaning ? 'Cập nhật Pinyin/Nghĩa' : 'Bổ sung Dịch/Pinyin'}</span>
             </Button>
           </div>
 
@@ -1808,204 +1801,23 @@ export default function CustomParagraphMode({
         isAudioFinished={isAudioFinished}
       />
 
-      {/* 3. KHU VỰC VĂN BẢN MẪU (SAMPLE TEXT) */}
-      <div className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm space-y-3">
-        <div className="flex items-center justify-between text-xs font-serif text-muted flex-wrap gap-2">
-          <span className="font-medium text-title">Văn bản mẫu mục tiêu:</span>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-emerald-500/20 border border-emerald-500 inline-block" />
-              <span>Đúng: <strong>{evaluation.correctCount}</strong></span>
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded bg-red-500/20 border border-red-500 inline-block" />
-              <span>Sai: <strong>{evaluation.errorCount}</strong></span>
-            </span>
-            <span>Còn thiếu: <strong>{evaluation.missingCount}</strong></span>
-          </div>
-        </div>
-
-        {hideSample && !isCompleted ? (
-          <div className="p-8 text-center rounded-xl bg-page border border-border text-muted italic font-serif text-sm flex items-center justify-center gap-2">
-            <EyeOff className="w-4 h-4 text-muted" />
-            <span>Văn bản mẫu đang ẩn để thử thách trí nhớ. Hãy gõ từ ký ức hoặc mở lại!</span>
-          </div>
-        ) : tokenizedBlocks.length > 0 ? (
-          /* HIỂN THỊ 3 LỚP THÔNG TIN (CHỮ HÁN - PINYIN - NGHĨA) THEO TỪNG TỪ ĐỒNG BỘ */
-          <div className="space-y-3.5 max-h-80 overflow-y-auto no-scrollbar pr-1">
-            {tokenizedBlocks.map((block, bIdx) => {
-              const blockStartCp = indexedTarget.utf16ToCp(block.startIndex)
-              const blockEndCp = indexedTarget.utf16ToCp(block.endIndex)
-              const isBlockActive =
-                evaluation.inputChars.length >= blockStartCp && evaluation.inputChars.length <= blockEndCp && !isCompleted
-              const isBlockCompleted = evaluation.inputChars.length >= blockEndCp
-              const isSpeaking = speakingSentenceIndex === bIdx
-
-              const prevEndUtf16 = bIdx === 0 ? 0 : tokenizedBlocks[bIdx - 1].endIndex
-              const gapStartCp = indexedTarget.utf16ToCp(prevEndUtf16)
-              const gapEndCp = blockStartCp
-              const spokenPhrase =
-                isSpeaking && speechHighlightRange
-                  ? evaluation.targetChars
-                      .slice(
-                        Math.max(blockStartCp, speechHighlightRange.startCp),
-                        Math.min(blockEndCp, speechHighlightRange.endCp)
-                      )
-                      .join('')
-                  : ''
-
-              return (
-                <div
-                  key={bIdx}
-                  className="space-y-1"
-                  style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
-                >
-                  {/* Ký tự khoảng trắng / ngắt dòng giữa các đoạn */}
-                  {gapEndCp > gapStartCp && (
-                    <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1 flex flex-wrap items-baseline">
-                      {indexedTarget.items.slice(gapStartCp, gapEndCp).map((it) => renderCharSpan(it.cpIdx))}
-                    </div>
-                  )}
-
-                  <div
-                    className={`p-3.5 md:p-4 rounded-xl border transition-all text-left space-y-2.5 ${
-                      isSpeaking
-                        ? 'bg-page border-app-accent/80 shadow-xs ring-1 ring-app-accent/40'
-                        : isBlockActive
-                        ? 'bg-page border-app-accent shadow-2xs ring-1 ring-app-accent/30'
-                        : isBlockCompleted
-                        ? 'bg-page/50 border-border/70 opacity-90'
-                        : 'bg-page/70 border-border/80'
-                    }`}
-                  >
-                    {/* Acoustic Indicator nếu đang đọc câu này */}
-                    {isSpeaking && (
-                      <div className="flex items-center gap-1.5 text-app-accent font-sans text-xs font-bold animate-pulse pb-0.5">
-                        <Volume2 className="w-3.5 h-3.5 animate-bounce" />
-                        <span>
-                          Đang đọc câu {bIdx + 1}
-                          {spokenPhrase ? `: "${spokenPhrase}"` : '...'}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Lớp 2: Pinyin phân đoạn theo từ đồng bộ với speechHighlightRange */}
-                    {showPinyin && block.segment.pinyin && (
-                      <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 select-none leading-relaxed">
-                        {block.words.map((w, wIdx) => {
-                          const wStartCp = indexedTarget.utf16ToCp(block.startIndex + w.startIndex)
-                          const wEndCp = indexedTarget.utf16ToCp(block.startIndex + w.endIndex)
-                          const isWordActive =
-                            isSpeaking &&
-                            speechHighlightRange !== null &&
-                            w.isWord &&
-                            wStartCp < speechHighlightRange.endCp &&
-                            wEndCp > speechHighlightRange.startCp
-                          const isWordPast =
-                            isSpeaking &&
-                            speechHighlightRange !== null &&
-                            w.isWord &&
-                            wEndCp <= speechHighlightRange.startCp
-                          const isSentenceFallback = isSpeaking && speechHighlightRange === null && w.isWord
-
-                          if (!w.pinyin) return null
-
-                          return (
-                            <span
-                              key={wIdx}
-                              className={`transition-colors duration-150 rounded px-1 text-xs md:text-sm font-sans ${
-                                isWordActive
-                                  ? 'text-amber-950 dark:text-amber-100 font-bold bg-amber-200/80 dark:bg-amber-900/60 ring-1 ring-amber-400/80 shadow-2xs'
-                                  : isSentenceFallback
-                                  ? 'text-amber-900 dark:text-amber-200 font-semibold bg-amber-100/70 dark:bg-amber-950/40 ring-1 ring-amber-300/50 dark:ring-amber-800/40'
-                                  : isWordPast
-                                  ? 'text-app-accent/60'
-                                  : 'text-app-accent font-medium'
-                              }`}
-                            >
-                              {w.pinyin}
-                            </span>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                    {/* Lớp 1: Chữ Hán gốc dùng từng ký tự Unicode chuẩn xác */}
-                    <div
-                      className="font-serif text-lg md:text-xl text-title leading-relaxed tracking-wide select-none flex flex-wrap items-baseline gap-y-1"
-                      style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
-                    >
-                      {block.words.map((w, wIdx) => {
-                        const wStartCp = indexedTarget.utf16ToCp(block.startIndex + w.startIndex)
-                        const wEndCp = indexedTarget.utf16ToCp(block.startIndex + w.endIndex)
-                        const isWordActive =
-                          isSpeaking &&
-                          speechHighlightRange !== null &&
-                          w.isWord &&
-                          wStartCp < speechHighlightRange.endCp &&
-                          wEndCp > speechHighlightRange.startCp
-                        const isSentenceFallback = isSpeaking && speechHighlightRange === null && w.isWord
-
-                        return (
-                          <span
-                            key={wIdx}
-                            className={`inline-flex flex-wrap items-baseline transition-all duration-150 rounded px-0.5 ${
-                              isWordActive
-                                ? 'bg-amber-100/70 dark:bg-amber-950/50 ring-1 ring-amber-400/70 font-bold'
-                                : isSentenceFallback
-                                ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 font-medium'
-                                : ''
-                            }`}
-                          >
-                            {indexedTarget.items.slice(wStartCp, wEndCp).map((it) => renderCharSpan(it.cpIdx))}
-                          </span>
-                        )
-                      })}
-                    </div>
-
-                    {/* Lớp 3: Nghĩa tiếng Việt */}
-                    {showMeaning && block.segment.meaning_vi && (
-                      <p className="text-xs md:text-sm font-serif text-muted italic pt-1 border-t border-border/40 select-none">
-                        {block.segment.meaning_vi}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-
-            {/* Các ký tự còn lại ở cuối văn bản (nếu có) */}
-            {indexedTarget.utf16ToCp(tokenizedBlocks[tokenizedBlocks.length - 1].endIndex) < evaluation.targetChars.length && (
-              <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1 flex flex-wrap items-baseline">
-                {indexedTarget.items
-                  .slice(indexedTarget.utf16ToCp(tokenizedBlocks[tokenizedBlocks.length - 1].endIndex))
-                  .map((it) => renderCharSpan(it.cpIdx))}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* VĂN BẢN MẪU THUẦN: Render trực tiếp từng ký tự Array.from(cleanedTargetText) để khớp 1-1 tuyệt đối với diff & TTS */
-          <div className="space-y-2">
-            {speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex] && (
-              <div className="p-2.5 rounded-xl bg-app-accent-soft/30 border border-app-accent/30 text-app-accent text-xs font-serif font-bold flex items-center gap-2">
-                <Volume2 className="w-4 h-4 animate-bounce flex-shrink-0" />
-                <span>
-                  Đang phát âm câu {speakingSentenceIndex + 1}
-                  {speechHighlightRange
-                    ? `: "${evaluation.targetChars.slice(speechHighlightRange.startCp, speechHighlightRange.endCp).join('')}"`
-                    : `: "${chineseSentences[speakingSentenceIndex].text}"`}
-                </span>
-              </div>
-            )}
-            <div
-              className="p-4 md:p-5 rounded-xl bg-page/80 border border-border/80 max-h-72 overflow-y-auto leading-relaxed font-serif text-lg md:text-xl text-title whitespace-pre-wrap select-none no-scrollbar tracking-wide flex flex-wrap items-baseline gap-y-1.5"
-              style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
-            >
-              {evaluation.targetChars.map((_, cpIdx) => renderCharSpan(cpIdx))}
-            </div>
-          </div>
-        )}
-      </div>
+      {/* 3. KHU VỰC VĂN BẢN MẪU MỤC TIÊU (2 CHẾ ĐỘ: TỪNG CÂU & CẢ ĐOẠN DÀI) */}
+      <TypingTargetViewer
+        displayMode={displayMode}
+        onSwitchDisplayMode={handleSwitchDisplayMode}
+        showModeSwitcher
+        hideSample={hideSample}
+        showPinyin={showPinyin}
+        showMeaning={showMeaning}
+        evaluation={evaluation}
+        indexedTarget={indexedTarget}
+        sentences={unifiedSentences}
+        speakingSentenceIndex={speakingSentenceIndex}
+        speechHighlightRange={speechHighlightRange}
+        isCompleted={isCompleted}
+        activeCharRef={activeCharRef}
+        activeCardRef={activeCardRef}
+      />
 
       {/* 4. KHU VỰC NHẬP LIỆU ĐÁNH MÁY (TYPING AREA) */}
       <div className="space-y-3 bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm">

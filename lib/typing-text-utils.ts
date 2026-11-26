@@ -99,7 +99,7 @@ export function sanitizeTargetText(rawText: string): string {
   if (!rawText || typeof rawText !== 'string') return ''
 
   // 1. Xóa zero-width chars, chuẩn hóa xuống dòng và khoảng trắng ngang đặc biệt (tab, nbsp, full-width space)
-  let text = rawText
+  const text = rawText
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
     .replace(/\r\n?/g, '\n')
     .replace(/[\t\u00A0\u3000\u2000-\u200A\u202F\u205F]/g, ' ')

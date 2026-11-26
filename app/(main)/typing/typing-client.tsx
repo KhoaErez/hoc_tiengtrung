@@ -14,6 +14,7 @@ import {
 import CustomParagraphMode from './components/custom-paragraph-mode'
 import TranslateTypingMode from './components/translate-typing-mode'
 import TypingAudioControls from './components/typing-audio-controls'
+import TypingTargetViewer from './components/target-text-viewer'
 import { AudioButton } from '@/components/ui/audio-button'
 import {
   ttsEngine,
@@ -24,12 +25,17 @@ import {
 import {
   ChineseSentenceItem,
   extractChineseSentences,
-  findCurrentSentenceIndex,
   playTypingSfx,
   getChineseVoices,
   speakChineseCharacter,
   getAudioContext,
 } from '@/lib/typing-sound'
+import {
+  buildUnifiedTypingSentences,
+  findSentenceIndexByCp,
+  type TypingDisplayMode,
+  type UnifiedTypingSentence,
+} from '@/lib/typing-sentence-model'
 import {
   ChineseWordToken,
   segmentAndAlignChinese,
@@ -554,6 +560,8 @@ export default function TypingClient() {
   const [selectedVoiceURI, setSelectedVoiceURI] = useState<string>('')
   const selectedVoiceURIRef = useRef<string>('')
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([])
+  const activeCardRef = useRef<HTMLDivElement | null>(null)
+  const [displayMode, setDisplayMode] = useState<TypingDisplayMode>('sentence_cards')
   const [hasVoiceWarning, setHasVoiceWarning] = useState<boolean>(false)
   const autoSpeakNextRef = useRef<boolean>(true)
   const lastAutoSpokenExerciseIdRef = useRef<string | null>(null)
@@ -640,10 +648,27 @@ export default function TypingClient() {
     indexedTargetRef.current = indexedTarget
   }, [cleanedTargetText, indexedTarget])
 
-  // Phân tách câu tiếng Trung trên chuỗi đã chuẩn hóa 1-1
-  const chineseSentences = useMemo(() => {
-    return extractChineseSentences(cleanedTargetText)
-  }, [cleanedTargetText])
+  // Mô hình câu & từ thống nhất trên cleanedTargetText (phục vụ cả 2 chế độ hiển thị, Diffing và TTS)
+  const unifiedData = useMemo(
+    () =>
+      buildUnifiedTypingSentences(cleanedTargetText, {
+        presetPinyin: currentExercise?.pinyin,
+        overallMeaning: currentExercise?.meaning,
+      }),
+    [cleanedTargetText, currentExercise?.pinyin, currentExercise?.meaning]
+  )
+  const unifiedSentences = unifiedData.sentences
+
+  const chineseSentences: ChineseSentenceItem[] = useMemo(
+    () =>
+      unifiedSentences.map((s) => ({
+        index: s.index,
+        startIndex: s.startIndex,
+        endIndex: s.endIndex,
+        text: s.chinese,
+      })),
+    [unifiedSentences]
+  )
 
   // Phân đoạn từ tiếng Trung & đồng bộ Pinyin trên chuỗi đã chuẩn hóa
   const exerciseWordTokens = useMemo(() => {
@@ -652,6 +677,11 @@ export default function TypingClient() {
   }, [cleanedTargetText, currentExercise?.pinyin])
 
   // Refs đồng bộ thời gian thực để triệt tiêu 100% lỗi stale closure
+  const unifiedSentencesRef = useRef<UnifiedTypingSentence[]>([])
+  useEffect(() => {
+    unifiedSentencesRef.current = unifiedSentences
+  }, [unifiedSentences])
+
   const chineseSentencesRef = useRef<ChineseSentenceItem[]>([])
   useEffect(() => {
     chineseSentencesRef.current = chineseSentences
@@ -672,10 +702,12 @@ export default function TypingClient() {
     }
   }, [])
 
+  const committedCpLen = useMemo(() => Array.from(committedInput).length, [committedInput])
+
   // Chỉ số câu đang gõ dựa theo committedInput (không nhảy khi đang compose IME)
   const currentTypingSentenceIndex = useMemo(() => {
-    return findCurrentSentenceIndex(chineseSentences, committedInput.length)
-  }, [chineseSentences, committedInput.length])
+    return findSentenceIndexByCp(unifiedSentences, committedCpLen)
+  }, [unifiedSentences, committedCpLen])
 
   // Reset câu audio khi đổi bài hoặc đổi câu tập
   useEffect(() => {
@@ -1202,6 +1234,24 @@ export default function TypingClient() {
     }
   }
 
+  // Đổi chế độ hiển thị văn bản mẫu (Từng câu vs Cả đoạn dài) mà vẫn bảo toàn 100% nội dung đang gõ & audio đang phát
+  const handleSwitchDisplayMode = useCallback(
+    (nextMode: TypingDisplayMode) => {
+      if (nextMode === displayMode) return
+      cancelSpeechHardware()
+      setDisplayMode(nextMode)
+      if (speechStatusRef.current === 'playing') {
+        startSpeechUtterance({
+          mode: readingModeRef.current || 'all',
+          startUtf16Offset: pausedUtf16OffsetRef.current,
+          targetSentenceIdx: audioSentenceIndexRef.current,
+          expectedEpoch: currentCardEpochRef.current,
+        })
+      }
+    },
+    [displayMode, cancelSpeechHardware, startSpeechUtterance]
+  )
+
   // Reset khi đổi chế độ hoặc đổi bài
   const resetExercise = useCallback(() => {
     stopSpeech()
@@ -1474,11 +1524,12 @@ export default function TypingClient() {
     [cleanedTargetText, committedInput, elapsedSeconds, preferences.normalizePunctuation, isCompleted]
   )
 
-  // Auto-scroll mượt mà vào ký tự active khi người dùng đang gõ (đặc biệt hữu ích cho đoạn văn dài)
+  // Auto-scroll mượt mà vào ký tự active hoặc thẻ câu active khi chuyển chế độ hiển thị
   useEffect(() => {
     if (!isStarted || isCompleted || practiceMode !== 'visual') return
-    activeCharRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, [isStarted, isCompleted, practiceMode, evaluation.activeCharIndex, preferences.hideHanzi])
+    const targetEl = activeCharRef.current ?? activeCardRef.current
+    targetEl?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [isStarted, isCompleted, practiceMode, evaluation.activeCharIndex, preferences.hideHanzi, displayMode])
 
   // Hoàn thành bài tập
   const handleFinish = useCallback(() => {
@@ -1596,7 +1647,6 @@ export default function TypingClient() {
     (newVal: string) => {
       if (newVal === lastCommittedTextRef.current) return
 
-      const prevText = lastCommittedTextRef.current
       const prevCpLen = lastCommittedCpLenRef.current
       const nextCpChars = Array.from(newVal)
       const nextCpLen = nextCpChars.length
@@ -1636,110 +1686,121 @@ export default function TypingClient() {
         playTypingSfx(allCorrect ? 'correct' : 'error')
       }
 
-      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức (chỉ khi không đang đọc toàn bài/câu)
+      // Xác định câu vừa hoàn thành theo chỉ số code-point thống nhất `endCp`
+      const completedSentence =
+        unifiedSentencesRef.current.length > 1
+          ? unifiedSentencesRef.current.find(
+              (s) => prevCpLen < s.endCp && nextCpLen >= s.endCp
+            )
+          : undefined
+
+      const shouldAutoSpeakNext = Boolean(
+        autoSpeakNextRef.current &&
+          completedSentence &&
+          completedSentence.index + 1 < unifiedSentencesRef.current.length
+      )
+
+      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức (tránh xung đột khi chuẩn bị đọc câu tiếp theo)
       const newlyTypedText = nextCpChars.slice(prevCpLen).join('')
       const isSentenceTTSCurrentlySpeaking = speechStatusRef.current === 'playing'
 
-      if (!isSentenceTTSCurrentlySpeaking && preferences.speakOnType !== false && newlyTypedText.trim()) {
+      if (
+        !isSentenceTTSCurrentlySpeaking &&
+        !shouldAutoSpeakNext &&
+        preferences.speakOnType !== false &&
+        newlyTypedText.trim()
+      ) {
         speakChineseCharacter(newlyTypedText, selectedVoiceURIRef.current, speechRateRef.current)
       }
 
       // Tự đọc câu tiếp theo khi gõ xong câu hiện tại nếu bật autoSpeakNext
-      if (autoSpeakNextRef.current && chineseSentencesRef.current.length > 1) {
-        const curSentence = chineseSentencesRef.current.find(
-          (s) => prevText.length < s.endIndex && newVal.length >= s.endIndex
-        )
-        if (curSentence && curSentence.index + 1 < chineseSentencesRef.current.length) {
-          startSpeechUtterance({
-            mode: 'sentence',
-            targetSentenceIdx: curSentence.index + 1,
-            expectedEpoch: currentCardEpochRef.current,
-          })
-        }
+      if (shouldAutoSpeakNext && completedSentence) {
+        startSpeechUtterance({
+          mode: 'sentence',
+          targetSentenceIdx: completedSentence.index + 1,
+          expectedEpoch: currentCardEpochRef.current,
+        })
       }
 
       // Đánh giá và lưu vết câu vừa hoàn thành trong bài nhiều câu (Đoạn văn)
-      if (chineseSentencesRef.current.length > 1) {
-        const curSentence = chineseSentencesRef.current.find(
-          (s) => prevText.length < s.endIndex && newVal.length >= s.endIndex
+      if (completedSentence) {
+        const curSentence = completedSentence
+        const targetSentenceChars = Array.from(curSentence.chinese)
+        const userSentenceChars = nextCpChars.slice(
+          curSentence.startCp,
+          Math.min(nextCpLen, curSentence.endCp)
         )
-        if (curSentence) {
-          const targetSentenceChars = Array.from(curSentence.text)
-          const userSentenceChars = Array.from(
-            newVal.slice(curSentence.startIndex, Math.min(newVal.length, curSentence.endIndex))
-          )
 
-          const sentenceErrors: { index: number; expected: string; actual: string }[] = []
-          for (let i = 0; i < targetSentenceChars.length; i++) {
-            const tChar = targetSentenceChars[i]
-            const uChar = userSentenceChars[i]
-            if (!uChar || !isTypingCharMatch(uChar, tChar, preferences.normalizePunctuation)) {
-              sentenceErrors.push({
-                index: i + 1,
-                expected: tChar,
-                actual: uChar || '(thiếu)',
-              })
-            }
+        const sentenceErrors: { index: number; expected: string; actual: string }[] = []
+        for (let i = 0; i < targetSentenceChars.length; i++) {
+          const tChar = targetSentenceChars[i]
+          const uChar = userSentenceChars[i]
+          if (!uChar || !isTypingCharMatch(uChar, tChar, preferences.normalizePunctuation)) {
+            sentenceErrors.push({
+              index: i + 1,
+              expected: tChar,
+              actual: uChar || '(thiếu)',
+            })
           }
+        }
 
-          const isSentenceValid = sentenceErrors.length === 0 && userSentenceChars.length >= targetSentenceChars.length
+        const isSentenceValid = sentenceErrors.length === 0 && userSentenceChars.length >= targetSentenceChars.length
 
-          if (!isSentenceValid) {
-            const mistakePayload = {
-              mode,
-              practiceType: 'listen' as const,
-              exerciseId: currentExercise.id,
-              sentenceIndex: curSentence.index,
-              sentenceZh: curSentence.text,
-              pinyin: currentExercise.pinyin,
-              meaningVi: currentExercise.meaning,
-              lastInputZh: userSentenceChars.join(''),
-              mistakeDetails: sentenceErrors,
-            }
-            if (typeof recordLocalTypingMistake === 'function') {
-              recordLocalTypingMistake(mistakePayload)
-            }
-            if (isLoggedIn) {
-              recordTypingMistakeAction(mistakePayload)
-            }
-            setMistakeCount((prev) => prev + 1)
-          }
-
-          // Lưu tiến độ câu đang học
-          const isLastSentence = curSentence.index + 1 >= chineseSentencesRef.current.length
-          const progressPayload: TypingProgressDTO = {
+        if (!isSentenceValid) {
+          const mistakePayload = {
             mode,
+            practiceType: 'listen' as const,
             exerciseId: currentExercise.id,
-            currentSentenceIndex: isLastSentence ? curSentence.index : curSentence.index + 1,
-            completedSentences: curSentence.index + 1,
-            totalSentences: chineseSentencesRef.current.length,
-            correctSentences: 0,
-            errorSentences: 0,
-            lastTypedLength: nextCpLen,
-            timeSpentSeconds: elapsedSeconds,
-            status: isLastSentence ? 'completed' : 'in_progress',
-            hskLevel: mode === 'hsk' ? hskLevel : undefined,
-            lessonId: mode === 'hsk' ? (selectedLessonId || undefined) : undefined,
-            lessonTitle:
-              mode === 'hsk'
-                ? selectedLessonId
-                  ? 'Bài học'
-                  : `HSK ${hskLevel}`
-                : mode === 'sentence'
-                ? 'Câu mẫu'
-                : mode === 'vocabulary'
-                ? `Từ vựng: ${cleanedTargetText || currentExercise.hanzi}`
-                : (currentExercise as any).title || 'Đoạn văn',
-            currentQuestionId: currentExercise.id,
-            currentQuestionText: curSentence ? curSentence.text : (cleanedTargetText || currentExercise.hanzi),
-            practiceMode: 'visual',
+            sentenceIndex: curSentence.index,
+            sentenceZh: curSentence.chinese,
+            pinyin: curSentence.pinyin || currentExercise.pinyin,
+            meaningVi: curSentence.meaning_vi || currentExercise.meaning,
+            lastInputZh: userSentenceChars.join(''),
+            mistakeDetails: sentenceErrors,
           }
-          if (typeof saveLocalTypingProgress === 'function') {
-            saveLocalTypingProgress(progressPayload as any)
+          if (typeof recordLocalTypingMistake === 'function') {
+            recordLocalTypingMistake(mistakePayload)
           }
           if (isLoggedIn) {
-            saveTypingProgressAction(progressPayload)
+            recordTypingMistakeAction(mistakePayload)
           }
+          setMistakeCount((prev) => prev + 1)
+        }
+
+        // Lưu tiến độ câu đang học
+        const isLastSentence = curSentence.index + 1 >= unifiedSentencesRef.current.length
+        const progressPayload: TypingProgressDTO = {
+          mode,
+          exerciseId: currentExercise.id,
+          currentSentenceIndex: isLastSentence ? curSentence.index : curSentence.index + 1,
+          completedSentences: curSentence.index + 1,
+          totalSentences: unifiedSentencesRef.current.length,
+          correctSentences: 0,
+          errorSentences: 0,
+          lastTypedLength: nextCpLen,
+          timeSpentSeconds: elapsedSeconds,
+          status: isLastSentence ? 'completed' : 'in_progress',
+          hskLevel: mode === 'hsk' ? hskLevel : undefined,
+          lessonId: mode === 'hsk' ? (selectedLessonId || undefined) : undefined,
+          lessonTitle:
+            mode === 'hsk'
+              ? selectedLessonId
+                ? 'Bài học'
+                : `HSK ${hskLevel}`
+              : mode === 'sentence'
+              ? 'Câu mẫu'
+              : mode === 'vocabulary'
+              ? `Từ vựng: ${cleanedTargetText || currentExercise.hanzi}`
+              : (currentExercise as any).title || 'Đoạn văn',
+          currentQuestionId: currentExercise.id,
+          currentQuestionText: curSentence ? curSentence.chinese : (cleanedTargetText || currentExercise.hanzi),
+          practiceMode: 'visual',
+        }
+        if (typeof saveLocalTypingProgress === 'function') {
+          saveLocalTypingProgress(progressPayload as any)
+        }
+        if (isLoggedIn) {
+          saveTypingProgressAction(progressPayload)
         }
       }
 
@@ -3036,197 +3097,295 @@ export default function TypingClient() {
               </div>
             ) : null}
 
-            {/* Câu mục tiêu với từng ký tự hiển thị trực quan */}
-            <div className="space-y-3 bg-page/70 border border-border/70 rounded-xl p-3.5 sm:p-4 md:p-6">
-              {/* Pinyin hỗ trợ kèm đồng bộ highlight từng từ khi phát âm */}
-              {preferences.showPinyin && (
-                <div className="flex items-center justify-between gap-2">
-                  {exerciseWordTokens.length > 0 && exerciseWordTokens.some((w) => w.pinyin) ? (
-                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 select-none leading-relaxed text-sm md:text-base font-sans">
-                      {exerciseWordTokens.map((w, wIdx) => {
-                        const activeSentence =
-                          speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
-                            ? chineseSentences[speakingSentenceIndex]
-                            : null
+            {/* Khung văn bản mẫu mục tiêu (2 chế độ hiển thị cho bài đoạn văn / nhiều câu, hoặc khung gọn cho 1 câu) */}
+            {(() => {
+              const dictationNode =
+                preferences.hideHanzi && !isCompleted ? (
+                  /* Khi bật Ẩn chữ Hán: Người học nghe phát âm và gõ chữ Hán (ẩn chữ mẫu, hiện ký tự đã gõ và con trỏ) */
+                  <div
+                    className={`font-serif tracking-normal leading-relaxed select-none ${
+                      mode === 'paragraph' ? 'text-xl md:text-2xl max-h-72 overflow-y-auto no-scrollbar pr-1' : 'text-2xl md:text-4xl'
+                    }`}
+                    style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-baseline gap-1 py-1">
+                        {evaluation.targetChars.map((char, idx) => {
+                          const typedChar = evaluation.inputChars[idx]
+                          const status = evaluation.charStates[idx] ?? 'pending'
+                          const isCorrect = status === 'correct'
 
-                        const isTokenInSpeakingSentence = activeSentence
-                          ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
-                          : false
+                          if (char === '\n') {
+                            return (
+                              <Fragment key={idx}>
+                                <span
+                                  ref={status === 'active' ? activeCharRef : undefined}
+                                  className={`inline-flex items-center px-1 rounded text-xs font-mono ${
+                                    status === 'correct'
+                                      ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold'
+                                      : status === 'incorrect'
+                                      ? 'bg-red-500/20 text-red-600 dark:text-red-400 underline font-bold'
+                                      : status === 'active'
+                                      ? 'border-b-2 border-app-accent bg-accent-soft/40 text-app-accent font-bold animate-pulse'
+                                      : 'text-muted/30'
+                                  }`}
+                                >
+                                  ↵
+                                </span>
+                                <span className="basis-full h-0" aria-hidden="true" />
+                              </Fragment>
+                            )
+                          }
 
-                        const wStartCp = indexedTarget.utf16ToCp(w.startIndex)
-                        const wEndCp = indexedTarget.utf16ToCp(w.endIndex)
-                        const isWordActive =
-                          speechHighlightRange !== null &&
-                          w.isWord &&
-                          wStartCp < speechHighlightRange.endCp &&
-                          wEndCp > speechHighlightRange.startCp
-                        const isWordPast =
-                          speechHighlightRange !== null &&
-                          w.isWord &&
-                          isTokenInSpeakingSentence &&
-                          wEndCp <= speechHighlightRange.startCp
-                        const isSentenceFallback =
-                          isTokenInSpeakingSentence && speechHighlightRange === null && w.isWord
-
-                        if (!w.pinyin) return null
-
-                        return (
-                          <span
-                            key={wIdx}
-                            className={`transition-colors duration-150 rounded px-1 ${
-                              isWordActive
-                                ? 'text-amber-950 dark:text-amber-100 font-bold bg-amber-200/80 dark:bg-amber-900/60 ring-1 ring-amber-400/80 shadow-2xs'
-                                : isSentenceFallback
-                                ? 'text-amber-900 dark:text-amber-200 font-semibold bg-amber-100/70 dark:bg-amber-950/40 ring-1 ring-amber-300/50 dark:ring-amber-800/40'
-                                : isWordPast
-                                ? 'text-muted/60'
-                                : 'text-muted font-medium'
-                            }`}
-                          >
-                            {w.pinyin}
-                          </span>
-                        )
-                      })}
+                          if (status === 'correct' || status === 'incorrect') {
+                            return (
+                              <span
+                                key={idx}
+                                className={`inline-block px-1 rounded transition-colors ${
+                                  isCorrect
+                                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold'
+                                    : 'bg-red-500/20 text-red-600 dark:text-red-400 underline font-bold'
+                                }`}
+                              >
+                                {isCorrect ? char : typedChar}
+                              </span>
+                            )
+                          } else if (status === 'active') {
+                            return (
+                              <span
+                                key={idx}
+                                ref={activeCharRef}
+                                className="inline-block px-1 border-b-2 border-app-accent bg-accent-soft/40 text-app-accent font-bold animate-pulse"
+                              >
+                                _
+                              </span>
+                            )
+                          } else {
+                            return (
+                              <span
+                                key={idx}
+                                className="inline-block px-1 text-muted/30 select-none"
+                              >
+                                ●
+                              </span>
+                            )
+                          }
+                        })}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted font-serif pt-1 select-none flex-wrap">
+                        <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 font-medium">
+                          <Headphones className="w-3.5 h-3.5" />
+                          Chữ Hán đang ẩn — Lắng nghe phát âm và gõ
+                        </span>
+                        <span>•</span>
+                        <span>
+                          Phím tắt nghe lại:{' '}
+                          <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-[11px] font-mono">
+                            Alt + S
+                          </kbd>
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-sm md:text-base text-muted font-sans tracking-wide select-none">
-                      {currentExercise.pinyin}
-                    </p>
-                  )}
-                  <AudioButton 
-                    text={cleanedTargetText} 
-                    id={`typing-inline-${currentExercise.id || currentIndex}`} 
-                    size="xs" 
-                    variant="ghost" 
-                    tooltip="Nghe phát âm tiếng Trung" 
-                    onPlayStart={stopSpeech}
+                  </div>
+                ) : null
+
+              if (mode === 'paragraph' || unifiedSentences.length > 1) {
+                return (
+                  <TypingTargetViewer
+                    displayMode={displayMode}
+                    onSwitchDisplayMode={handleSwitchDisplayMode}
+                    showModeSwitcher={true}
+                    hideSample={preferences.hideHanzi}
+                    hideSampleFallback={dictationNode}
+                    showPinyin={preferences.showPinyin}
+                    showMeaning={preferences.showMeaning}
+                    evaluation={evaluation}
+                    indexedTarget={indexedTarget}
+                    sentences={unifiedSentences}
+                    speakingSentenceIndex={speakingSentenceIndex}
+                    speechHighlightRange={speechHighlightRange}
+                    isCompleted={isCompleted}
+                    activeCharRef={activeCharRef}
+                    activeCardRef={activeCardRef}
+                    fontSizeClass="text-xl md:text-2xl"
+                    fallbackOverallMeaning={currentExercise.meaning}
                   />
-                </div>
-              )}
+                )
+              }
 
-            {/* Dòng chữ Hán mục tiêu (Array.from) với tô màu stateless & highlight âm thanh theo charIndex/charLength */}
-            <div
-              className={`font-serif tracking-normal leading-relaxed select-none ${
-                mode === 'paragraph' ? 'text-xl md:text-2xl max-h-72 overflow-y-auto no-scrollbar pr-1' : 'text-2xl md:text-4xl'
-              }`}
-              style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
-            >
-              {preferences.hideHanzi && !isCompleted ? (
-                /* Khi bật Ẩn chữ Hán: Người học nghe phát âm và gõ chữ Hán (ẩn chữ mẫu, hiện ký tự đã gõ và con trỏ) */
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-baseline gap-1 py-1">
-                    {evaluation.targetChars.map((char, idx) => {
-                      const typedChar = evaluation.inputChars[idx]
-                      const status = evaluation.charStates[idx] ?? 'pending'
-                      const isCorrect = status === 'correct'
+              return (
+                <div className="space-y-3 bg-page/70 border border-border/70 rounded-xl p-3.5 sm:p-4 md:p-6">
+                  {/* Pinyin hỗ trợ kèm đồng bộ highlight từng từ khi phát âm */}
+                  {preferences.showPinyin && (
+                    <div className="flex items-center justify-between gap-2">
+                      {exerciseWordTokens.length > 0 && exerciseWordTokens.some((w) => w.pinyin) ? (
+                        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 select-none leading-relaxed text-sm md:text-base font-sans">
+                          {exerciseWordTokens.map((w, wIdx) => {
+                            const activeSentence =
+                              speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
+                                ? chineseSentences[speakingSentenceIndex]
+                                : null
 
-                      if (char === '\n') {
-                        return (
-                          <Fragment key={idx}>
-                            <span
-                              ref={status === 'active' ? activeCharRef : undefined}
-                              className={`inline-flex items-center px-1 rounded text-xs font-mono ${
-                                status === 'correct'
-                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold'
-                                  : status === 'incorrect'
-                                  ? 'bg-red-500/20 text-red-600 dark:text-red-400 underline font-bold'
-                                  : status === 'active'
-                                  ? 'border-b-2 border-app-accent bg-accent-soft/40 text-app-accent font-bold animate-pulse'
-                                  : 'text-muted/30'
-                              }`}
-                            >
-                              ↵
-                            </span>
-                            <span className="basis-full h-0" aria-hidden="true" />
-                          </Fragment>
-                        )
-                      }
+                            const isTokenInSpeakingSentence = activeSentence
+                              ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
+                              : false
 
-                      if (status === 'correct' || status === 'incorrect') {
-                        return (
-                          <span
-                            key={idx}
-                            className={`inline-block px-1 rounded transition-colors ${
-                              isCorrect
-                                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold'
-                                : 'bg-red-500/20 text-red-600 dark:text-red-400 underline font-bold'
-                            }`}
-                          >
-                            {isCorrect ? char : typedChar}
-                          </span>
-                        )
-                      } else if (status === 'active') {
-                        return (
-                          <span
-                            key={idx}
-                            ref={activeCharRef}
-                            className="inline-block px-1 border-b-2 border-app-accent bg-accent-soft/40 text-app-accent font-bold animate-pulse"
-                          >
-                            _
-                          </span>
-                        )
-                      } else {
-                        return (
-                          <span
-                            key={idx}
-                            className="inline-block px-1 text-muted/30 select-none"
-                          >
-                            ●
-                          </span>
-                        )
-                      }
-                    })}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted font-serif pt-1 select-none flex-wrap">
-                    <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 font-medium">
-                      <Headphones className="w-3.5 h-3.5" />
-                      Chữ Hán đang ẩn — Lắng nghe phát âm và gõ
-                    </span>
-                    <span>•</span>
-                    <span>Phím tắt nghe lại: <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-[11px] font-mono">Alt + S</kbd></span>
-                  </div>
-                </div>
-              ) : exerciseWordTokens.length > 0 ? (
-                  <div className="flex flex-wrap items-baseline gap-y-1">
-                    {exerciseWordTokens.map((w, wIdx) => {
-                      const activeSentence =
-                        speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
-                          ? chineseSentences[speakingSentenceIndex]
-                          : null
+                            const wStartCp = indexedTarget.utf16ToCp(w.startIndex)
+                            const wEndCp = indexedTarget.utf16ToCp(w.endIndex)
+                            const isWordActive =
+                              speechHighlightRange !== null &&
+                              w.isWord &&
+                              wStartCp < speechHighlightRange.endCp &&
+                              wEndCp > speechHighlightRange.startCp
+                            const isWordPast =
+                              speechHighlightRange !== null &&
+                              w.isWord &&
+                              isTokenInSpeakingSentence &&
+                              wEndCp <= speechHighlightRange.startCp
+                            const isSentenceFallback =
+                              isTokenInSpeakingSentence && speechHighlightRange === null && w.isWord
 
-                      const isTokenInSpeakingSentence = activeSentence
-                        ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
-                        : false
+                            if (!w.pinyin) return null
 
-                      const wStartCp = indexedTarget.utf16ToCp(w.startIndex)
-                      const wEndCp = indexedTarget.utf16ToCp(w.endIndex)
-                      const isWordActive =
-                        speechHighlightRange !== null &&
-                        w.isWord &&
-                        wStartCp < speechHighlightRange.endCp &&
-                        wEndCp > speechHighlightRange.startCp
-                      const isWordPast =
-                        speechHighlightRange !== null &&
-                        w.isWord &&
-                        isTokenInSpeakingSentence &&
-                        wEndCp <= speechHighlightRange.startCp
-                      const isSentenceFallback =
-                        isTokenInSpeakingSentence && speechHighlightRange === null && w.isWord
+                            return (
+                              <span
+                                key={wIdx}
+                                className={`transition-colors duration-150 rounded px-1 ${
+                                  isWordActive
+                                    ? 'text-amber-950 dark:text-amber-100 font-bold bg-amber-200/80 dark:bg-amber-900/60 ring-1 ring-amber-400/80 shadow-2xs'
+                                    : isSentenceFallback
+                                    ? 'text-amber-900 dark:text-amber-200 font-semibold bg-amber-100/70 dark:bg-amber-950/40 ring-1 ring-amber-300/50 dark:ring-amber-800/40'
+                                    : isWordPast
+                                    ? 'text-muted/60'
+                                    : 'text-muted font-medium'
+                                }`}
+                              >
+                                {w.pinyin}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm md:text-base text-muted font-sans tracking-wide select-none">
+                          {currentExercise.pinyin}
+                        </p>
+                      )}
+                      <AudioButton
+                        text={cleanedTargetText}
+                        id={`typing-inline-${currentExercise.id || currentIndex}`}
+                        size="xs"
+                        variant="ghost"
+                        tooltip="Nghe phát âm tiếng Trung"
+                        onPlayStart={stopSpeech}
+                      />
+                    </div>
+                  )}
 
-                      return (
-                        <span
-                          key={wIdx}
-                          className={`inline-flex flex-wrap items-baseline transition-all duration-150 rounded px-0.5 py-0.25 ${
-                            isWordActive
-                              ? 'bg-amber-100/80 dark:bg-amber-950/60 ring-1 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
-                              : isSentenceFallback
-                              ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
-                              : isWordPast
-                              ? 'opacity-85'
-                              : ''
-                          }`}
-                        >
-                          {indexedTarget.items.slice(wStartCp, wEndCp).map(({ char, cpIdx }) => {
+                  {/* Dòng chữ Hán mục tiêu (Array.from) với tô màu stateless & highlight âm thanh theo charIndex/charLength */}
+                  {dictationNode ? (
+                    dictationNode
+                  ) : (
+                    <div
+                      className="font-serif tracking-normal leading-relaxed select-none text-2xl md:text-4xl"
+                      style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
+                    >
+                      {exerciseWordTokens.length > 0 ? (
+                        <div className="flex flex-wrap items-baseline gap-y-1">
+                          {exerciseWordTokens.map((w, wIdx) => {
+                            const activeSentence =
+                              speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
+                                ? chineseSentences[speakingSentenceIndex]
+                                : null
+
+                            const isTokenInSpeakingSentence = activeSentence
+                              ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
+                              : false
+
+                            const wStartCp = indexedTarget.utf16ToCp(w.startIndex)
+                            const wEndCp = indexedTarget.utf16ToCp(w.endIndex)
+                            const isWordActive =
+                              speechHighlightRange !== null &&
+                              w.isWord &&
+                              wStartCp < speechHighlightRange.endCp &&
+                              wEndCp > speechHighlightRange.startCp
+                            const isWordPast =
+                              speechHighlightRange !== null &&
+                              w.isWord &&
+                              isTokenInSpeakingSentence &&
+                              wEndCp <= speechHighlightRange.startCp
+                            const isSentenceFallback =
+                              isTokenInSpeakingSentence && speechHighlightRange === null && w.isWord
+
+                            return (
+                              <span
+                                key={wIdx}
+                                className={`inline-flex flex-wrap items-baseline transition-all duration-150 rounded px-0.5 py-0.25 ${
+                                  isWordActive
+                                    ? 'bg-amber-100/80 dark:bg-amber-950/60 ring-1 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
+                                    : isSentenceFallback
+                                    ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
+                                    : isWordPast
+                                    ? 'opacity-85'
+                                    : ''
+                                }`}
+                              >
+                                {indexedTarget.items.slice(wStartCp, wEndCp).map(({ char, cpIdx }) => {
+                                  const status = evaluation.charStates[cpIdx] ?? 'pending'
+                                  const isCharSpoken =
+                                    speechHighlightRange !== null &&
+                                    cpIdx >= speechHighlightRange.startCp &&
+                                    cpIdx < speechHighlightRange.endCp
+
+                                  let statusClasses = 'text-title/80'
+
+                                  if (status === 'correct') {
+                                    statusClasses = isCharSpoken
+                                      ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 font-bold rounded px-0.5 ring-1 ring-amber-400'
+                                      : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
+                                  } else if (status === 'incorrect') {
+                                    statusClasses = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
+                                  } else if (status === 'active') {
+                                    statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
+                                  } else if (isCharSpoken || isWordActive) {
+                                    statusClasses = 'bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold rounded px-0.5'
+                                  } else if (isSentenceFallback) {
+                                    statusClasses = 'text-title font-semibold'
+                                  } else if (isTokenInSpeakingSentence) {
+                                    statusClasses = 'text-title/85'
+                                  }
+
+                                  if (char === '\n') {
+                                    return (
+                                      <Fragment key={cpIdx}>
+                                        <span
+                                          ref={status === 'active' ? activeCharRef : undefined}
+                                          className={`inline-flex items-center px-1 mx-0.5 rounded text-xs font-mono ${statusClasses}`}
+                                          title="Xuống dòng (Enter)"
+                                        >
+                                          ↵
+                                        </span>
+                                        <span className="basis-full h-0" aria-hidden="true" />
+                                      </Fragment>
+                                    )
+                                  }
+
+                                  return (
+                                    <span
+                                      key={cpIdx}
+                                      ref={status === 'active' ? activeCharRef : undefined}
+                                      className={`inline-block transition-colors ${statusClasses}`}
+                                    >
+                                      {char}
+                                    </span>
+                                  )
+                                })}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-baseline gap-y-1">
+                          {evaluation.targetChars.map((char, cpIdx) => {
                             const status = evaluation.charStates[cpIdx] ?? 'pending'
                             const isCharSpoken =
                               speechHighlightRange !== null &&
@@ -3243,12 +3402,8 @@ export default function TypingClient() {
                               statusClasses = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
                             } else if (status === 'active') {
                               statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
-                            } else if (isCharSpoken || isWordActive) {
-                              statusClasses = 'bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold rounded px-0.5'
-                            } else if (isSentenceFallback) {
-                              statusClasses = 'text-title font-semibold'
-                            } else if (isTokenInSpeakingSentence) {
-                              statusClasses = 'text-title/85'
+                            } else if (isCharSpoken) {
+                              statusClasses = 'bg-amber-200/80 text-amber-950 dark:bg-amber-900/60 dark:text-amber-100 font-bold rounded px-0.5 ring-1 ring-amber-400/80'
                             }
 
                             if (char === '\n') {
@@ -3276,69 +3431,20 @@ export default function TypingClient() {
                               </span>
                             )
                           })}
-                        </span>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap items-baseline gap-y-1">
-                    {evaluation.targetChars.map((char, cpIdx) => {
-                      const status = evaluation.charStates[cpIdx] ?? 'pending'
-                      const isCharSpoken =
-                        speechHighlightRange !== null &&
-                        cpIdx >= speechHighlightRange.startCp &&
-                        cpIdx < speechHighlightRange.endCp
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                      let statusClasses = 'text-title/80'
-
-                      if (status === 'correct') {
-                        statusClasses = isCharSpoken
-                          ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 font-bold rounded px-0.5 ring-1 ring-amber-400'
-                          : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
-                      } else if (status === 'incorrect') {
-                        statusClasses = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
-                      } else if (status === 'active') {
-                        statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
-                      } else if (isCharSpoken) {
-                        statusClasses = 'bg-amber-200/80 text-amber-950 dark:bg-amber-900/60 dark:text-amber-100 font-bold rounded px-0.5 ring-1 ring-amber-400/80'
-                      }
-
-                      if (char === '\n') {
-                        return (
-                          <Fragment key={cpIdx}>
-                            <span
-                              ref={status === 'active' ? activeCharRef : undefined}
-                              className={`inline-flex items-center px-1 mx-0.5 rounded text-xs font-mono ${statusClasses}`}
-                              title="Xuống dòng (Enter)"
-                            >
-                              ↵
-                            </span>
-                            <span className="basis-full h-0" aria-hidden="true" />
-                          </Fragment>
-                        )
-                      }
-
-                      return (
-                        <span
-                          key={cpIdx}
-                          ref={status === 'active' ? activeCharRef : undefined}
-                          className={`inline-block transition-colors ${statusClasses}`}
-                        >
-                          {char}
-                        </span>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-            {/* Nghĩa tiếng Việt hỗ trợ */}
-            {preferences.showMeaning && (
-              <p className="text-xs md:text-sm text-body/90 font-serif italic pt-1 border-t border-border/50">
-                Ý nghĩa: {currentExercise.meaning}
-              </p>
-            )}
-          </div>
+                  {/* Nghĩa tiếng Việt hỗ trợ */}
+                  {preferences.showMeaning && (
+                    <p className="text-xs md:text-sm text-body/90 font-serif italic pt-1 border-t border-border/50">
+                      Ý nghĩa: {currentExercise.meaning}
+                    </p>
+                  )}
+                </div>
+              )
+            })()}
 
           {/* Ô nhập liệu IME tiếng Trung */}
           <div className="space-y-2">
