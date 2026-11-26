@@ -27,12 +27,6 @@ export function Hero3DSection({
   recentExerciseTitle,
   recentExerciseUrl,
 }: Hero3DSectionProps) {
-  const indicators = [
-    { num: '01', label: 'Khởi đầu', href: '#hero' },
-    { num: '02', label: 'Lộ trình HSK', href: '#hanh-trinh-hsk' },
-    { num: '03', label: 'Thư viện', href: '#thu-vien' },
-    { num: '04', label: 'Luyện tập', href: '#luyen-tap' },
-  ]
 
   return (
     <section
@@ -95,7 +89,7 @@ export function Hero3DSection({
                   className="w-full min-h-[48px] py-3 px-6 rounded-xl bg-[#0D9488] hover:bg-[#0F766E] active:translate-y-0.5 text-white font-serif font-bold text-sm shadow-[0_3px_0_#115E59] flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
                   <PlayCircle className="w-4 h-4 shrink-0" />
-                  <span>Bắt đầu học HSK 1</span>
+                  <span>Bắt đầu học ngay (HSK 1)</span>
                 </button>
               </Link>
             )}
@@ -196,26 +190,6 @@ export function Hero3DSection({
         </div>
       </div>
 
-      {/* 3. HERO FOOTER BAR & SECTION ANCHORS */}
-      <div className="relative z-10 hidden sm:flex items-center justify-between pt-5 mt-2 border-t border-[#182238]/15 dark:border-white/15">
-        <div className="flex items-center gap-2 text-xs font-serif text-[#182238] dark:text-slate-300">
-          <span className="font-chinese text-base font-bold text-[#DC2626] dark:text-red-400">书山有路</span>
-          <span className="text-[#182238]/65 dark:text-slate-400">· Núi sách có đường, siêng năng làm lối</span>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          {indicators.map((ind) => (
-            <Link
-              key={ind.num}
-              href={ind.href}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/85 dark:bg-[#182238]/85 hover:bg-white dark:hover:bg-[#202B45] border border-[#E2E8F0] dark:border-white/15 text-xs font-serif text-[#182238] dark:text-slate-200 shadow-2xs transition-all hover:-translate-y-0.5"
-            >
-              <span className="text-[10px] font-sans font-bold text-[#0D9488]">{ind.num}</span>
-              <span>{ind.label}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
     </section>
   )
 }

@@ -15,7 +15,7 @@ interface SiteFooterProps {
 }
 
 export function SiteFooter({ liveVocabCounts }: SiteFooterProps) {
-  const hskLevelsList = ([1, 2, 3, 4, 5, 6] as HskCanonicalLevelKey[]).map((levelNum) => {
+  const hskLevelsList = ([1, 2, 3, 4, 5, 6, 7] as HskCanonicalLevelKey[]).map((levelNum) => {
     const info = HSK_CANONICAL_DATA[levelNum]
     const count = resolveHskVocabCount(levelNum, liveVocabCounts)
     return {
