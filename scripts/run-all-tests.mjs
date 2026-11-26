@@ -29,6 +29,10 @@ const testSuites = [
     name: '5. Chuẩn hóa Phím Enter & IME Keyboard UX (Keyboard UX State Machine)',
     file: 'test-keyboard-enter-ux.mjs',
   },
+  {
+    name: '6. Chuẩn hóa văn bản, IME Composition, Stateless Diff & TTS Sync (/typing)',
+    file: 'test-typing-text-imei-tts.mjs',
+  },
 ]
 
 console.log('=================================================================')

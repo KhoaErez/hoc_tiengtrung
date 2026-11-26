@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { Fragment, useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -15,7 +15,6 @@ import CustomParagraphMode from './components/custom-paragraph-mode'
 import TranslateTypingMode from './components/translate-typing-mode'
 import TypingAudioControls from './components/typing-audio-controls'
 import { AudioButton } from '@/components/ui/audio-button'
-import { PassageAudioPlayer } from '@/components/ui/passage-audio-player'
 import {
   ttsEngine,
   retainUtterance,
@@ -34,8 +33,13 @@ import {
 import {
   ChineseWordToken,
   segmentAndAlignChinese,
-  findWordIndexByCharIndex,
 } from '@/lib/tts/chinese-word-segmenter'
+import {
+  sanitizeTargetText,
+  buildIndexedChars,
+  evaluateTypingStateless,
+  isTypingCharMatch,
+} from '@/lib/typing-text-utils'
 import {
   TypingSession,
   TypingStats,
@@ -107,39 +111,6 @@ import {
   PenTool,
   Loader2,
 } from 'lucide-react'
-
-// Hàm chuẩn hóa ký tự dấu câu tiếng Trung & tiếng Anh tương đương
-function normalizeChar(char: string): string {
-  if (!char) return ''
-  const punctuationMap: Record<string, string> = {
-    '，': ',',
-    '。': '.',
-    '！': '!',
-    '？': '?',
-    '：': ':',
-    '；': ';',
-    '“': '"',
-    '”': '"',
-    '‘': "'",
-    '’': "'",
-    '（': '(',
-    '）': ')',
-    '【': '[',
-    '】': ']',
-    '、': ',',
-  }
-  return punctuationMap[char] || char
-}
-
-// Hàm so khớp 2 ký tự (chấp nhận cả dấu câu toàn giác & bán giác)
-function isCharMatch(c1: string, c2: string, allowNormalize = true): boolean {
-  if (!c1 || !c2) return false
-  if (c1 === c2) return true
-  if (allowNormalize) {
-    return normalizeChar(c1) === normalizeChar(c2)
-  }
-  return false
-}
 
 export default function TypingClient() {
   const { user, isLoggedIn } = useAuthModal()
@@ -504,11 +475,13 @@ export default function TypingClient() {
     }
   }, [exercises, resumeSentenceId, resumeSentenceIndex])
 
-  // Trạng thái nhập liệu & IME
-  const [userInput, setUserInput] = useState('')
+  // Trạng thái nhập liệu & IME (Tách biệt inputValue thô trên ô gõ và committedInput đã xác nhận)
+  const [inputValue, setInputValue] = useState('')
+  const [committedInput, setCommittedInput] = useState('')
   const [isComposing, setIsComposing] = useState(false)
   const [compositionText, setCompositionText] = useState('')
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
+  const activeCharRef = useRef<HTMLSpanElement | null>(null)
 
   // State Machine cho phím Enter & kiểm tra câu (typing -> checking -> correct/incorrect -> transitioning)
   type PracticeStatus = 'typing' | 'checking' | 'correct' | 'incorrect' | 'transitioning'
@@ -556,8 +529,9 @@ export default function TypingClient() {
 
   // TTS State cho chức năng Luyện đánh máy
   const [speechStatus, setSpeechStatus] = useState<'idle' | 'playing' | 'paused'>('idle')
+  const speechStatusRef = useRef<'idle' | 'playing' | 'paused'>('idle')
   const [speakingSentenceIndex, setSpeakingSentenceIndex] = useState<number | null>(null)
-  const [speakingWordIndex, setSpeakingWordIndex] = useState<number | null>(null)
+  const [speechHighlightRange, setSpeechHighlightRange] = useState<{ startCp: number; endCp: number } | null>(null)
   const [audioSentenceIndex, setAudioSentenceIndex] = useState<number>(0)
   const [isAudioFinished, setIsAudioFinished] = useState<boolean>(false)
   const audioSentenceIndexRef = useRef<number>(0)
@@ -567,8 +541,11 @@ export default function TypingClient() {
   const utteranceIdRef = useRef<number>(0)
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const wordElementsRef = useRef<Map<string, HTMLElement>>(new Map())
-  const committedLengthRef = useRef<number>(0)
+  const boundaryFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pausedUtf16OffsetRef = useRef<number>(0)
+  const resumeModeRef = useRef<'all' | 'sentence'>('all')
+  const lastCommittedTextRef = useRef<string>('')
+  const lastCommittedCpLenRef = useRef<number>(0)
   const isComposingRef = useRef<boolean>(false)
   const [readingMode, setReadingMode] = useState<'all' | 'sentence' | null>(null)
   const readingModeRef = useRef<'all' | 'sentence' | null>(null)
@@ -649,16 +626,30 @@ export default function TypingClient() {
     }
   }, [])
 
-  // Phân tách câu tiếng Trung cho bài tập hiện tại
-  const chineseSentences = useMemo(() => {
-    return extractChineseSentences(currentExercise?.hanzi || '')
-  }, [currentExercise?.hanzi])
+  // Chuẩn hóa văn bản mục tiêu trước khi lưu/render/TTS & lập bản đồ ký tự Unicode (Array.from)
+  const cleanedTargetText = useMemo(
+    () => sanitizeTargetText(currentExercise?.hanzi || ''),
+    [currentExercise?.hanzi]
+  )
+  const indexedTarget = useMemo(() => buildIndexedChars(cleanedTargetText), [cleanedTargetText])
 
-  // Phân đoạn từ tiếng Trung & đồng bộ Pinyin cho câu hiện tại
+  const cleanedTargetTextRef = useRef<string>(cleanedTargetText)
+  const indexedTargetRef = useRef(indexedTarget)
+  useEffect(() => {
+    cleanedTargetTextRef.current = cleanedTargetText
+    indexedTargetRef.current = indexedTarget
+  }, [cleanedTargetText, indexedTarget])
+
+  // Phân tách câu tiếng Trung trên chuỗi đã chuẩn hóa 1-1
+  const chineseSentences = useMemo(() => {
+    return extractChineseSentences(cleanedTargetText)
+  }, [cleanedTargetText])
+
+  // Phân đoạn từ tiếng Trung & đồng bộ Pinyin trên chuỗi đã chuẩn hóa
   const exerciseWordTokens = useMemo(() => {
-    if (!currentExercise?.hanzi) return []
-    return segmentAndAlignChinese(currentExercise.hanzi, currentExercise.pinyin || '')
-  }, [currentExercise?.hanzi, currentExercise?.pinyin])
+    if (!cleanedTargetText) return []
+    return segmentAndAlignChinese(cleanedTargetText, currentExercise?.pinyin || '')
+  }, [cleanedTargetText, currentExercise?.pinyin])
 
   // Refs đồng bộ thời gian thực để triệt tiêu 100% lỗi stale closure
   const chineseSentencesRef = useRef<ChineseSentenceItem[]>([])
@@ -681,15 +672,16 @@ export default function TypingClient() {
     }
   }, [])
 
-  // Chỉ số câu đang gõ dựa theo độ dài chuỗi đã gõ
+  // Chỉ số câu đang gõ dựa theo committedInput (không nhảy khi đang compose IME)
   const currentTypingSentenceIndex = useMemo(() => {
-    return findCurrentSentenceIndex(chineseSentences, userInput.length)
-  }, [chineseSentences, userInput.length])
+    return findCurrentSentenceIndex(chineseSentences, committedInput.length)
+  }, [chineseSentences, committedInput.length])
 
   // Reset câu audio khi đổi bài hoặc đổi câu tập
   useEffect(() => {
     setAudioSentenceIndex(0)
     setIsAudioFinished(false)
+    pausedUtf16OffsetRef.current = 0
   }, [currentExercise?.id, currentIndex])
 
   // Đồng bộ audioSentenceIndex theo tiến trình gõ phím khi âm thanh đang nghỉ
@@ -700,11 +692,14 @@ export default function TypingClient() {
     }
   }, [currentTypingSentenceIndex, speechStatus])
 
-  // Dừng phát âm thanh ngay lập tức và giải phóng toàn bộ tài nguyên
-  const stopSpeech = useCallback(() => {
-    currentCardEpochRef.current++
+  // Hủy hàng đợi phần cứng Web Speech API và timer
+  const cancelSpeechHardware = useCallback(() => {
     clearAutoSpeakTimer()
     clearKeepAlive()
+    if (boundaryFallbackTimerRef.current) {
+      clearTimeout(boundaryFallbackTimerRef.current)
+      boundaryFallbackTimerRef.current = null
+    }
     setSentenceTTSActive(false)
     utteranceIdRef.current++
 
@@ -719,91 +714,127 @@ export default function TypingClient() {
       } catch {}
     }
     ttsEngine.stop()
-    setSpeechStatus('idle')
-    setSpeakingSentenceIndex(null)
-    setSpeakingWordIndex(null)
-    setReadingMode(null)
-    readingModeRef.current = null
   }, [clearAutoSpeakTimer, clearKeepAlive])
 
-  // Dọn dẹp âm thanh khi component unmount hoặc nhận tín hiệu dừng âm thanh toàn cục (chuyển trang)
+  // Dừng phát âm thanh ngay lập tức và giải phóng toàn bộ tài nguyên
+  const stopSpeech = useCallback(() => {
+    currentCardEpochRef.current++
+    cancelSpeechHardware()
+    pausedUtf16OffsetRef.current = 0
+    speechStatusRef.current = 'idle'
+    setSpeechStatus('idle')
+    setSpeakingSentenceIndex(null)
+    setSpeechHighlightRange(null)
+    setReadingMode(null)
+    readingModeRef.current = null
+  }, [cancelSpeechHardware])
+
+  // Dọn dẹp âm thanh khi unmount, đổi trang hoặc rời trình duyệt
   useEffect(() => {
     const handleStopAll = () => {
       stopSpeech()
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('app:stop-all-audio', handleStopAll)
+      window.addEventListener('beforeunload', handleStopAll)
+      window.addEventListener('pagehide', handleStopAll)
     }
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('app:stop-all-audio', handleStopAll)
+        window.removeEventListener('beforeunload', handleStopAll)
+        window.removeEventListener('pagehide', handleStopAll)
       }
       stopSpeech()
     }
   }, [stopSpeech])
 
-  // Phát âm câu tiếng Trung kèm cơ chế đồng bộ thích ứng 2 tầng (Two-Tier Adaptive Synchronization):
-  // Tầng 1: Nếu browser/voice hỗ trợ word boundary -> Đồng bộ từng từ thời gian thực
-  // Tầng 2: Nếu browser/voice không hỗ trợ word boundary -> Fallback tô sáng cả câu, đọc đầy đủ trọn vẹn, không đứng ở chữ đầu
-  const speakSentence = useCallback(
-    (
-      index: number,
-      isSequential = false,
-      customSentences?: ChineseSentenceItem[],
-      customWordTokens?: ChineseWordToken[],
+  // Phát âm sử dụng chuỗi cleanedTargetText đồng bộ 1-1 charIndex/charLength & sentence fallback
+  const startSpeechUtterance = useCallback(
+    (options: {
+      mode: 'all' | 'sentence'
+      startUtf16Offset?: number
+      targetSentenceIdx?: number
+      customTargetText?: string
+      customSentences?: ChineseSentenceItem[]
       expectedEpoch?: number
-    ) => {
+    }) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) return
 
-      // Nếu có truyền epoch và epoch không khớp với thẻ hiện tại -> hủy bỏ ngay
-      if (expectedEpoch !== undefined && expectedEpoch !== currentCardEpochRef.current) {
+      if (options.expectedEpoch !== undefined && options.expectedEpoch !== currentCardEpochRef.current) {
         return
       }
 
-      // Luôn ưu tiên danh sách câu được truyền trực tiếp từ thẻ đích, nếu không lấy từ ref mới nhất
-      const list = customSentences || chineseSentencesRef.current
-      if (!list || index < 0 || index >= list.length) {
+      const fullText = options.customTargetText ?? cleanedTargetTextRef.current
+      const list = options.customSentences ?? chineseSentencesRef.current
+      if (!fullText || !list || list.length === 0) {
         stopSpeech()
         return
       }
 
-      const tokens = customWordTokens || exerciseWordTokensRef.current
+      const mode = options.mode
+      let startUtf16Offset = Math.max(0, options.startUtf16Offset ?? 0)
+      let textToSpeak = fullText
+      let activeSentenceIdx = 0
 
-      // Bật cờ phiên đọc câu để bảo vệ luồng âm thanh không bị âm gõ phím hủy ngang
-      setSentenceTTSActive(true)
-      clearKeepAlive()
-
-      // Giải phóng tham chiếu cũ
-      if (activeUtteranceRef.current) {
-        releaseUtterance(activeUtteranceRef.current)
-        activeUtteranceRef.current = null
+      if (mode === 'sentence') {
+        const idx = options.targetSentenceIdx ?? 0
+        const item = list[idx]
+        if (!item) {
+          stopSpeech()
+          return
+        }
+        activeSentenceIdx = idx
+        startUtf16Offset = item.startIndex
+        textToSpeak = fullText.slice(item.startIndex, item.endIndex)
+      } else {
+        if (startUtf16Offset >= fullText.length) startUtf16Offset = 0
+        textToSpeak = startUtf16Offset === 0 ? fullText : fullText.slice(startUtf16Offset)
+        const foundIdx = list.findIndex((s) => startUtf16Offset >= s.startIndex && startUtf16Offset < s.endIndex)
+        activeSentenceIdx = foundIdx !== -1 ? foundIdx : 0
       }
 
-      // Hủy mọi âm thanh cũ trong hàng đợi trước khi phát câu mới
-      try {
-        window.speechSynthesis.cancel()
-      } catch {}
+      if (!textToSpeak.trim()) {
+        stopSpeech()
+        return
+      }
 
-      const currentUtteranceId = ++utteranceIdRef.current
-      const thisEpoch = expectedEpoch ?? currentCardEpochRef.current
-      const item = list[index]
+      const thisEpoch = options.expectedEpoch ?? currentCardEpochRef.current
+      // Hủy mọi âm thanh cũ bằng speechSynthesis.cancel() trước khi phát mới
+      cancelSpeechHardware()
+      setSentenceTTSActive(true)
 
-      // Đặt trạng thái câu đang phát.
-      // QUAN TRỌNG: KHÔNG gán cứng speakingWordIndex = 0! Giữ null ban đầu để hiển thị
-      // Sentence-Level Highlight Fallback thanh lịch, chỉ nâng cấp lên Word-Level khi
-      // sự kiện boundary thực sự phát sinh từ engine.
-      setAudioSentenceIndex(index)
-      setSpeakingSentenceIndex(index)
-      setSpeakingWordIndex(null)
+      const currentUtteranceId = utteranceIdRef.current
+      const targetIndexMap = options.customTargetText ? buildIndexedChars(options.customTargetText) : indexedTargetRef.current
+
+      pausedUtf16OffsetRef.current = startUtf16Offset
+      readingModeRef.current = mode
+      resumeModeRef.current = mode
+      speechStatusRef.current = 'playing'
+      setReadingMode(mode)
+      setAudioSentenceIndex(activeSentenceIdx)
+      setSpeakingSentenceIndex(activeSentenceIdx)
       setSpeechStatus('playing')
 
-      // Áp dụng độ trễ vi mô (25ms) sau cancel() để triệt tiêu Race Condition trong audio driver
+      const initSentence = list[activeSentenceIdx]
+      if (initSentence) {
+        setSpeechHighlightRange(
+          targetIndexMap.utf16RangeToCpRange(
+            initSentence.startIndex,
+            Math.max(1, initSentence.endIndex - initSentence.startIndex)
+          )
+        )
+      } else {
+        setSpeechHighlightRange(null)
+      }
+
+      // Độ trễ vi mô (25ms) sau cancel() để triệt tiêu Race Condition trong audio driver
       setTimeout(() => {
         if (currentUtteranceId !== utteranceIdRef.current) return
         if (thisEpoch !== currentCardEpochRef.current) return
 
         try {
-          const utterance = new SpeechSynthesisUtterance(item.text)
+          const utterance = new SpeechSynthesisUtterance(textToSpeak)
           utterance.lang = 'zh-CN'
           utterance.rate = Math.max(0.5, Math.min(2.0, speechRateRef.current || 1.0))
 
@@ -812,54 +843,76 @@ export default function TypingClient() {
             voices.find((v) => v.voiceURI === selectedVoiceURIRef.current) || voices[0]
           if (voice) utterance.voice = voice
 
-          // Lưu giữ tham chiếu mạnh chống V8/WebKit Garbage Collector thu hồi giữa chừng
           activeUtteranceRef.current = utterance
           retainUtterance(utterance)
 
           let boundaryCount = 0
-          let boundaryFallbackTimer: ReturnType<typeof setTimeout> | null = null
 
           utterance.onstart = () => {
             if (currentUtteranceId !== utteranceIdRef.current) return
             if (thisEpoch !== currentCardEpochRef.current) return
+            speechStatusRef.current = 'playing'
             setSpeechStatus('playing')
             startKeepAlive()
 
-            // Cơ chế phòng vệ Mobile WebKit: Nếu sau 600ms không nhận thêm boundary (hoặc chỉ nhận boundary 0 duy nhất),
-            // tự động chuyển về sentence fallback để không kẹt chữ đầu tiên
-            boundaryFallbackTimer = setTimeout(() => {
+            boundaryFallbackTimerRef.current = setTimeout(() => {
               if (currentUtteranceId !== utteranceIdRef.current) return
               if (thisEpoch !== currentCardEpochRef.current) return
-              if (boundaryCount <= 1 && item.text.length > 2) {
-                setSpeakingWordIndex(null)
+              if (boundaryCount <= 1 && textToSpeak.length > 2) {
+                const s = list[activeSentenceIdx]
+                if (s) {
+                  setSpeechHighlightRange(
+                    targetIndexMap.utf16RangeToCpRange(
+                      s.startIndex,
+                      Math.max(1, s.endIndex - s.startIndex)
+                    )
+                  )
+                }
               }
-            }, 600)
+            }, 650)
           }
 
-          // Lắng nghe sự kiện boundary để tô sáng từng từ nếu trình duyệt/giọng đọc hỗ trợ
           utterance.onboundary = (event) => {
             if (currentUtteranceId !== utteranceIdRef.current) return
             if (thisEpoch !== currentCardEpochRef.current) return
 
-            // Bỏ qua boundary cấp độ sentence (chỉ nhận diện word boundary thực tế)
-            if (event.name === 'sentence') return
-
             boundaryCount++
-            const charIndex = typeof event.charIndex === 'number' ? event.charIndex : 0
-            const globalCharIndex = item.startIndex + charIndex
+            const localCharIndex = typeof event.charIndex === 'number' && event.charIndex >= 0 ? event.charIndex : 0
+            const charLength =
+              typeof event.charLength === 'number' && event.charLength > 0 ? event.charLength : 1
+            const globalUtf16Start = startUtf16Offset + localCharIndex
+            pausedUtf16OffsetRef.current = globalUtf16Start
 
-            // Khoanh vùng tìm từ nghiêm ngặt trong phạm vi câu hiện tại
-            const wordIdx = findWordIndexByCharIndex(tokens, globalCharIndex, {
-              startIndex: item.startIndex,
-              endIndex: item.endIndex,
-            })
-            if (wordIdx !== -1) {
-              setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
+            const matchedSent =
+              list.find((s) => globalUtf16Start >= s.startIndex && globalUtf16Start < s.endIndex) ||
+              list.find((s) => globalUtf16Start < s.endIndex) ||
+              list[activeSentenceIdx]
+
+            if (matchedSent) {
+              setSpeakingSentenceIndex((prev) => (prev === matchedSent.index ? prev : matchedSent.index))
+              setAudioSentenceIndex((prev) => (prev === matchedSent.index ? prev : matchedSent.index))
             }
+
+            if (event.name === 'sentence' && matchedSent) {
+              setSpeechHighlightRange(
+                targetIndexMap.utf16RangeToCpRange(
+                  matchedSent.startIndex,
+                  Math.max(1, matchedSent.endIndex - matchedSent.startIndex)
+                )
+              )
+              return
+            }
+
+            setSpeechHighlightRange(
+              targetIndexMap.utf16RangeToCpRange(globalUtf16Start, charLength)
+            )
           }
 
           utterance.onend = () => {
-            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
+            if (boundaryFallbackTimerRef.current) {
+              clearTimeout(boundaryFallbackTimerRef.current)
+              boundaryFallbackTimerRef.current = null
+            }
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -869,56 +922,47 @@ export default function TypingClient() {
             if (currentUtteranceId !== utteranceIdRef.current) return
             if (thisEpoch !== currentCardEpochRef.current) return
 
-            setSpeakingWordIndex(null)
+            setSpeechHighlightRange(null)
 
-            if (readingModeRef.current === 'all' && isSequential) {
-              if (index + 1 < list.length) {
-                setAudioSentenceIndex(index + 1)
-                speakSentence(index + 1, true, list, tokens, thisEpoch)
-              } else {
-                setAudioSentenceIndex(list.length - 1)
-                setIsAudioFinished(true)
-                stopSpeech()
-              }
-            } else if (readingModeRef.current === 'sentence') {
-              if (index + 1 < list.length) {
-                // Đã đọc xong câu index, chuẩn bị sang câu tiếp theo
-                setAudioSentenceIndex(index + 1)
+            if (readingModeRef.current === 'sentence' && list.length > 0) {
+              if (activeSentenceIdx + 1 < list.length) {
+                setAudioSentenceIndex(activeSentenceIdx + 1)
                 if (autoSpeakNextRef.current) {
-                  // Khi bật "Tự động đọc câu mới": tự động đọc tiếp câu tiếp theo
-                  speakSentence(index + 1, false, list, tokens, thisEpoch)
-                } else {
-                  // Khi tắt: chỉ phát 1 câu rồi dừng, câu tiếp theo đã sẵn sàng cho lần bấm tới
-                  setSpeechStatus('idle')
-                  setSpeakingSentenceIndex(null)
-                  setSpeakingWordIndex(null)
-                  setReadingMode(null)
-                  readingModeRef.current = null
-                  setSentenceTTSActive(false)
+                  pausedUtf16OffsetRef.current = list[activeSentenceIdx + 1].startIndex
+                  startSpeechUtterance({
+                    mode: 'sentence',
+                    targetSentenceIdx: activeSentenceIdx + 1,
+                    customTargetText: fullText,
+                    customSentences: list,
+                    expectedEpoch: thisEpoch,
+                  })
+                  return
                 }
               } else {
-                // Đã đọc đến câu cuối cùng của đoạn
-                setAudioSentenceIndex(index)
+                setAudioSentenceIndex(activeSentenceIdx)
                 setIsAudioFinished(true)
-                setSpeechStatus('idle')
-                setSpeakingSentenceIndex(null)
-                setSpeakingWordIndex(null)
-                setReadingMode(null)
-                readingModeRef.current = null
-                setSentenceTTSActive(false)
               }
-            } else {
-              setSpeechStatus('idle')
-              setSpeakingSentenceIndex(null)
-              setSpeakingWordIndex(null)
-              setReadingMode(null)
-              readingModeRef.current = null
-              setSentenceTTSActive(false)
+            } else if (readingModeRef.current === 'all') {
+              if (list.length > 0) {
+                setAudioSentenceIndex(list.length - 1)
+              }
+              setIsAudioFinished(true)
             }
+
+            pausedUtf16OffsetRef.current = 0
+            setSpeakingSentenceIndex(null)
+            setReadingMode(null)
+            readingModeRef.current = null
+            speechStatusRef.current = 'idle'
+            setSpeechStatus('idle')
+            setSentenceTTSActive(false)
           }
 
           utterance.onerror = (e) => {
-            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
+            if (boundaryFallbackTimerRef.current) {
+              clearTimeout(boundaryFallbackTimerRef.current)
+              boundaryFallbackTimerRef.current = null
+            }
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -942,12 +986,12 @@ export default function TypingClient() {
 
           window.speechSynthesis.speak(utterance)
         } catch (err) {
-          console.error('Lỗi khi kích hoạt speakSentence:', err)
+          console.error('Lỗi khi kích hoạt startSpeechUtterance:', err)
           stopSpeech()
         }
       }, 25)
     },
-    [stopSpeech, clearKeepAlive, startKeepAlive]
+    [cancelSpeechHardware, stopSpeech, clearKeepAlive, startKeepAlive]
   )
 
   // Mở khóa âm thanh nếu trình duyệt yêu cầu tương tác đầu tiên của người dùng (Autoplay Policy)
@@ -968,15 +1012,12 @@ export default function TypingClient() {
     }
   }, [])
 
-  // Tự động phát âm thanh khi hiển thị câu/đoạn tiếng Trung mới (Lần đầu vào trang, Đổi bộ lọc, Chuyển câu)
-  // Cơ chế chống phát lặp: Dùng lastAutoSpokenExerciseIdRef để đảm bảo mỗi câu chỉ phát đúng 1 lượt duy nhất,
-  // tuyệt đối không phát lặp do re-render khi người dùng gõ phím, soạn pinyin IME hoặc đồng hồ nhảy giây.
+  // Tự động phát âm thanh khi hiển thị câu/đoạn tiếng Trung mới
   useEffect(() => {
-    if (!preferences.autoSpeakNext || !currentExercise?.id || !currentExercise?.hanzi) {
+    if (!preferences.autoSpeakNext || !currentExercise?.id || !cleanedTargetText) {
       return
     }
 
-    // Nếu ID câu này đã được phát tự động rồi thì bỏ qua
     if (lastAutoSpokenExerciseIdRef.current === currentExercise.id) {
       return
     }
@@ -987,21 +1028,21 @@ export default function TypingClient() {
     const thisEpoch = ++currentCardEpochRef.current
     clearAutoSpeakTimer()
 
-    // Phân tách câu & tokens trực tiếp cho câu mục tiêu mới để đảm bảo 100% dữ liệu đồng bộ
-    const targetSentences = extractChineseSentences(currentExercise.hanzi)
-    const targetTokens = segmentAndAlignChinese(
-      currentExercise.hanzi,
-      currentExercise.pinyin || ''
-    )
+    const targetSentences = extractChineseSentences(cleanedTargetText)
+    const targetTokens = segmentAndAlignChinese(cleanedTargetText, currentExercise.pinyin || '')
 
     chineseSentencesRef.current = targetSentences
     exerciseWordTokensRef.current = targetTokens
 
     autoSpeakTimerRef.current = setTimeout(() => {
       if (thisEpoch !== currentCardEpochRef.current) return
-      readingModeRef.current = 'all'
-      setReadingMode('all')
-      speakSentence(0, true, targetSentences, targetTokens, thisEpoch)
+      startSpeechUtterance({
+        mode: 'all',
+        startUtf16Offset: 0,
+        customTargetText: cleanedTargetText,
+        customSentences: targetSentences,
+        expectedEpoch: thisEpoch,
+      })
     }, 120)
 
     return () => {
@@ -1009,19 +1050,18 @@ export default function TypingClient() {
     }
   }, [
     currentExercise?.id,
-    currentExercise?.hanzi,
+    cleanedTargetText,
     currentExercise?.pinyin,
     exerciseEpoch,
     preferences.autoSpeakNext,
     clearAutoSpeakTimer,
     stopSpeech,
-    speakSentence,
+    startSpeechUtterance,
   ])
 
   const handlePlayAll = useCallback(() => {
     clearAutoSpeakTimer()
-    const list = chineseSentencesRef.current
-    if (list.length === 0) return
+    if (!cleanedTargetTextRef.current) return
     if (availableVoices.length === 0 && typeof window !== 'undefined' && window.speechSynthesis) {
       const v = getChineseVoices()
       if (v.length === 0) {
@@ -1030,35 +1070,31 @@ export default function TypingClient() {
         )
       }
     }
-    stopSpeech()
     const thisEpoch = ++currentCardEpochRef.current
     setIsAudioFinished(false)
     setAudioSentenceIndex(0)
-    readingModeRef.current = 'all'
-    setReadingMode('all')
-    speakSentence(0, true, list, exerciseWordTokensRef.current, thisEpoch)
-  }, [availableVoices, speakSentence, clearAutoSpeakTimer, stopSpeech])
+    pausedUtf16OffsetRef.current = 0
+    startSpeechUtterance({
+      mode: 'all',
+      startUtf16Offset: 0,
+      expectedEpoch: thisEpoch,
+    })
+  }, [availableVoices, startSpeechUtterance, clearAutoSpeakTimer])
 
   const handlePlayCurrentSentence = useCallback(() => {
     clearAutoSpeakTimer()
     const list = chineseSentencesRef.current
     if (list.length === 0) return
 
-    stopSpeech()
     const thisEpoch = ++currentCardEpochRef.current
     setIsAudioFinished(false)
-
     const targetIdx = Math.min(Math.max(0, audioSentenceIndexRef.current), list.length - 1)
-    readingModeRef.current = 'sentence'
-    setReadingMode('sentence')
-    speakSentence(
-      targetIdx,
-      false,
-      list,
-      exerciseWordTokensRef.current,
-      thisEpoch
-    )
-  }, [speakSentence, clearAutoSpeakTimer, stopSpeech])
+    startSpeechUtterance({
+      mode: 'sentence',
+      targetSentenceIdx: targetIdx,
+      expectedEpoch: thisEpoch,
+    })
+  }, [startSpeechUtterance, clearAutoSpeakTimer])
 
   const handlePrevSentenceAudio = useCallback(() => {
     const list = chineseSentencesRef.current
@@ -1068,13 +1104,10 @@ export default function TypingClient() {
     setIsAudioFinished(false)
 
     if (speechStatus === 'playing' && readingMode === 'sentence') {
-      stopSpeech()
       const thisEpoch = ++currentCardEpochRef.current
-      readingModeRef.current = 'sentence'
-      setReadingMode('sentence')
-      speakSentence(prevIdx, false, list, exerciseWordTokensRef.current, thisEpoch)
+      startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: prevIdx, expectedEpoch: thisEpoch })
     }
-  }, [audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
+  }, [audioSentenceIndex, speechStatus, readingMode, startSpeechUtterance])
 
   const handleNextSentenceAudio = useCallback(() => {
     const list = chineseSentencesRef.current
@@ -1084,34 +1117,37 @@ export default function TypingClient() {
     setIsAudioFinished(false)
 
     if (speechStatus === 'playing' && readingMode === 'sentence') {
-      stopSpeech()
       const thisEpoch = ++currentCardEpochRef.current
-      readingModeRef.current = 'sentence'
-      setReadingMode('sentence')
-      speakSentence(nextIdx, false, list, exerciseWordTokensRef.current, thisEpoch)
+      startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: nextIdx, expectedEpoch: thisEpoch })
     }
-  }, [audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
+  }, [audioSentenceIndex, speechStatus, readingMode, startSpeechUtterance])
 
+  // Tạm dừng: Gọi cancel() để tránh chồng chéo / treo audio engine
   const handlePauseSpeech = useCallback(() => {
-    clearKeepAlive()
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.pause()
-      setSpeechStatus('paused')
-    }
-  }, [clearKeepAlive])
+    resumeModeRef.current = readingModeRef.current || 'all'
+    cancelSpeechHardware()
+    speechStatusRef.current = 'paused'
+    setSpeechStatus('paused')
+    setSpeechHighlightRange(null)
+  }, [cancelSpeechHardware])
 
   const handleResumeSpeech = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.resume()
-      setSpeechStatus('playing')
-      startKeepAlive()
-      setTimeout(() => {
-        if (window.speechSynthesis.paused && speakingSentenceIndex !== null) {
-          speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
-        }
-      }, 150)
+    const thisEpoch = ++currentCardEpochRef.current
+    const modeToResume = resumeModeRef.current || 'all'
+    if (modeToResume === 'all') {
+      startSpeechUtterance({
+        mode: 'all',
+        startUtf16Offset: pausedUtf16OffsetRef.current,
+        expectedEpoch: thisEpoch,
+      })
+    } else {
+      startSpeechUtterance({
+        mode: 'sentence',
+        targetSentenceIdx: speakingSentenceIndex ?? audioSentenceIndexRef.current,
+        expectedEpoch: thisEpoch,
+      })
     }
-  }, [speakingSentenceIndex, speakSentence, startKeepAlive])
+  }, [speakingSentenceIndex, startSpeechUtterance])
 
   const handleRateChange = (rate: number) => {
     setSpeechRate(rate)
@@ -1121,15 +1157,13 @@ export default function TypingClient() {
     setPreferences(updated)
     saveTypingPreferences(updated)
 
-    // Nếu đang phát âm thanh, phát lại ngay câu hiện tại với tốc độ mới
-    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
-      speakSentence(
-        speakingSentenceIndex,
-        readingModeRef.current === 'all',
-        chineseSentencesRef.current,
-        exerciseWordTokensRef.current,
-        currentCardEpochRef.current
-      )
+    if (speechStatus === 'playing') {
+      startSpeechUtterance({
+        mode: readingModeRef.current || 'all',
+        startUtf16Offset: pausedUtf16OffsetRef.current,
+        targetSentenceIdx: speakingSentenceIndex ?? audioSentenceIndexRef.current,
+        expectedEpoch: currentCardEpochRef.current,
+      })
     }
   }
 
@@ -1140,15 +1174,13 @@ export default function TypingClient() {
     setPreferences(updated)
     saveTypingPreferences(updated)
 
-    // Nếu đang phát âm thanh, phát lại ngay câu hiện tại với giọng mới
-    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
-      speakSentence(
-        speakingSentenceIndex,
-        readingModeRef.current === 'all',
-        chineseSentencesRef.current,
-        exerciseWordTokensRef.current,
-        currentCardEpochRef.current
-      )
+    if (speechStatus === 'playing') {
+      startSpeechUtterance({
+        mode: readingModeRef.current || 'all',
+        startUtf16Offset: pausedUtf16OffsetRef.current,
+        targetSentenceIdx: speakingSentenceIndex ?? audioSentenceIndexRef.current,
+        expectedEpoch: currentCardEpochRef.current,
+      })
     }
   }
 
@@ -1164,7 +1196,6 @@ export default function TypingClient() {
     setPreferences(updated)
     saveTypingPreferences(updated)
     if (nextVal) {
-      // Khi bật lại, cho phép đọc câu hiện tại nếu cần
       lastAutoSpokenExerciseIdRef.current = null
     } else {
       stopSpeech()
@@ -1174,9 +1205,11 @@ export default function TypingClient() {
   // Reset khi đổi chế độ hoặc đổi bài
   const resetExercise = useCallback(() => {
     stopSpeech()
-    committedLengthRef.current = 0
+    lastCommittedTextRef.current = ''
+    lastCommittedCpLenRef.current = 0
     isComposingRef.current = false
-    setUserInput('')
+    setInputValue('')
+    setCommittedInput('')
     updatePracticeStatus('typing')
     justEndedCompositionRef.current = false
     setIsComposing(false)
@@ -1359,19 +1392,23 @@ export default function TypingClient() {
       draft.draftText &&
       draft.draftText.length > (targetSentence ? targetSentence.startIndex : 0)
     ) {
-      setUserInput(draft.draftText)
-      committedLengthRef.current = draft.draftText.length
+      setInputValue(draft.draftText)
+      setCommittedInput(draft.draftText)
+      lastCommittedTextRef.current = draft.draftText
+      lastCommittedCpLenRef.current = Array.from(draft.draftText).length
     } else if (targetSentence && targetSentence.startIndex > 0) {
-      const restoredText = currentExercise.hanzi.slice(0, targetSentence.startIndex)
-      setUserInput(restoredText)
-      committedLengthRef.current = restoredText.length
+      const restoredText = cleanedTargetText.slice(0, targetSentence.startIndex)
+      setInputValue(restoredText)
+      setCommittedInput(restoredText)
+      lastCommittedTextRef.current = restoredText
+      lastCommittedCpLenRef.current = Array.from(restoredText).length
     }
 
     setIsStarted(true)
     setIsCompleted(false)
     toast.success(`Tiếp tục bài học từ câu ${targetSentenceIndex + 1}`)
     setTimeout(() => inputRef.current?.focus(), 100)
-  }, [savedProgress, currentExercise, chineseSentences, mode])
+  }, [savedProgress, currentExercise, cleanedTargetText, chineseSentences, mode])
 
   // Xử lý bắt đầu lại bài học từ đầu (không xóa câu sai)
   const handleRestartProgress = useCallback(async () => {
@@ -1389,18 +1426,18 @@ export default function TypingClient() {
     toast.info('Đã bắt đầu lại từ câu 1. Lịch sử câu sai vẫn được bảo lưu an toàn.')
   }, [currentExercise, mode, isLoggedIn, resetExercise])
 
-  // Tự động lưu bản nháp chuỗi ký tự đang gõ dở với debounce 300ms
+  // Tự động lưu bản nháp chuỗi ký tự đã xác nhận với debounce 300ms
   const draftDebounceTimerRef = useRef<NodeJS.Timeout | null>(null)
   useEffect(() => {
     if (!currentExercise?.id || isCompleted) return
-    if (!userInput || userInput.length === 0) return
+    if (!committedInput || committedInput.length === 0) return
 
     if (draftDebounceTimerRef.current) {
       clearTimeout(draftDebounceTimerRef.current)
     }
 
     draftDebounceTimerRef.current = setTimeout(() => {
-      saveLocalTypingDraft(mode, currentExercise.id, currentTypingSentenceIndex, userInput)
+      saveLocalTypingDraft(mode, currentExercise.id, currentTypingSentenceIndex, committedInput)
     }, 300)
 
     return () => {
@@ -1408,7 +1445,7 @@ export default function TypingClient() {
         clearTimeout(draftDebounceTimerRef.current)
       }
     }
-  }, [userInput, currentExercise?.id, mode, currentTypingSentenceIndex, isCompleted])
+  }, [committedInput, currentExercise?.id, mode, currentTypingSentenceIndex, isCompleted])
 
   // Quản lý đồng hồ tính giờ
   useEffect(() => {
@@ -1424,58 +1461,24 @@ export default function TypingClient() {
     }
   }, [isStarted, isCompleted])
 
-  // Tính toán kết quả so khớp
-  const evaluation = useMemo(() => {
-    if (!currentExercise) {
-      return {
-        correctCount: 0,
-        errorCount: 0,
-        accuracy: 100,
-        cpm: 0,
-        errors: [] as { index: number; expected: string; actual: string }[],
-      }
-    }
+  // Thuật toán so sánh từng ký tự phi trạng thái (Stateless Diffing) trên Unicode code points (Array.from)
+  // Chỉ dùng committedInput -> tuyệt đối không nhảy màu/số liệu khi đang gõ Pinyin IME
+  const evaluation = useMemo(
+    () =>
+      evaluateTypingStateless(cleanedTargetText, committedInput, {
+        elapsedSeconds,
+        strictMode: true,
+        normalizePunctuation: preferences.normalizePunctuation,
+        isCompleted,
+      }),
+    [cleanedTargetText, committedInput, elapsedSeconds, preferences.normalizePunctuation, isCompleted]
+  )
 
-    const target = currentExercise.hanzi
-    const input = userInput
-    let correct = 0
-    const errors: { index: number; expected: string; actual: string }[] = []
-
-    for (let i = 0; i < input.length; i++) {
-      if (i < target.length) {
-        if (isCharMatch(input[i], target[i], preferences.normalizePunctuation)) {
-          correct++
-        } else {
-          errors.push({
-            index: i + 1,
-            expected: target[i],
-            actual: input[i],
-          })
-        }
-      } else {
-        // Ký tự gõ thừa
-        errors.push({
-          index: i + 1,
-          expected: '(thừa)',
-          actual: input[i],
-        })
-      }
-    }
-
-    const accuracy =
-      input.length > 0 ? Math.max(0, Math.round((correct / Math.max(target.length, input.length)) * 100)) : 100
-
-    const minutes = Math.max(elapsedSeconds, 1) / 60
-    const cpm = Math.round(correct / minutes)
-
-    return {
-      correctCount: correct,
-      errorCount: errors.length,
-      accuracy,
-      cpm,
-      errors,
-    }
-  }, [currentExercise, userInput, elapsedSeconds, preferences.normalizePunctuation])
+  // Auto-scroll mượt mà vào ký tự active khi người dùng đang gõ (đặc biệt hữu ích cho đoạn văn dài)
+  useEffect(() => {
+    if (!isStarted || isCompleted || practiceMode !== 'visual') return
+    activeCharRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [isStarted, isCompleted, practiceMode, evaluation.activeCharIndex, preferences.hideHanzi])
 
   // Hoàn thành bài tập
   const handleFinish = useCallback(() => {
@@ -1496,7 +1499,7 @@ export default function TypingClient() {
       mode,
       level: currentExercise.level || `HSK ${currentExercise.hskLevel || 1}`,
       timeSeconds: Math.max(elapsedSeconds, 1),
-      targetChars: currentExercise.hanzi.length,
+      targetChars: evaluation.totalTargetChars,
       correctChars: evaluation.correctCount,
       errorChars: evaluation.errorCount,
       accuracy: evaluation.accuracy,
@@ -1508,7 +1511,7 @@ export default function TypingClient() {
     setHistoryList(getTypingHistory())
 
     // Ghi nhận câu sai nếu bài có lỗi hoặc chưa gõ đủ ký tự
-    if (evaluation.errorCount > 0 || userInput.length < currentExercise.hanzi.length) {
+    if (evaluation.errorCount > 0 || evaluation.committedCharCount < evaluation.totalTargetChars) {
       const mistakeDetails = evaluation.errors.map((e) => ({
         index: e.index,
         expected: e.expected,
@@ -1519,10 +1522,10 @@ export default function TypingClient() {
         practiceType: 'listen' as const,
         exerciseId: currentExercise.id,
         sentenceIndex: currentTypingSentenceIndex,
-        sentenceZh: currentExercise.hanzi,
+        sentenceZh: cleanedTargetText || currentExercise.hanzi,
         pinyin: currentExercise.pinyin,
         meaningVi: currentExercise.meaning,
-        lastInputZh: userInput,
+        lastInputZh: committedInput,
         mistakeDetails,
       }
       if (typeof recordLocalTypingMistake === 'function') {
@@ -1543,7 +1546,7 @@ export default function TypingClient() {
       totalSentences: Math.max(1, chineseSentences.length),
       correctSentences: evaluation.errorCount === 0 ? Math.max(1, chineseSentences.length) : 0,
       errorSentences: evaluation.errorCount > 0 ? 1 : 0,
-      lastTypedLength: userInput.length,
+      lastTypedLength: evaluation.committedCharCount,
       timeSpentSeconds: Math.max(elapsedSeconds, 1),
       status: 'completed',
       hskLevel: mode === 'hsk' ? hskLevel : undefined,
@@ -1556,10 +1559,10 @@ export default function TypingClient() {
           : mode === 'sentence'
           ? 'Câu mẫu'
           : mode === 'vocabulary'
-          ? `Từ vựng: ${currentExercise.hanzi}`
+          ? `Từ vựng: ${cleanedTargetText || currentExercise.hanzi}`
           : (currentExercise as any).title || 'Đoạn văn',
       currentQuestionId: currentExercise.id,
-      currentQuestionText: currentExercise.hanzi,
+      currentQuestionText: cleanedTargetText || currentExercise.hanzi,
       practiceMode: 'visual',
     }
     if (typeof saveLocalTypingProgress === 'function') {
@@ -1574,52 +1577,57 @@ export default function TypingClient() {
   }, [
     isCompleted,
     currentExercise,
+    cleanedTargetText,
     stopSpeech,
     preferences.soundEffects,
     mode,
+    hskLevel,
+    selectedLessonId,
     elapsedSeconds,
     evaluation,
-    userInput,
+    committedInput,
     currentTypingSentenceIndex,
     chineseSentences,
     isLoggedIn,
   ])
 
-  // Xử lý chuỗi ký tự đã được xác nhận (committed)
-  // Xử lý ngay lập tức cho cả IME compositionend và input trực tiếp, loại bỏ 100% độ trễ 1 ký tự
+  // Xử lý chuỗi ký tự đã được xác nhận chính thức (từ onCompositionEnd hoặc non-IME onChange)
   const handleCommittedText = useCallback(
     (newVal: string) => {
-      const prevLength = committedLengthRef.current
-      const newLength = newVal.length
+      if (newVal === lastCommittedTextRef.current) return
 
-      if (!isStarted && newLength > 0) {
+      const prevText = lastCommittedTextRef.current
+      const prevCpLen = lastCommittedCpLenRef.current
+      const nextCpChars = Array.from(newVal)
+      const nextCpLen = nextCpChars.length
+
+      if (!isStarted && nextCpLen > 0) {
         setIsStarted(true)
       }
 
-      setUserInput(newVal)
+      lastCommittedTextRef.current = newVal
+      lastCommittedCpLenRef.current = nextCpLen
+      setCommittedInput(newVal)
 
-      // 1. Trường hợp người dùng xóa ký tự (Backspace)
-      if (newLength <= prevLength) {
-        committedLengthRef.current = newLength
+      // 1. Trường hợp người dùng xóa ký tự (Backspace): evaluation stateless tự cập nhật lại màu & đếm số
+      if (nextCpLen <= prevCpLen) {
+        if (practiceStatusRef.current === 'correct') {
+          updatePracticeStatus('typing')
+          setIsCompleted(false)
+        }
         return
       }
 
-      // 2. Trường hợp có ký tự mới được xác nhận (startIdx -> endIdx)
-      const startIdx = prevLength
-      const endIdx = newLength
-      committedLengthRef.current = newLength
-
       if (!currentExercise) return
 
-      // Kiểm tra tính chính xác của các ký tự vừa gõ
+      // 2. Trường hợp có ký tự mới được xác nhận [prevCpLen .. nextCpLen)
+      const targetCpChars = indexedTargetRef.current.chars
       let allCorrect = true
-      let lastMatchIdx = -1
-      for (let i = startIdx; i < endIdx; i++) {
-        const targetChar = currentExercise.hanzi[i]
-        if (targetChar && isCharMatch(newVal[i], targetChar, preferences.normalizePunctuation)) {
-          lastMatchIdx = i
-        } else {
+      for (let i = prevCpLen; i < nextCpLen; i++) {
+        const targetChar = targetCpChars[i]
+        if (!targetChar || !isTypingCharMatch(nextCpChars[i], targetChar, preferences.normalizePunctuation)) {
           allCorrect = false
+          break
         }
       }
 
@@ -1628,49 +1636,44 @@ export default function TypingClient() {
         playTypingSfx(allCorrect ? 'correct' : 'error')
       }
 
-      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức
-      const newlyTypedText = newVal.slice(startIdx, endIdx)
-      const isSentenceTTSCurrentlySpeaking = speechStatus === 'playing'
+      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức (chỉ khi không đang đọc toàn bài/câu)
+      const newlyTypedText = nextCpChars.slice(prevCpLen).join('')
+      const isSentenceTTSCurrentlySpeaking = speechStatusRef.current === 'playing'
 
-      // Chỉ cập nhật highlight gõ và phát âm chữ lẻ nếu KHÔNG ĐANG trong phiên đọc câu/đoạn văn
       if (!isSentenceTTSCurrentlySpeaking && preferences.speakOnType !== false && newlyTypedText.trim()) {
-        // Tìm word token tương ứng nếu có để đồng bộ highlight
-        if (lastMatchIdx !== -1 && exerciseWordTokens.length > 0) {
-          const wIdx = findWordIndexByCharIndex(exerciseWordTokens, lastMatchIdx)
-          if (wIdx !== -1) {
-            setSpeakingWordIndex(wIdx)
-            setTimeout(() => {
-              setSpeakingWordIndex((prev) => (prev === wIdx ? null : prev))
-            }, 800)
-          }
-        }
         speakChineseCharacter(newlyTypedText, selectedVoiceURIRef.current, speechRateRef.current)
       }
 
       // Tự đọc câu tiếp theo khi gõ xong câu hiện tại nếu bật autoSpeakNext
-      if (autoSpeakNextRef.current && chineseSentences.length > 1) {
-        const curSentence = chineseSentences.find(
-          (s) => prevLength < s.endIndex && newLength >= s.endIndex
+      if (autoSpeakNextRef.current && chineseSentencesRef.current.length > 1) {
+        const curSentence = chineseSentencesRef.current.find(
+          (s) => prevText.length < s.endIndex && newVal.length >= s.endIndex
         )
-        if (curSentence && curSentence.index + 1 < chineseSentences.length) {
-          speakSentence(curSentence.index + 1, false)
+        if (curSentence && curSentence.index + 1 < chineseSentencesRef.current.length) {
+          startSpeechUtterance({
+            mode: 'sentence',
+            targetSentenceIdx: curSentence.index + 1,
+            expectedEpoch: currentCardEpochRef.current,
+          })
         }
       }
 
       // Đánh giá và lưu vết câu vừa hoàn thành trong bài nhiều câu (Đoạn văn)
-      if (chineseSentences.length > 1) {
-        const curSentence = chineseSentences.find(
-          (s) => prevLength < s.endIndex && newLength >= s.endIndex
+      if (chineseSentencesRef.current.length > 1) {
+        const curSentence = chineseSentencesRef.current.find(
+          (s) => prevText.length < s.endIndex && newVal.length >= s.endIndex
         )
         if (curSentence) {
-          const targetSentenceText = curSentence.text
-          const userSentenceText = newVal.slice(curSentence.startIndex, Math.min(newLength, curSentence.endIndex))
+          const targetSentenceChars = Array.from(curSentence.text)
+          const userSentenceChars = Array.from(
+            newVal.slice(curSentence.startIndex, Math.min(newVal.length, curSentence.endIndex))
+          )
 
           const sentenceErrors: { index: number; expected: string; actual: string }[] = []
-          for (let i = 0; i < targetSentenceText.length; i++) {
-            const tChar = targetSentenceText[i]
-            const uChar = userSentenceText[i]
-            if (!uChar || !isCharMatch(uChar, tChar, preferences.normalizePunctuation)) {
+          for (let i = 0; i < targetSentenceChars.length; i++) {
+            const tChar = targetSentenceChars[i]
+            const uChar = userSentenceChars[i]
+            if (!uChar || !isTypingCharMatch(uChar, tChar, preferences.normalizePunctuation)) {
               sentenceErrors.push({
                 index: i + 1,
                 expected: tChar,
@@ -1679,7 +1682,7 @@ export default function TypingClient() {
             }
           }
 
-          const isSentenceValid = sentenceErrors.length === 0 && userSentenceText.length >= targetSentenceText.length
+          const isSentenceValid = sentenceErrors.length === 0 && userSentenceChars.length >= targetSentenceChars.length
 
           if (!isSentenceValid) {
             const mistakePayload = {
@@ -1690,7 +1693,7 @@ export default function TypingClient() {
               sentenceZh: curSentence.text,
               pinyin: currentExercise.pinyin,
               meaningVi: currentExercise.meaning,
-              lastInputZh: userSentenceText,
+              lastInputZh: userSentenceChars.join(''),
               mistakeDetails: sentenceErrors,
             }
             if (typeof recordLocalTypingMistake === 'function') {
@@ -1703,16 +1706,16 @@ export default function TypingClient() {
           }
 
           // Lưu tiến độ câu đang học
-          const isLastSentence = curSentence.index + 1 >= chineseSentences.length
+          const isLastSentence = curSentence.index + 1 >= chineseSentencesRef.current.length
           const progressPayload: TypingProgressDTO = {
             mode,
             exerciseId: currentExercise.id,
             currentSentenceIndex: isLastSentence ? curSentence.index : curSentence.index + 1,
             completedSentences: curSentence.index + 1,
-            totalSentences: chineseSentences.length,
+            totalSentences: chineseSentencesRef.current.length,
             correctSentences: 0,
             errorSentences: 0,
-            lastTypedLength: newLength,
+            lastTypedLength: nextCpLen,
             timeSpentSeconds: elapsedSeconds,
             status: isLastSentence ? 'completed' : 'in_progress',
             hskLevel: mode === 'hsk' ? hskLevel : undefined,
@@ -1725,10 +1728,10 @@ export default function TypingClient() {
                 : mode === 'sentence'
                 ? 'Câu mẫu'
                 : mode === 'vocabulary'
-                ? `Từ vựng: ${currentExercise.hanzi}`
+                ? `Từ vựng: ${cleanedTargetText || currentExercise.hanzi}`
                 : (currentExercise as any).title || 'Đoạn văn',
             currentQuestionId: currentExercise.id,
-            currentQuestionText: curSentence ? curSentence.text : (currentExercise.hanzi || ''),
+            currentQuestionText: curSentence ? curSentence.text : (cleanedTargetText || currentExercise.hanzi),
             practiceMode: 'visual',
           }
           if (typeof saveLocalTypingProgress === 'function') {
@@ -1749,25 +1752,27 @@ export default function TypingClient() {
     [
       isStarted,
       currentExercise,
+      cleanedTargetText,
       preferences.normalizePunctuation,
       preferences.soundEffects,
       preferences.speakOnType,
-      exerciseWordTokens,
-      chineseSentences,
-      speakSentence,
+      startSpeechUtterance,
       mode,
+      hskLevel,
+      selectedLessonId,
       isLoggedIn,
       elapsedSeconds,
       updatePracticeStatus,
     ]
   )
 
-  // Xử lý khi người dùng nhập liệu vào ô (Direct input hoặc sau khi IME gõ)
+  // Xử lý khi người dùng nhập liệu vào ô (Luôn cập nhật inputValue, nhưng CHỈ chấm điểm khi không đang compose IME)
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const val = e.target.value
-    // Nếu đang trong quá trình soạn thảo IME (Pinyin composition), chỉ cập nhật text hiển thị tạm
-    if (isComposingRef.current) {
-      setUserInput(val)
+    const nativeIsComposing = Boolean((e.nativeEvent as InputEvent | undefined)?.isComposing)
+    setInputValue(val)
+
+    if (isComposingRef.current || nativeIsComposing) {
       return
     }
     handleCommittedText(val)
@@ -1786,7 +1791,7 @@ export default function TypingClient() {
   }
 
   const handleCompositionUpdate = (e: React.CompositionEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setCompositionText(e.data)
+    setCompositionText(e.data || '')
   }
 
   const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -1794,8 +1799,9 @@ export default function TypingClient() {
     setIsComposing(false)
     setCompositionText('')
 
-    // Lấy giá trị chính xác đã được xác nhận từ DOM element
-    const val = (e.target as HTMLInputElement | HTMLTextAreaElement).value
+    // Lấy giá trị chữ Hán chính thức đã xuất hiện trên DOM và kích hoạt diffing
+    const val = (e.currentTarget || (e.target as HTMLInputElement | HTMLTextAreaElement)).value
+    setInputValue(val)
     handleCommittedText(val)
 
     // Đặt cờ vừa kết thúc composition trong 120ms để chặn phím Enter xác nhận ứng viên IME
@@ -1816,24 +1822,22 @@ export default function TypingClient() {
     }
     if (
       preferences.autoSpeakNext &&
-      currentExercise?.hanzi &&
+      cleanedTargetText &&
       speechStatus === 'idle' &&
-      userInput.length === 0 &&
+      committedInput.length === 0 &&
       !isStarted &&
-      lastAutoSpokenExerciseIdRef.current !== currentExercise.id
+      lastAutoSpokenExerciseIdRef.current !== currentExercise?.id
     ) {
-      lastAutoSpokenExerciseIdRef.current = currentExercise.id
-      readingModeRef.current = 'all'
-      setReadingMode('all')
-      speakSentence(
-        0,
-        true,
-        chineseSentencesRef.current,
-        exerciseWordTokensRef.current,
-        currentCardEpochRef.current
-      )
+      lastAutoSpokenExerciseIdRef.current = currentExercise?.id || null
+      startSpeechUtterance({
+        mode: 'all',
+        startUtf16Offset: 0,
+        customTargetText: cleanedTargetText,
+        customSentences: chineseSentencesRef.current,
+        expectedEpoch: currentCardEpochRef.current,
+      })
     }
-  }, [preferences.autoSpeakNext, currentExercise, speechStatus, userInput.length, isStarted, speakSentence])
+  }, [preferences.autoSpeakNext, cleanedTargetText, currentExercise?.id, speechStatus, committedInput.length, isStarted, startSpeechUtterance])
 
   // Chuyển thẻ/bài tập và đồng bộ phát âm chuẩn xác nội dung thẻ đích mới nhất (không đọc thẻ cũ)
   const navigateToExercise = useCallback(
@@ -1856,18 +1860,19 @@ export default function TypingClient() {
 
   // 1. Kiểm tra đáp án cho chế độ Nghe & Gõ
   const handleCheckVisualAnswer = useCallback(() => {
-    if (!currentExercise) return
+    if (!currentExercise || isComposingRef.current) return
     const currentStatus = practiceStatusRef.current
     if (currentStatus !== 'typing' && currentStatus !== 'incorrect') return
 
-    const rawVal = inputRef.current ? inputRef.current.value : userInput
-    const val = (rawVal ?? '').trim()
+    const val = committedInput.trim()
     if (!val) return
 
     updatePracticeStatus('checking')
     stopSpeech()
 
-    const evalResult = evaluateTranslationInput(val, currentExercise.hanzi)
+    const targetSample = cleanedTargetText || currentExercise.hanzi
+    const targetLen = Array.from(targetSample).length
+    const evalResult = evaluateTranslationInput(val, targetSample)
     const isMatch = evalResult.isExactMatch
 
     if (isMatch) {
@@ -1887,11 +1892,11 @@ export default function TypingClient() {
         mode,
         level: currentExercise.level || `HSK ${currentExercise.hskLevel || 1}`,
         timeSeconds: Math.max(elapsedSeconds, 1),
-        targetChars: currentExercise.hanzi.length,
-        correctChars: currentExercise.hanzi.length,
+        targetChars: targetLen,
+        correctChars: targetLen,
         errorChars: 0,
         accuracy: 100,
-        cpm: Math.round(currentExercise.hanzi.length / (Math.max(elapsedSeconds, 1) / 60)),
+        cpm: Math.round(targetLen / (Math.max(elapsedSeconds, 1) / 60)),
       }
       saveTypingSession(session)
       setStats(getTypingStats())
@@ -1918,7 +1923,7 @@ export default function TypingClient() {
         practiceType: 'listen' as const,
         exerciseId: currentExercise.id,
         sentenceIndex: currentIndex,
-        sentenceZh: currentExercise.hanzi,
+        sentenceZh: targetSample,
         pinyin: currentExercise.pinyin,
         meaningVi: currentExercise.meaning,
         lastInputZh: val,
@@ -1939,7 +1944,8 @@ export default function TypingClient() {
     }, 50)
   }, [
     currentExercise,
-    userInput,
+    cleanedTargetText,
+    committedInput,
     mode,
     currentIndex,
     elapsedSeconds,
@@ -1977,7 +1983,7 @@ export default function TypingClient() {
           totalSentences: exercises.length,
           correctSentences: isSkipManual ? 0 : currentIndex + 1,
           errorSentences: isSkipManual ? 1 : 0,
-          lastTypedLength: userInput.length,
+          lastTypedLength: Array.from(committedInput).length,
           timeSpentSeconds: Math.max(elapsedSeconds, 1),
           status: isLast ? 'completed' : 'in_progress',
           hskLevel: mode === 'hsk' ? hskLevel : undefined,
@@ -1990,7 +1996,7 @@ export default function TypingClient() {
               : mode === 'sentence'
               ? 'Câu mẫu'
               : mode === 'vocabulary'
-              ? `Từ vựng: ${currentExercise.hanzi}`
+              ? `Từ vựng: ${cleanedTargetText || currentExercise.hanzi}`
               : (currentExercise as any).title || 'Đoạn văn',
           currentQuestionId: nextEx?.id || currentExercise.id,
           currentQuestionText: nextEx?.hanzi || currentExercise.hanzi,
@@ -2025,8 +2031,9 @@ export default function TypingClient() {
       currentIndex,
       exercises,
       currentExercise,
+      cleanedTargetText,
       mode,
-      userInput,
+      committedInput,
       elapsedSeconds,
       hskLevel,
       selectedLessonId,
@@ -2071,7 +2078,7 @@ export default function TypingClient() {
 
       // A. Nếu đang typing HOẶC incorrect: kiểm tra đáp án nếu có nội dung
       if (currentStatus === 'typing' || currentStatus === 'incorrect') {
-        const textToCheck = (inputRef.current ? inputRef.current.value : userInput).trim()
+        const textToCheck = committedInput.trim()
         if (textToCheck.length > 0) {
           handleCheckVisualAnswer()
         }
@@ -2928,16 +2935,17 @@ export default function TypingClient() {
 
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <AudioButton 
-                  text={currentExercise.hanzi} 
+                  text={cleanedTargetText} 
                   id={`typing-ex-${currentExercise.id || currentIndex}`} 
                   size="sm" 
                   variant="subtle" 
                   showLabel 
                   label="Nghe đọc mẫu" 
                   tooltip="Nghe phát âm chuẩn Mandarin" 
+                  onPlayStart={stopSpeech}
                 />
 
-                <span>{currentExercise.hanzi.length} ký tự</span>
+                <span>{evaluation.totalTargetChars} ký tự</span>
                 {isStarted && !isCompleted && (
                   <span className="inline-flex items-center gap-1 text-app-accent font-medium animate-pulse">
                     <span className="w-1.5 h-1.5 rounded-full bg-app-accent" />
@@ -3045,9 +3053,20 @@ export default function TypingClient() {
                           ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
                           : false
 
-                        const isWordActive = speakingWordIndex === wIdx && w.isWord
-                        const isWordPast = speakingWordIndex !== null && wIdx < speakingWordIndex && isTokenInSpeakingSentence && w.isWord
-                        const isSentenceFallback = isTokenInSpeakingSentence && speakingWordIndex === null && w.isWord
+                        const wStartCp = indexedTarget.utf16ToCp(w.startIndex)
+                        const wEndCp = indexedTarget.utf16ToCp(w.endIndex)
+                        const isWordActive =
+                          speechHighlightRange !== null &&
+                          w.isWord &&
+                          wStartCp < speechHighlightRange.endCp &&
+                          wEndCp > speechHighlightRange.startCp
+                        const isWordPast =
+                          speechHighlightRange !== null &&
+                          w.isWord &&
+                          isTokenInSpeakingSentence &&
+                          wEndCp <= speechHighlightRange.startCp
+                        const isSentenceFallback =
+                          isTokenInSpeakingSentence && speechHighlightRange === null && w.isWord
 
                         if (!w.pinyin) return null
 
@@ -3075,19 +3094,20 @@ export default function TypingClient() {
                     </p>
                   )}
                   <AudioButton 
-                    text={currentExercise.hanzi} 
+                    text={cleanedTargetText} 
                     id={`typing-inline-${currentExercise.id || currentIndex}`} 
                     size="xs" 
                     variant="ghost" 
                     tooltip="Nghe phát âm tiếng Trung" 
+                    onPlayStart={stopSpeech}
                   />
                 </div>
               )}
 
-            {/* Dòng chữ Hán mục tiêu với tô màu realtime & highlight âm thanh theo từ */}
+            {/* Dòng chữ Hán mục tiêu (Array.from) với tô màu stateless & highlight âm thanh theo charIndex/charLength */}
             <div
               className={`font-serif tracking-normal leading-relaxed select-none ${
-                mode === 'paragraph' ? 'text-xl md:text-2xl' : 'text-2xl md:text-4xl'
+                mode === 'paragraph' ? 'text-xl md:text-2xl max-h-72 overflow-y-auto no-scrollbar pr-1' : 'text-2xl md:text-4xl'
               }`}
               style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
             >
@@ -3095,13 +3115,34 @@ export default function TypingClient() {
                 /* Khi bật Ẩn chữ Hán: Người học nghe phát âm và gõ chữ Hán (ẩn chữ mẫu, hiện ký tự đã gõ và con trỏ) */
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-baseline gap-1 py-1">
-                    {currentExercise.hanzi.split('').map((char, idx) => {
-                      const typedChar = userInput[idx]
-                      const isTyped = idx < userInput.length
-                      const isCurrent = idx === userInput.length
-                      const isCorrect = isTyped && isCharMatch(typedChar, char, preferences.normalizePunctuation)
+                    {evaluation.targetChars.map((char, idx) => {
+                      const typedChar = evaluation.inputChars[idx]
+                      const status = evaluation.charStates[idx] ?? 'pending'
+                      const isCorrect = status === 'correct'
 
-                      if (isTyped) {
+                      if (char === '\n') {
+                        return (
+                          <Fragment key={idx}>
+                            <span
+                              ref={status === 'active' ? activeCharRef : undefined}
+                              className={`inline-flex items-center px-1 rounded text-xs font-mono ${
+                                status === 'correct'
+                                  ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold'
+                                  : status === 'incorrect'
+                                  ? 'bg-red-500/20 text-red-600 dark:text-red-400 underline font-bold'
+                                  : status === 'active'
+                                  ? 'border-b-2 border-app-accent bg-accent-soft/40 text-app-accent font-bold animate-pulse'
+                                  : 'text-muted/30'
+                              }`}
+                            >
+                              ↵
+                            </span>
+                            <span className="basis-full h-0" aria-hidden="true" />
+                          </Fragment>
+                        )
+                      }
+
+                      if (status === 'correct' || status === 'incorrect') {
                         return (
                           <span
                             key={idx}
@@ -3114,10 +3155,11 @@ export default function TypingClient() {
                             {isCorrect ? char : typedChar}
                           </span>
                         )
-                      } else if (isCurrent) {
+                      } else if (status === 'active') {
                         return (
                           <span
                             key={idx}
+                            ref={activeCharRef}
                             className="inline-block px-1 border-b-2 border-app-accent bg-accent-soft/40 text-app-accent font-bold animate-pulse"
                           >
                             _
@@ -3141,7 +3183,7 @@ export default function TypingClient() {
                       Chữ Hán đang ẩn — Lắng nghe phát âm và gõ
                     </span>
                     <span>•</span>
-                    <span>Phím tắt nghe lại: <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-[11px] font-mono">Ctrl + Space</kbd></span>
+                    <span>Phím tắt nghe lại: <kbd className="px-1.5 py-0.5 rounded bg-card border border-border text-[11px] font-mono">Alt + S</kbd></span>
                   </div>
                 </div>
               ) : exerciseWordTokens.length > 0 ? (
@@ -3156,20 +3198,27 @@ export default function TypingClient() {
                         ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
                         : false
 
-                      const isWordActive = speakingWordIndex === wIdx && w.isWord
-                      const isWordPast = speakingWordIndex !== null && wIdx < speakingWordIndex && isTokenInSpeakingSentence && w.isWord
-                      const isSentenceFallback = isTokenInSpeakingSentence && speakingWordIndex === null && w.isWord
+                      const wStartCp = indexedTarget.utf16ToCp(w.startIndex)
+                      const wEndCp = indexedTarget.utf16ToCp(w.endIndex)
+                      const isWordActive =
+                        speechHighlightRange !== null &&
+                        w.isWord &&
+                        wStartCp < speechHighlightRange.endCp &&
+                        wEndCp > speechHighlightRange.startCp
+                      const isWordPast =
+                        speechHighlightRange !== null &&
+                        w.isWord &&
+                        isTokenInSpeakingSentence &&
+                        wEndCp <= speechHighlightRange.startCp
+                      const isSentenceFallback =
+                        isTokenInSpeakingSentence && speechHighlightRange === null && w.isWord
 
                       return (
                         <span
                           key={wIdx}
-                          ref={(el) => {
-                            if (el) wordElementsRef.current.set(`word-${wIdx}`, el)
-                            else wordElementsRef.current.delete(`word-${wIdx}`)
-                          }}
-                          className={`inline-block transition-all duration-150 rounded px-0.5 py-0.25 ${
+                          className={`inline-flex flex-wrap items-baseline transition-all duration-150 rounded px-0.5 py-0.25 ${
                             isWordActive
-                              ? 'bg-amber-100 dark:bg-amber-950/70 ring-2 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
+                              ? 'bg-amber-100/80 dark:bg-amber-950/60 ring-1 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
                               : isSentenceFallback
                               ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
                               : isWordPast
@@ -3177,37 +3226,52 @@ export default function TypingClient() {
                               : ''
                           }`}
                         >
-                          {w.text.split('').map((char, cOffset) => {
-                            const idx = w.startIndex + cOffset
-                            const typedChar = userInput[idx]
-                            const isCurrent = idx === userInput.length && !isCompleted
+                          {indexedTarget.items.slice(wStartCp, wEndCp).map(({ char, cpIdx }) => {
+                            const status = evaluation.charStates[cpIdx] ?? 'pending'
+                            const isCharSpoken =
+                              speechHighlightRange !== null &&
+                              cpIdx >= speechHighlightRange.startCp &&
+                              cpIdx < speechHighlightRange.endCp
 
                             let statusClasses = 'text-title/80'
 
-                            if (idx < userInput.length) {
-                              if (isCharMatch(typedChar, char, preferences.normalizePunctuation)) {
-                                // Ký tự đúng: Xanh lá cây
-                                statusClasses = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
-                              } else {
-                                // Ký tự sai: Đỏ gạch chân
-                                statusClasses = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
-                              }
-                            } else if (isCurrent) {
-                              // Ký tự con trỏ đang chờ gõ
+                            if (status === 'correct') {
+                              statusClasses = isCharSpoken
+                                ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 font-bold rounded px-0.5 ring-1 ring-amber-400'
+                                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
+                            } else if (status === 'incorrect') {
+                              statusClasses = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
+                            } else if (status === 'active') {
                               statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
-                            } else if (isWordActive) {
-                              // Từ đang được đọc TTS: Highlight từ nổi bật ấm áp
-                              statusClasses = 'text-amber-950 dark:text-amber-100 font-bold'
+                            } else if (isCharSpoken || isWordActive) {
+                              statusClasses = 'bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold rounded px-0.5'
                             } else if (isSentenceFallback) {
-                              // Chế độ fallback cấp câu: Tô sáng toàn bộ câu đang phát âm
                               statusClasses = 'text-title font-semibold'
                             } else if (isTokenInSpeakingSentence) {
-                              // Ký tự thuộc câu đang đọc
                               statusClasses = 'text-title/85'
                             }
 
+                            if (char === '\n') {
+                              return (
+                                <Fragment key={cpIdx}>
+                                  <span
+                                    ref={status === 'active' ? activeCharRef : undefined}
+                                    className={`inline-flex items-center px-1 mx-0.5 rounded text-xs font-mono ${statusClasses}`}
+                                    title="Xuống dòng (Enter)"
+                                  >
+                                    ↵
+                                  </span>
+                                  <span className="basis-full h-0" aria-hidden="true" />
+                                </Fragment>
+                              )
+                            }
+
                             return (
-                              <span key={idx} className={`inline-block transition-colors ${statusClasses}`}>
+                              <span
+                                key={cpIdx}
+                                ref={status === 'active' ? activeCharRef : undefined}
+                                className={`inline-block transition-colors ${statusClasses}`}
+                              >
                                 {char}
                               </span>
                             )
@@ -3217,43 +3281,54 @@ export default function TypingClient() {
                     })}
                   </div>
                 ) : (
-                  currentExercise.hanzi.split('').map((char, idx) => {
-                    const typedChar = userInput[idx]
-                    const isCurrent = idx === userInput.length && !isCompleted
+                  <div className="flex flex-wrap items-baseline gap-y-1">
+                    {evaluation.targetChars.map((char, cpIdx) => {
+                      const status = evaluation.charStates[cpIdx] ?? 'pending'
+                      const isCharSpoken =
+                        speechHighlightRange !== null &&
+                        cpIdx >= speechHighlightRange.startCp &&
+                        cpIdx < speechHighlightRange.endCp
 
-                    // Kiểm tra xem ký tự này có thuộc câu đang phát âm TTS hay không
-                    const activeSentence =
-                      speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
-                        ? chineseSentences[speakingSentenceIndex]
-                        : null
-                    const isCharBeingSpoken = activeSentence
-                      ? idx >= activeSentence.startIndex && idx < activeSentence.endIndex
-                      : false
+                      let statusClasses = 'text-title/80'
 
-                    let statusClasses = 'text-title/80'
-
-                    if (idx < userInput.length) {
-                      if (isCharMatch(typedChar, char, preferences.normalizePunctuation)) {
-                        // Ký tự đúng: Xanh lá cây
-                        statusClasses = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
-                      } else {
-                        // Ký tự sai: Đỏ gạch chân
+                      if (status === 'correct') {
+                        statusClasses = isCharSpoken
+                          ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 font-bold rounded px-0.5 ring-1 ring-amber-400'
+                          : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
+                      } else if (status === 'incorrect') {
                         statusClasses = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
+                      } else if (status === 'active') {
+                        statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
+                      } else if (isCharSpoken) {
+                        statusClasses = 'bg-amber-200/80 text-amber-950 dark:bg-amber-900/60 dark:text-amber-100 font-bold rounded px-0.5 ring-1 ring-amber-400/80'
                       }
-                    } else if (isCurrent) {
-                      // Ký tự con trỏ đang chờ gõ
-                      statusClasses = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
-                    } else if (isCharBeingSpoken) {
-                      // Ký tự đang được đọc TTS: Highlight nổi bật đồng bộ
-                      statusClasses = 'bg-amber-100/80 text-amber-900 dark:bg-amber-950/50 dark:text-amber-200 font-semibold rounded px-0.5 ring-1 ring-amber-400/50'
-                    }
 
-                    return (
-                      <span key={idx} className={`inline-block transition-colors ${statusClasses}`}>
-                        {char}
-                      </span>
-                    )
-                  })
+                      if (char === '\n') {
+                        return (
+                          <Fragment key={cpIdx}>
+                            <span
+                              ref={status === 'active' ? activeCharRef : undefined}
+                              className={`inline-flex items-center px-1 mx-0.5 rounded text-xs font-mono ${statusClasses}`}
+                              title="Xuống dòng (Enter)"
+                            >
+                              ↵
+                            </span>
+                            <span className="basis-full h-0" aria-hidden="true" />
+                          </Fragment>
+                        )
+                      }
+
+                      return (
+                        <span
+                          key={cpIdx}
+                          ref={status === 'active' ? activeCharRef : undefined}
+                          className={`inline-block transition-colors ${statusClasses}`}
+                        >
+                          {char}
+                        </span>
+                      )
+                    })}
+                  </div>
                 )}
               </div>
 
@@ -3271,7 +3346,7 @@ export default function TypingClient() {
               {mode === 'paragraph' ? (
                 <textarea
                   ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                  value={userInput}
+                  value={inputValue}
                   onChange={handleInputChange}
                   onFocus={handleInputFocus}
                   onKeyDown={handleInputKeyDown}
@@ -3300,7 +3375,7 @@ export default function TypingClient() {
                 <input
                   ref={inputRef as React.RefObject<HTMLInputElement>}
                   type="text"
-                  value={userInput}
+                  value={inputValue}
                   onChange={handleInputChange}
                   onFocus={handleInputFocus}
                   onKeyDown={handleInputKeyDown}
@@ -3372,7 +3447,7 @@ export default function TypingClient() {
                   <button
                     type="button"
                     onClick={handleCheckVisualAnswer}
-                    disabled={userInput.trim().length === 0}
+                    disabled={committedInput.trim().length === 0}
                     className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-[#B8322D] hover:bg-[#982923] text-white rounded-lg text-xs font-serif font-semibold transition-all shadow-2xs active:scale-95 cursor-pointer min-h-[36px]"
                     title="Kiểm tra lại đáp án (hoặc nhấn Enter)"
                   >
@@ -3394,7 +3469,7 @@ export default function TypingClient() {
             {/* Bộ đếm ký tự & Phím tắt */}
             <div className="flex items-center justify-between text-xs text-muted font-serif px-1 pt-1.5">
               <span>
-                Đã gõ: <strong className="text-title font-sans font-semibold">{userInput.length}</strong> / {currentExercise.hanzi.length} ký tự
+                Đã gõ: <strong className="text-title font-sans font-semibold">{evaluation.committedCharCount}</strong> / {evaluation.totalTargetChars} ký tự
               </span>
               <span className="hidden sm:inline text-muted/80">
                 Phím tắt: <kbd className="px-1.5 py-0.5 rounded bg-page border border-border font-mono text-[11px]">Enter</kbd> {practiceStatus === 'correct' ? 'sang câu tiếp' : 'để kiểm tra'} • <kbd className="px-1.5 py-0.5 rounded bg-page border border-border font-mono text-[11px]">Alt + R</kbd> làm lại
@@ -3511,7 +3586,7 @@ export default function TypingClient() {
               <button
                 type="button"
                 onClick={handleCheckVisualAnswer}
-                disabled={userInput.trim().length === 0}
+                disabled={committedInput.trim().length === 0}
                 className="w-full flex items-center justify-center gap-1.5 px-2.5 py-2.5 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-xs font-serif font-semibold transition-all active:scale-[0.98] touch-manipulation min-h-[46px] shadow-2xs cursor-pointer select-none"
                 title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
               >
@@ -3577,7 +3652,7 @@ export default function TypingClient() {
                 <button
                   type="button"
                   onClick={handleCheckVisualAnswer}
-                  disabled={userInput.trim().length === 0}
+                  disabled={committedInput.trim().length === 0}
                   className="flex items-center gap-1.5 px-4 py-2 bg-[#243047] text-white hover:bg-[#1A2436] disabled:opacity-40 disabled:cursor-not-allowed rounded-xl text-sm font-serif font-semibold whitespace-nowrap transition-all active:scale-[0.98] touch-manipulation min-h-[44px] shadow-2xs cursor-pointer shrink-0"
                   title="Kiểm tra đáp án (hoặc nhấn phím Enter)"
                 >

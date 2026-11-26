@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { Fragment, useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   CustomTypingExercise,
   TypingSegment,
@@ -24,12 +24,13 @@ import {
   getChineseVoices,
   speakChineseCharacter,
 } from '@/lib/typing-sound'
+import { segmentAndAlignChinese } from '@/lib/tts/chinese-word-segmenter'
 import {
-  ChineseWordToken,
-  segmentChineseText,
-  segmentAndAlignChinese,
-  findWordIndexByCharIndex,
-} from '@/lib/tts/chinese-word-segmenter'
+  sanitizeTargetText,
+  buildIndexedChars,
+  evaluateTypingStateless,
+  isTypingCharMatch,
+} from '@/lib/typing-text-utils'
 import {
   ttsEngine,
   retainUtterance,
@@ -58,47 +59,11 @@ import {
   Check,
   AlertTriangle,
   NotebookPen,
-  HelpCircle,
-  Sliders,
+  Languages,
   Volume2,
   VolumeX,
-  Languages,
-  BookOpen,
-  Layers,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-// Hàm chuẩn hóa ký tự dấu câu
-function normalizeChar(char: string): string {
-  if (!char) return ''
-  const punctuationMap: Record<string, string> = {
-    '，': ',',
-    '。': '.',
-    '！': '!',
-    '？': '?',
-    '：': ':',
-    '；': ';',
-    '“': '"',
-    '”': '"',
-    '‘': "'",
-    '’': "'",
-    '（': '(',
-    '）': ')',
-    '【': '[',
-    '】': ']',
-    '、': ',',
-  }
-  return punctuationMap[char] || char
-}
-
-function isCharMatch(c1: string, c2: string, allowNormalize = true): boolean {
-  if (!c1 || !c2) return false
-  if (c1 === c2) return true
-  if (allowNormalize) {
-    return normalizeChar(c1) === normalizeChar(c2)
-  }
-  return false
-}
 
 // Mẫu văn bản gợi ý nhanh cho người dùng
 const SAMPLE_TEMPLATES = [
@@ -180,12 +145,14 @@ export default function CustomParagraphMode({
     savedExerciseId?: string;
   }>({ text: '', isForEditor: true })
 
-  // Trạng thái nhập liệu & IME
-  const [userInput, setUserInput] = useState('')
+  // Trạng thái nhập liệu & IME (Tách biệt inputValue thô trên textarea và committedInput đã xác nhận)
+  const [inputValue, setInputValue] = useState('')
+  const [committedInput, setCommittedInput] = useState('')
   const [isComposing, setIsComposing] = useState(false)
   const [compositionText, setCompositionText] = useState('')
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const editorTextareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const activeCharRef = useRef<HTMLSpanElement | null>(null)
 
   // Thời gian & Trạng thái luyện tập
   const [isStarted, setIsStarted] = useState(false)
@@ -202,8 +169,9 @@ export default function CustomParagraphMode({
 
   // Trạng thái âm thanh phát âm tiếng Trung (Web Speech API)
   const [speechStatus, setSpeechStatus] = useState<'idle' | 'playing' | 'paused'>('idle')
+  const speechStatusRef = useRef<'idle' | 'playing' | 'paused'>('idle')
   const [speakingSentenceIndex, setSpeakingSentenceIndex] = useState<number | null>(null)
-  const [speakingWordIndex, setSpeakingWordIndex] = useState<number | null>(null)
+  const [speechHighlightRange, setSpeechHighlightRange] = useState<{ startCp: number; endCp: number } | null>(null)
   const [audioSentenceIndex, setAudioSentenceIndex] = useState<number>(0)
   const [isAudioFinished, setIsAudioFinished] = useState<boolean>(false)
   const audioSentenceIndexRef = useRef<number>(0)
@@ -218,6 +186,7 @@ export default function CustomParagraphMode({
   const [autoSpeakNext, setAutoSpeakNext] = useState<boolean>(false)
 
   const readingModeRef = useRef<'all' | 'sentence' | null>(null)
+  const resumeModeRef = useRef<'all' | 'sentence'>('all')
   const speechRateRef = useRef<number>(1)
   const selectedVoiceURIRef = useRef<string>('')
   const sentencesRef = useRef<ChineseSentenceItem[]>([])
@@ -225,8 +194,10 @@ export default function CustomParagraphMode({
   const utteranceIdRef = useRef<number>(0)
   const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
   const keepAliveIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const wordElementsRef = useRef<Map<string, HTMLElement>>(new Map())
-  const committedLengthRef = useRef<number>(0)
+  const boundaryFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pausedUtf16OffsetRef = useRef<number>(0)
+  const lastCommittedTextRef = useRef<string>('')
+  const lastCommittedCpLenRef = useRef<number>(0)
   const isComposingRef = useRef<boolean>(false)
 
   // Cơ chế KeepAlive cho trình duyệt Chromium trong Custom Paragraph Mode
@@ -320,145 +291,40 @@ export default function CustomParagraphMode({
     }
   }, [isStarted, isCompleted])
 
-  // Thống kê ký tự và dòng của input trong form
+  // Thống kê ký tự (Unicode code points) và dòng của input trong form
   const inputStats = useMemo(() => {
-    const chars = inputText.length
+    const chars = Array.from(inputText).length
     const lines = inputText ? inputText.split(/\r\n|\r|\n/).length : 0
     return { chars, lines }
   }, [inputText])
 
-  // So sánh đánh giá văn bản người dùng với văn bản gốc
-  const evaluation = useMemo(() => {
-    const target = currentText
-    const input = userInput
+  // Bản đồ ký tự Unicode (Array.from) & UTF-16 offset cho mục tiêu đã làm sạch
+  const indexedTarget = useMemo(() => buildIndexedChars(currentText), [currentText])
+  const currentTextRef = useRef<string>(currentText)
+  const indexedTargetRef = useRef(indexedTarget)
+  useEffect(() => {
+    currentTextRef.current = currentText
+    indexedTargetRef.current = indexedTarget
+  }, [currentText, indexedTarget])
 
-    if (!target) {
-      return {
-        correctCount: 0,
-        errorCount: 0,
-        missingCount: 0,
-        totalTargetChars: 0,
-        accuracy: 100,
-        cpm: 0,
-        errors: [] as { index: number; expected: string; actual: string }[],
-      }
-    }
+  // Thuật toán so sánh từng ký tự phi trạng thái (Stateless Character-by-Character Diffing)
+  // Chỉ dùng committedInput (chữ đã xác nhận qua IME hoặc Direct input) -> không bao giờ nhảy màu khi đang gõ Pinyin
+  const evaluation = useMemo(
+    () =>
+      evaluateTypingStateless(currentText, committedInput, {
+        elapsedSeconds,
+        strictMode,
+        normalizePunctuation,
+        isCompleted,
+      }),
+    [currentText, committedInput, elapsedSeconds, strictMode, normalizePunctuation, isCompleted]
+  )
 
-    if (strictMode) {
-      // 1. CHẾ ĐỘ NGHIÊM NGẶT: So khớp từng ký tự, tính cả khoảng trắng, xuống dòng, dấu câu
-      let correct = 0
-      const errors: { index: number; expected: string; actual: string }[] = []
-      const minLen = Math.min(input.length, target.length)
-
-      for (let i = 0; i < minLen; i++) {
-        const tChar = target[i]
-        const iChar = input[i]
-
-        if (isCharMatch(iChar, tChar, normalizePunctuation)) {
-          correct++
-        } else {
-          errors.push({
-            index: i + 1,
-            expected: tChar === '\n' ? '↵ (Xuống dòng)' : tChar === ' ' ? '␣ (Khoảng trắng)' : tChar,
-            actual: iChar === '\n' ? '↵ (Xuống dòng)' : iChar === ' ' ? '␣ (Khoảng trắng)' : iChar,
-          })
-        }
-      }
-
-      // Ký tự gõ thừa
-      if (input.length > target.length) {
-        for (let i = target.length; i < input.length; i++) {
-          errors.push({
-            index: i + 1,
-            expected: '(thừa)',
-            actual: input[i] === '\n' ? '↵ (Xuống dòng)' : input[i] === ' ' ? '␣ (Khoảng trắng)' : input[i],
-          })
-        }
-      }
-
-      const missingCount = Math.max(0, target.length - input.length)
-      const accuracy =
-        input.length > 0 ? Math.max(0, Math.round((correct / Math.max(target.length, input.length)) * 100)) : 100
-
-      const minutes = Math.max(elapsedSeconds, 1) / 60
-      const cpm = Math.round(correct / minutes)
-
-      return {
-        correctCount: correct,
-        errorCount: errors.length,
-        missingCount,
-        totalTargetChars: target.length,
-        accuracy,
-        cpm,
-        errors,
-      }
-    } else {
-      // 2. CHẾ ĐỘ NỘI DUNG: Bỏ qua khác biệt về khoảng trắng hoặc xuống dòng thừa
-      const isWhitespace = (ch: string) => /\s/.test(ch)
-
-      const targetNonSpace: { char: string; origIndex: number }[] = []
-      for (let i = 0; i < target.length; i++) {
-        if (!isWhitespace(target[i])) {
-          targetNonSpace.push({ char: target[i], origIndex: i })
-        }
-      }
-
-      const inputNonSpace: { char: string; origIndex: number }[] = []
-      for (let i = 0; i < input.length; i++) {
-        if (!isWhitespace(input[i])) {
-          inputNonSpace.push({ char: input[i], origIndex: i })
-        }
-      }
-
-      let correct = 0
-      const errors: { index: number; expected: string; actual: string }[] = []
-      const minLen = Math.min(inputNonSpace.length, targetNonSpace.length)
-
-      for (let i = 0; i < minLen; i++) {
-        const t = targetNonSpace[i]
-        const inp = inputNonSpace[i]
-
-        if (isCharMatch(inp.char, t.char, normalizePunctuation)) {
-          correct++
-        } else {
-          errors.push({
-            index: inp.origIndex + 1,
-            expected: t.char,
-            actual: inp.char,
-          })
-        }
-      }
-
-      if (inputNonSpace.length > targetNonSpace.length) {
-        for (let i = targetNonSpace.length; i < inputNonSpace.length; i++) {
-          errors.push({
-            index: inputNonSpace[i].origIndex + 1,
-            expected: '(thừa)',
-            actual: inputNonSpace[i].char,
-          })
-        }
-      }
-
-      const missingCount = Math.max(0, targetNonSpace.length - inputNonSpace.length)
-      const accuracy =
-        inputNonSpace.length > 0
-          ? Math.max(0, Math.round((correct / Math.max(targetNonSpace.length, inputNonSpace.length)) * 100))
-          : 100
-
-      const minutes = Math.max(elapsedSeconds, 1) / 60
-      const cpm = Math.round(correct / minutes)
-
-      return {
-        correctCount: correct,
-        errorCount: errors.length,
-        missingCount,
-        totalTargetChars: targetNonSpace.length,
-        accuracy,
-        cpm,
-        errors,
-      }
-    }
-  }, [currentText, userInput, elapsedSeconds, strictMode, normalizePunctuation])
+  // Auto-scroll mượt mà vào ký tự active khi người dùng đang luyện gõ bài dài
+  useEffect(() => {
+    if (viewState !== 'practice' || hideSample || isCompleted || !isStarted) return
+    activeCharRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [viewState, hideSample, isCompleted, isStarted, evaluation.activeCharIndex, strictMode])
 
   // Tính toán mapping các khối 3 lớp (Chữ Hán - Pinyin - Nghĩa)
   const mappedBlocks = useMemo(() => {
@@ -480,13 +346,7 @@ export default function CustomParagraphMode({
     })
   }, [mappedBlocks, currentText])
 
-  // Phân đoạn từ cho văn bản thuần nếu chưa có mappedBlocks
-  const rawWords = useMemo(() => {
-    if (mappedBlocks.length > 0) return []
-    return segmentChineseText(currentText)
-  }, [mappedBlocks.length, currentText])
-
-  // Phân tách câu tiếng Trung cho mục đích phát âm & theo dõi vị trí câu
+  // Phân tách câu tiếng Trung trên chuỗi currentText đã chuẩn hóa
   const chineseSentences = useMemo(() => {
     return extractChineseSentences(currentText, mappedBlocks)
   }, [currentText, mappedBlocks])
@@ -497,13 +357,14 @@ export default function CustomParagraphMode({
 
   // Câu người dùng đang gõ hiện tại
   const currentTypingSentenceIndex = useMemo(() => {
-    return findCurrentSentenceIndex(chineseSentences, userInput.length)
-  }, [chineseSentences, userInput.length])
+    return findCurrentSentenceIndex(chineseSentences, committedInput.length)
+  }, [chineseSentences, committedInput.length])
 
   // Reset câu audio khi đổi văn bản luyện
   useEffect(() => {
     setAudioSentenceIndex(0)
     setIsAudioFinished(false)
+    pausedUtf16OffsetRef.current = 0
   }, [currentText])
 
   // Đồng bộ audioSentenceIndex theo tiến trình gõ phím khi âm thanh đang nghỉ
@@ -514,10 +375,14 @@ export default function CustomParagraphMode({
     }
   }, [currentTypingSentenceIndex, speechStatus])
 
-  // Dừng phát âm thanh ngay lập tức
-  const stopSpeech = useCallback(() => {
+  // Hủy sạch hàng đợi Web Speech API và timer
+  const cancelSpeechHardware = useCallback(() => {
     utteranceIdRef.current++
     clearKeepAlive()
+    if (boundaryFallbackTimerRef.current) {
+      clearTimeout(boundaryFallbackTimerRef.current)
+      boundaryFallbackTimerRef.current = null
+    }
     setSentenceTTSActive(false)
 
     if (activeUtteranceRef.current) {
@@ -530,66 +395,112 @@ export default function CustomParagraphMode({
         window.speechSynthesis.cancel()
       } catch {}
     }
+  }, [clearKeepAlive])
+
+  // Dừng hoàn toàn phát âm thanh và xóa highlight
+  const stopSpeech = useCallback(() => {
+    cancelSpeechHardware()
+    pausedUtf16OffsetRef.current = 0
     readingModeRef.current = null
+    speechStatusRef.current = 'idle'
     setReadingMode(null)
     setSpeechStatus('idle')
     setSpeakingSentenceIndex(null)
-    setSpeakingWordIndex(null)
-  }, [clearKeepAlive])
+    setSpeechHighlightRange(null)
+  }, [cancelSpeechHardware])
 
-  // Dọn dẹp âm thanh khi component unmount hoặc khi nhận tín hiệu dừng âm thanh toàn cục (chuyển trang)
+  // Dọn dẹp âm thanh khi unmount, chuyển trang hoặc đóng tab (window.speechSynthesis.cancel)
   useEffect(() => {
     const handleStopAll = () => {
       stopSpeech()
     }
     if (typeof window !== 'undefined') {
       window.addEventListener('app:stop-all-audio', handleStopAll)
+      window.addEventListener('beforeunload', handleStopAll)
+      window.addEventListener('pagehide', handleStopAll)
     }
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('app:stop-all-audio', handleStopAll)
+        window.removeEventListener('beforeunload', handleStopAll)
+        window.removeEventListener('pagehide', handleStopAll)
       }
       stopSpeech()
     }
   }, [stopSpeech])
 
-  // Phát âm một câu cụ thể kèm cơ chế đồng bộ thích ứng 2 tầng (Two-Tier Adaptive Synchronization)
-  const speakSentence = useCallback(
-    (index: number, isSequential: boolean = false) => {
+  // Phát âm sử dụng chuỗi cleanedTargetText với đồng bộ 1-1 charIndex/charLength
+  const startSpeechUtterance = useCallback(
+    (options: { mode: 'all' | 'sentence'; startUtf16Offset?: number; targetSentenceIdx?: number }) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) return
-      const list = sentencesRef.current
-      if (!list || index < 0 || index >= list.length) {
+      const fullText = currentTextRef.current
+      if (!fullText) {
         stopSpeech()
         return
       }
 
-      setSentenceTTSActive(true)
-      clearKeepAlive()
+      const list = sentencesRef.current
+      const mode = options.mode
+      let startUtf16Offset = Math.max(0, options.startUtf16Offset ?? 0)
+      let textToSpeak = fullText
+      let activeSentenceIdx = 0
 
-      if (activeUtteranceRef.current) {
-        releaseUtterance(activeUtteranceRef.current)
-        activeUtteranceRef.current = null
+      if (mode === 'sentence') {
+        const idx = options.targetSentenceIdx ?? 0
+        const item = list[idx]
+        if (!item) {
+          stopSpeech()
+          return
+        }
+        activeSentenceIdx = idx
+        startUtf16Offset = item.startIndex
+        textToSpeak = fullText.slice(item.startIndex, item.endIndex)
+      } else {
+        // Phát toàn bộ: truyền chính xác cleanedTargetText từ đầu (hoặc phần còn lại khi Tiếp tục từ Tạm dừng)
+        if (startUtf16Offset >= fullText.length) startUtf16Offset = 0
+        textToSpeak = startUtf16Offset === 0 ? fullText : fullText.slice(startUtf16Offset)
+        const foundIdx = list.findIndex((s) => startUtf16Offset >= s.startIndex && startUtf16Offset < s.endIndex)
+        activeSentenceIdx = foundIdx !== -1 ? foundIdx : 0
       }
 
-      try {
-        window.speechSynthesis.cancel()
-      } catch {}
+      if (!textToSpeak.trim()) {
+        stopSpeech()
+        return
+      }
 
-      const currentUtteranceId = ++utteranceIdRef.current
-      const item = list[index]
+      // Gọi cancel() trước mỗi lần phát mới để triệt tiêu chồng chéo âm thanh
+      cancelSpeechHardware()
+      setSentenceTTSActive(true)
 
-      // Đặt câu đang đọc nhưng giữ speakingWordIndex = null ban đầu để hiển thị Sentence Fallback
-      setAudioSentenceIndex(index)
-      setSpeakingSentenceIndex(index)
-      setSpeakingWordIndex(null)
+      const currentUtteranceId = utteranceIdRef.current
+      pausedUtf16OffsetRef.current = startUtf16Offset
+      readingModeRef.current = mode
+      resumeModeRef.current = mode
+      speechStatusRef.current = 'playing'
+      setReadingMode(mode)
+      setAudioSentenceIndex(activeSentenceIdx)
+      setSpeakingSentenceIndex(activeSentenceIdx)
       setSpeechStatus('playing')
 
-      // Độ trễ vi mô (25ms) sau cancel() để triệt tiêu Race Condition
+      // Fallback highlight cấp câu ban đầu trước khi nhận boundary
+      const initSentence = list[activeSentenceIdx]
+      if (initSentence) {
+        setSpeechHighlightRange(
+          indexedTargetRef.current.utf16RangeToCpRange(
+            initSentence.startIndex,
+            Math.max(1, initSentence.endIndex - initSentence.startIndex)
+          )
+        )
+      } else {
+        setSpeechHighlightRange(null)
+      }
+
+      // Độ trễ vi mô (20ms) sau cancel() cho IPC audio driver của Chromium
       setTimeout(() => {
         if (currentUtteranceId !== utteranceIdRef.current) return
 
         try {
-          const utterance = new SpeechSynthesisUtterance(item.text)
+          const utterance = new SpeechSynthesisUtterance(textToSpeak)
           utterance.lang = 'zh-CN'
           utterance.rate = Math.max(0.5, Math.min(2.0, speechRateRef.current || 1.0))
 
@@ -602,42 +513,75 @@ export default function CustomParagraphMode({
           activeUtteranceRef.current = utterance
           retainUtterance(utterance)
 
-          // Lấy danh sách từ của câu này để ánh xạ charIndex
-          const sentenceWords = tokenizedBlocks[index]?.words || segmentChineseText(item.text)
-
           let boundaryCount = 0
-          let boundaryFallbackTimer: ReturnType<typeof setTimeout> | null = null
 
           utterance.onstart = () => {
             if (currentUtteranceId !== utteranceIdRef.current) return
+            speechStatusRef.current = 'playing'
             setSpeechStatus('playing')
             startKeepAlive()
 
-            // Cơ chế phòng vệ Mobile WebKit: Nếu sau 600ms không nhận thêm boundary (hoặc chỉ nhận boundary 0 duy nhất),
-            // tự động chuyển về sentence fallback để không kẹt chữ đầu tiên
-            boundaryFallbackTimer = setTimeout(() => {
+            // Phòng vệ WebKit/Mobile nếu không phát sinh thêm boundary (chỉ nhận 0 hoặc không có) -> highlight cả câu
+            boundaryFallbackTimerRef.current = setTimeout(() => {
               if (currentUtteranceId !== utteranceIdRef.current) return
-              if (boundaryCount <= 1 && item.text.length > 2) {
-                setSpeakingWordIndex(null)
+              if (boundaryCount <= 1 && textToSpeak.length > 2) {
+                const s = sentencesRef.current[activeSentenceIdx]
+                if (s) {
+                  setSpeechHighlightRange(
+                    indexedTargetRef.current.utf16RangeToCpRange(
+                      s.startIndex,
+                      Math.max(1, s.endIndex - s.startIndex)
+                    )
+                  )
+                }
               }
-            }, 600)
+            }, 650)
           }
 
-          // Đồng bộ từ ngữ theo thời gian thực qua sự kiện onboundary nếu hỗ trợ
           utterance.onboundary = (event) => {
             if (currentUtteranceId !== utteranceIdRef.current) return
-            if (event.name === 'sentence') return
 
             boundaryCount++
-            const charIndex = typeof event.charIndex === 'number' ? event.charIndex : 0
-            const wordIdx = findWordIndexByCharIndex(sentenceWords, charIndex)
-            if (wordIdx !== -1) {
-              setSpeakingWordIndex((prev) => (prev === wordIdx ? prev : wordIdx))
+            const localCharIndex = typeof event.charIndex === 'number' && event.charIndex >= 0 ? event.charIndex : 0
+            const charLength =
+              typeof event.charLength === 'number' && event.charLength > 0 ? event.charLength : 1
+            const globalUtf16Start = startUtf16Offset + localCharIndex
+            pausedUtf16OffsetRef.current = globalUtf16Start
+
+            // Đồng bộ câu đang đọc
+            const curList = sentencesRef.current
+            const matchedSent =
+              curList.find((s) => globalUtf16Start >= s.startIndex && globalUtf16Start < s.endIndex) ||
+              curList.find((s) => globalUtf16Start < s.endIndex) ||
+              curList[activeSentenceIdx]
+
+            if (matchedSent) {
+              setSpeakingSentenceIndex((prev) => (prev === matchedSent.index ? prev : matchedSent.index))
+              setAudioSentenceIndex((prev) => (prev === matchedSent.index ? prev : matchedSent.index))
             }
+
+            // Nếu browser chỉ trả boundary 'sentence', highlight trọn vẹn câu chứa charIndex đó
+            if (event.name === 'sentence' && matchedSent) {
+              setSpeechHighlightRange(
+                indexedTargetRef.current.utf16RangeToCpRange(
+                  matchedSent.startIndex,
+                  Math.max(1, matchedSent.endIndex - matchedSent.startIndex)
+                )
+              )
+              return
+            }
+
+            // Highlight chính xác dải [charIndex, charIndex + charLength) trên targetChars
+            setSpeechHighlightRange(
+              indexedTargetRef.current.utf16RangeToCpRange(globalUtf16Start, charLength)
+            )
           }
 
           utterance.onend = () => {
-            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
+            if (boundaryFallbackTimerRef.current) {
+              clearTimeout(boundaryFallbackTimerRef.current)
+              boundaryFallbackTimerRef.current = null
+            }
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -645,49 +589,45 @@ export default function CustomParagraphMode({
             clearKeepAlive()
 
             if (currentUtteranceId !== utteranceIdRef.current) return
-            setSpeakingWordIndex(null)
 
-            if (readingModeRef.current === 'all' && isSequential) {
-              if (index + 1 < list.length) {
-                setAudioSentenceIndex(index + 1)
-                speakSentence(index + 1, true)
-              } else {
-                setAudioSentenceIndex(list.length - 1)
-                setIsAudioFinished(true)
-                stopSpeech()
-              }
-            } else if (readingModeRef.current === 'sentence') {
-              if (index + 1 < list.length) {
-                setAudioSentenceIndex(index + 1)
+            const curList = sentencesRef.current
+            // Tự động xóa trạng thái highlight âm thanh khi kết thúc
+            setSpeechHighlightRange(null)
+
+            if (readingModeRef.current === 'sentence' && curList.length > 0) {
+              if (activeSentenceIdx + 1 < curList.length) {
+                setAudioSentenceIndex(activeSentenceIdx + 1)
                 if (autoSpeakNextRef.current) {
-                  speakSentence(index + 1, false)
-                } else {
-                  setSpeechStatus('idle')
-                  setSpeakingSentenceIndex(null)
-                  setReadingMode(null)
-                  readingModeRef.current = null
-                  setSentenceTTSActive(false)
+                  pausedUtf16OffsetRef.current = curList[activeSentenceIdx + 1].startIndex
+                  startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: activeSentenceIdx + 1 })
+                  return
                 }
               } else {
-                setAudioSentenceIndex(index)
+                setAudioSentenceIndex(activeSentenceIdx)
                 setIsAudioFinished(true)
-                setSpeechStatus('idle')
-                setSpeakingSentenceIndex(null)
-                setReadingMode(null)
-                readingModeRef.current = null
-                setSentenceTTSActive(false)
               }
-            } else {
-              setSpeechStatus('idle')
-              setSpeakingSentenceIndex(null)
-              setReadingMode(null)
-              readingModeRef.current = null
-              setSentenceTTSActive(false)
+            } else if (readingModeRef.current === 'all') {
+              if (curList.length > 0) {
+                setAudioSentenceIndex(curList.length - 1)
+              }
+              setIsAudioFinished(true)
             }
+
+            // Reset nút Play/Pause & highlight về trạng thái ban đầu
+            pausedUtf16OffsetRef.current = 0
+            setSpeakingSentenceIndex(null)
+            setReadingMode(null)
+            readingModeRef.current = null
+            speechStatusRef.current = 'idle'
+            setSpeechStatus('idle')
+            setSentenceTTSActive(false)
           }
 
           utterance.onerror = (e) => {
-            if (boundaryFallbackTimer) clearTimeout(boundaryFallbackTimer)
+            if (boundaryFallbackTimerRef.current) {
+              clearTimeout(boundaryFallbackTimerRef.current)
+              boundaryFallbackTimerRef.current = null
+            }
             releaseUtterance(utterance)
             if (activeUtteranceRef.current === utterance) {
               activeUtteranceRef.current = null
@@ -708,16 +648,16 @@ export default function CustomParagraphMode({
 
           window.speechSynthesis.speak(utterance)
         } catch (err) {
-          console.error('Lỗi khi kích hoạt speakSentence custom mode:', err)
+          console.error('Lỗi khi kích hoạt phát âm custom mode:', err)
           stopSpeech()
         }
-      }, 25)
+      }, 20)
     },
-    [tokenizedBlocks, stopSpeech, clearKeepAlive, startKeepAlive]
+    [cancelSpeechHardware, stopSpeech, clearKeepAlive, startKeepAlive]
   )
 
   const handlePlayAll = useCallback(() => {
-    if (chineseSentences.length === 0) return
+    if (!currentText.trim()) return
     if (availableVoices.length === 0 && typeof window !== 'undefined' && window.speechSynthesis) {
       const v = getChineseVoices()
       if (v.length === 0) {
@@ -726,23 +666,18 @@ export default function CustomParagraphMode({
         )
       }
     }
-    stopSpeech()
     setIsAudioFinished(false)
     setAudioSentenceIndex(0)
-    readingModeRef.current = 'all'
-    setReadingMode('all')
-    speakSentence(0, true)
-  }, [chineseSentences, availableVoices, speakSentence, stopSpeech])
+    pausedUtf16OffsetRef.current = 0
+    startSpeechUtterance({ mode: 'all', startUtf16Offset: 0 })
+  }, [currentText, availableVoices, startSpeechUtterance])
 
   const handlePlayCurrentSentence = useCallback(() => {
     if (chineseSentences.length === 0) return
-    stopSpeech()
     setIsAudioFinished(false)
     const targetIdx = Math.min(Math.max(0, audioSentenceIndexRef.current), chineseSentences.length - 1)
-    readingModeRef.current = 'sentence'
-    setReadingMode('sentence')
-    speakSentence(targetIdx, false)
-  }, [chineseSentences, speakSentence, stopSpeech])
+    startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: targetIdx })
+  }, [chineseSentences, startSpeechUtterance])
 
   const handlePrevSentenceAudio = useCallback(() => {
     if (chineseSentences.length <= 1) return
@@ -751,12 +686,9 @@ export default function CustomParagraphMode({
     setIsAudioFinished(false)
 
     if (speechStatus === 'playing' && readingMode === 'sentence') {
-      stopSpeech()
-      readingModeRef.current = 'sentence'
-      setReadingMode('sentence')
-      speakSentence(prevIdx, false)
+      startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: prevIdx })
     }
-  }, [chineseSentences, audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
+  }, [chineseSentences, audioSentenceIndex, speechStatus, readingMode, startSpeechUtterance])
 
   const handleNextSentenceAudio = useCallback(() => {
     if (chineseSentences.length <= 1) return
@@ -765,34 +697,30 @@ export default function CustomParagraphMode({
     setIsAudioFinished(false)
 
     if (speechStatus === 'playing' && readingMode === 'sentence') {
-      stopSpeech()
-      readingModeRef.current = 'sentence'
-      setReadingMode('sentence')
-      speakSentence(nextIdx, false)
+      startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: nextIdx })
     }
-  }, [chineseSentences, audioSentenceIndex, speechStatus, readingMode, speakSentence, stopSpeech])
+  }, [chineseSentences, audioSentenceIndex, speechStatus, readingMode, startSpeechUtterance])
 
+  // Tạm dừng: Gọi cancel() để tránh treo queue hoặc chồng chéo âm thanh, giữ lại offset để Tiếp tục
   const handlePauseSpeech = useCallback(() => {
-    clearKeepAlive()
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.pause()
-      setSpeechStatus('paused')
-    }
-  }, [clearKeepAlive])
+    resumeModeRef.current = readingModeRef.current || 'all'
+    cancelSpeechHardware()
+    speechStatusRef.current = 'paused'
+    setSpeechStatus('paused')
+    setSpeechHighlightRange(null)
+  }, [cancelSpeechHardware])
 
   const handleResumeSpeech = useCallback(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.resume()
-      setSpeechStatus('playing')
-      startKeepAlive()
-
-      setTimeout(() => {
-        if (window.speechSynthesis.paused && speakingSentenceIndex !== null) {
-          speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
-        }
-      }, 150)
+    const modeToResume = resumeModeRef.current || 'all'
+    if (modeToResume === 'all') {
+      startSpeechUtterance({ mode: 'all', startUtf16Offset: pausedUtf16OffsetRef.current })
+    } else {
+      startSpeechUtterance({
+        mode: 'sentence',
+        targetSentenceIdx: speakingSentenceIndex ?? audioSentenceIndexRef.current,
+      })
     }
-  }, [speakingSentenceIndex, speakSentence, startKeepAlive])
+  }, [speakingSentenceIndex, startSpeechUtterance])
 
   const handleRateChange = (rate: number) => {
     setSpeechRate(rate)
@@ -800,9 +728,13 @@ export default function CustomParagraphMode({
     ttsEngine.setRate(rate as any)
     saveTypingPreferences({ speechRate: rate })
 
-    // Nếu đang phát âm, phát lại ngay với tốc độ mới
-    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
-      speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
+    if (speechStatus === 'playing') {
+      const modeToRestart = readingModeRef.current || 'all'
+      startSpeechUtterance({
+        mode: modeToRestart,
+        startUtf16Offset: pausedUtf16OffsetRef.current,
+        targetSentenceIdx: speakingSentenceIndex ?? audioSentenceIndexRef.current,
+      })
     }
   }
 
@@ -811,9 +743,13 @@ export default function CustomParagraphMode({
     selectedVoiceURIRef.current = uri
     saveTypingPreferences({ preferredVoiceURI: uri })
 
-    // Nếu đang phát âm, phát lại ngay với giọng mới
-    if (speechStatus === 'playing' && speakingSentenceIndex !== null) {
-      speakSentence(speakingSentenceIndex, readingModeRef.current === 'all')
+    if (speechStatus === 'playing') {
+      const modeToRestart = readingModeRef.current || 'all'
+      startSpeechUtterance({
+        mode: modeToRestart,
+        startUtf16Offset: pausedUtf16OffsetRef.current,
+        targetSentenceIdx: speakingSentenceIndex ?? audioSentenceIndexRef.current,
+      })
     }
   }
 
@@ -830,52 +766,61 @@ export default function CustomParagraphMode({
     saveTypingPreferences({ autoSpeakNext: nextVal })
   }
 
-  // Hàm render từng ký tự kèm trạng thái tô màu realtime & highlight âm thanh
-  const renderCharSpan = (char: string, idx: number, isWordHighlight = false) => {
-    const typedChar = userInput[idx]
-    const isCurrent = idx === userInput.length && !isCompleted
+  // Hàm render từng ký tự dựa trên Stateless Evaluation & SpeechHighlightRange
+  const renderCharSpan = (cpIdx: number) => {
+    const char = evaluation.targetChars[cpIdx]
+    if (char === undefined) return null
 
-    // Kiểm tra xem ký tự này có thuộc câu đang phát âm TTS hay không
-    const activeSentence =
-      speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
-        ? chineseSentences[speakingSentenceIndex]
-        : null
-    const isCharBeingSpoken = activeSentence
-      ? idx >= activeSentence.startIndex && idx < activeSentence.endIndex
-      : false
+    const status = evaluation.charStates[cpIdx] ?? 'pending'
+    const isAudioHighlighted =
+      speechHighlightRange !== null &&
+      cpIdx >= speechHighlightRange.startCp &&
+      cpIdx < speechHighlightRange.endCp
 
     let charStyle = 'text-title/80'
-
-    if (idx < userInput.length) {
-      if (isCharMatch(typedChar, char, normalizePunctuation)) {
-        charStyle = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
-      } else {
-        charStyle = 'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
-      }
-    } else if (isCurrent) {
-      charStyle = 'border-b-2 border-app-accent bg-accent-soft/40 text-title font-bold animate-pulse'
-    } else if (isWordHighlight) {
-      charStyle = 'text-amber-950 dark:text-amber-100 font-bold'
-    } else if (isCharBeingSpoken) {
-      charStyle = 'text-title/85'
+    if (status === 'correct') {
+      charStyle = isAudioHighlighted
+        ? 'bg-emerald-500/25 text-emerald-800 dark:text-emerald-300 font-bold rounded px-0.5 ring-1 ring-amber-400'
+        : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded px-0.5'
+    } else if (status === 'incorrect') {
+      charStyle =
+        'bg-red-500/20 text-red-600 dark:text-red-400 rounded px-0.5 underline decoration-red-500 font-bold'
+    } else if (status === 'active') {
+      charStyle = 'border-b-2 border-app-accent bg-accent-soft/45 text-title font-bold animate-pulse rounded-t px-0.5'
+    } else if (status === 'ignored') {
+      charStyle = 'text-muted/35'
+    } else if (isAudioHighlighted) {
+      charStyle =
+        'bg-amber-200/80 dark:bg-amber-900/60 text-amber-950 dark:text-amber-100 font-bold ring-1 ring-amber-400/80 rounded px-0.5'
     }
 
     if (char === '\n') {
       return (
-        <span key={idx} className={charStyle}>
-          {'\n'}
-        </span>
+        <Fragment key={cpIdx}>
+          <span
+            ref={status === 'active' ? activeCharRef : undefined}
+            className={`inline-flex items-center justify-center px-1 mx-0.5 rounded text-xs font-mono align-baseline select-none transition-colors ${charStyle}`}
+            title="Xuống dòng (Enter)"
+          >
+            ↵
+          </span>
+          <span className="basis-full h-0" aria-hidden="true" />
+        </Fragment>
       )
     }
 
     return (
-      <span key={idx} className={`inline-block transition-colors ${charStyle}`}>
+      <span
+        key={cpIdx}
+        ref={status === 'active' ? activeCharRef : undefined}
+        className={`inline-block transition-colors ${charStyle}`}
+      >
         {char}
       </span>
     )
   }
 
-  // Bắt đầu vào bài luyện
+  // Bắt đầu vào bài luyện (tự động chuẩn hóa targetText trước khi lưu state và render)
   const startPractice = (
     text: string,
     title?: string,
@@ -884,24 +829,27 @@ export default function CustomParagraphMode({
     hasPinyin?: boolean,
     isOutdated?: boolean
   ) => {
-    if (!text.trim()) {
+    const cleanedTarget = sanitizeTargetText(text)
+    if (!cleanedTarget) {
       setFormError('Nội dung văn bản không được để trống.')
       return
     }
 
     stopSpeech()
     setFormError('')
-    setCurrentText(text)
-    setCurrentTitle(title || text.split(/\r\n|\r|\n/)[0]?.slice(0, 30) || 'Bài luyện tự tạo')
+    setCurrentText(cleanedTarget)
+    setCurrentTitle(title?.trim() || cleanedTarget.split('\n')[0]?.slice(0, 30) || 'Bài luyện tự tạo')
     setCurrentExerciseId(exerciseId || null)
     setCurrentSegments(segments || [])
     setCurrentHasPinyinAndMeaning(hasPinyin ?? (segments ? segments.length > 0 : false))
     setCurrentIsOutdated(isOutdated ?? false)
 
-    // Reset trạng thái
-    committedLengthRef.current = 0
+    // Reset trạng thái nhập liệu & IME
+    lastCommittedTextRef.current = ''
+    lastCommittedCpLenRef.current = 0
     isComposingRef.current = false
-    setUserInput('')
+    setInputValue('')
+    setCommittedInput('')
     setIsStarted(false)
     setIsCompleted(false)
     setElapsedSeconds(0)
@@ -914,14 +862,18 @@ export default function CustomParagraphMode({
     }, 100)
   }
 
-  // Xử lý tạo bài từ form
+  // Xử lý tạo bài từ form (chuẩn hóa văn bản trước khi lưu & luyện)
   const handleCreateAndStart = () => {
-    if (!inputText.trim()) {
+    const cleanedContent = sanitizeTargetText(inputText)
+    if (!cleanedContent) {
       setFormError('Vui lòng nhập hoặc dán nội dung văn bản muốn luyện đánh máy.')
       return
     }
+    if (cleanedContent !== inputText) {
+      setInputText(cleanedContent)
+    }
     startPractice(
-      inputText,
+      cleanedContent,
       inputTitle,
       activeExerciseId,
       editorSegments,
@@ -932,15 +884,19 @@ export default function CustomParagraphMode({
 
   // Lưu bài luyện vào danh sách cá nhân
   const handleSaveExercise = () => {
-    if (!inputText.trim()) {
+    const cleanedContent = sanitizeTargetText(inputText)
+    if (!cleanedContent) {
       setFormError('Vui lòng nhập nội dung văn bản trước khi lưu.')
       return
+    }
+    if (cleanedContent !== inputText) {
+      setInputText(cleanedContent)
     }
 
     const saved = saveCustomExercise({
       id: activeExerciseId || undefined,
       title: inputTitle,
-      content: inputText,
+      content: cleanedContent,
       segments: editorSegments,
       hasPinyinAndMeaning: editorHasPinyinAndMeaning,
       isOutdated: editorIsOutdated,
@@ -964,10 +920,11 @@ export default function CustomParagraphMode({
     setFormError('')
   }
 
-  // Áp dụng mẫu văn bản gợi ý
+  // Áp dụng mẫu văn bản gợi ý (được sanitize ngay khi nạp)
   const handleApplyTemplate = (tpl: (typeof SAMPLE_TEMPLATES)[0]) => {
+    const cleanedTemplate = sanitizeTargetText(tpl.content)
     setInputTitle(tpl.title)
-    setInputText(tpl.content)
+    setInputText(cleanedTemplate)
     setActiveExerciseId(null)
     setEditorSegments([])
     setEditorHasPinyinAndMeaning(false)
@@ -1014,15 +971,19 @@ export default function CustomParagraphMode({
 
   // Mở Gemini Modal cho form tạo bài
   const handleOpenGeminiModalForInput = () => {
-    if (!inputText.trim()) {
+    const cleanedText = sanitizeTargetText(inputText)
+    if (!cleanedText) {
       setFormError('Vui lòng nhập hoặc dán nội dung văn bản tiếng Trung vào ô bên dưới trước khi bổ sung Pinyin & Nghĩa.')
       toast.warning('Vui lòng dán hoặc nhập nội dung tiếng Trung vào ô văn bản trước khi bổ sung Pinyin & Nghĩa.')
       editorTextareaRef.current?.focus()
       return
     }
+    if (cleanedText !== inputText) {
+      setInputText(cleanedText)
+    }
     setFormError('')
     setGeminiModalTarget({
-      text: inputText,
+      text: cleanedText,
       title: inputTitle || 'Văn bản tùy chỉnh',
       isForEditor: true,
       savedExerciseId: activeExerciseId || undefined,
@@ -1044,7 +1005,7 @@ export default function CustomParagraphMode({
   // Mở Gemini Modal cho bài đã lưu trong danh sách
   const handleOpenGeminiForSavedItem = (ex: CustomTypingExercise) => {
     setGeminiModalTarget({
-      text: ex.content,
+      text: sanitizeTargetText(ex.content),
       title: ex.title,
       isForEditor: false,
       savedExerciseId: ex.id,
@@ -1118,37 +1079,37 @@ export default function CustomParagraphMode({
     }
     saveTypingSession(session)
     onSessionComplete?.()
-  }, [isCompleted, currentExerciseId, evaluation, elapsedSeconds, onSessionComplete])
+  }, [isCompleted, currentExerciseId, evaluation, elapsedSeconds, soundEnabled, stopSpeech, onSessionComplete])
 
-  // Xử lý chuỗi ký tự đã được xác nhận (committed)
-  // Xử lý ngay lập tức cho cả IME compositionend và input trực tiếp, loại bỏ 100% độ trễ 1 ký tự
+  // Xử lý chuỗi ký tự đã được xác nhận chính thức (chỉ gọi tại onCompositionEnd hoặc non-IME onChange)
   const handleCommittedText = useCallback(
     (newVal: string) => {
-      const prevLength = committedLengthRef.current
-      const newLength = newVal.length
+      if (newVal === lastCommittedTextRef.current) return
 
-      if (!isStarted && newLength > 0) {
+      const prevText = lastCommittedTextRef.current
+      const prevCpLen = lastCommittedCpLenRef.current
+      const nextCpChars = Array.from(newVal)
+      const nextCpLen = nextCpChars.length
+
+      if (!isStarted && nextCpLen > 0) {
         setIsStarted(true)
       }
 
-      setUserInput(newVal)
+      lastCommittedTextRef.current = newVal
+      lastCommittedCpLenRef.current = nextCpLen
+      setCommittedInput(newVal)
 
-      // 1. Trường hợp người dùng xóa ký tự (Backspace)
-      if (newLength <= prevLength) {
-        committedLengthRef.current = newLength
+      // 1. Trường hợp người dùng xóa ký tự (Backspace): evaluation stateless tự cập nhật lại màu sắc & bộ đếm
+      if (nextCpLen <= prevCpLen) {
         return
       }
 
-      // 2. Trường hợp có ký tự mới được xác nhận (startIdx -> endIdx)
-      const startIdx = prevLength
-      const endIdx = newLength
-      committedLengthRef.current = newLength
-
-      // Kiểm tra tính chính xác của các ký tự vừa gõ
+      // 2. Trường hợp có ký tự mới được xác nhận [prevCpLen .. nextCpLen)
+      const targetCpChars = indexedTargetRef.current.chars
       let allCorrect = true
-      for (let i = startIdx; i < endIdx; i++) {
-        const targetChar = currentText[i]
-        if (!targetChar || !isCharMatch(newVal[i], targetChar, normalizePunctuation)) {
+      for (let i = prevCpLen; i < nextCpLen; i++) {
+        const targetChar = targetCpChars[i]
+        if (!targetChar || !isTypingCharMatch(nextCpChars[i], targetChar, normalizePunctuation)) {
           allCorrect = false
           break
         }
@@ -1159,38 +1120,32 @@ export default function CustomParagraphMode({
         playTypingSfx(allCorrect ? 'correct' : 'error')
       }
 
-      // Phát âm (TTS) chữ Hán vừa được gõ/chọn ngay lập tức (chỉ khi không đang đọc câu)
-      const newlyTypedText = newVal.slice(startIdx, endIdx)
-      if (soundEnabled && newlyTypedText.trim() && speechStatus !== 'playing') {
+      // Phát âm (TTS) chữ Hán vừa được chọn ngay lập tức (chỉ khi không đang đọc toàn bài/câu)
+      const newlyTypedText = nextCpChars.slice(prevCpLen).join('')
+      if (soundEnabled && newlyTypedText.trim() && speechStatusRef.current !== 'playing') {
         speakChineseCharacter(newlyTypedText, selectedVoiceURIRef.current, speechRateRef.current)
       }
 
       // Tự đọc câu tiếp theo khi gõ xong câu hiện tại
-      if (autoSpeakNextRef.current && chineseSentences.length > 1) {
-        const curSentence = chineseSentences.find(
-          (s) => prevLength < s.endIndex && newLength >= s.endIndex
+      if (autoSpeakNextRef.current && sentencesRef.current.length > 1) {
+        const curSentence = sentencesRef.current.find(
+          (s) => prevText.length < s.endIndex && newVal.length >= s.endIndex
         )
-        if (curSentence && curSentence.index + 1 < chineseSentences.length) {
-          speakSentence(curSentence.index + 1, false)
+        if (curSentence && curSentence.index + 1 < sentencesRef.current.length) {
+          startSpeechUtterance({ mode: 'sentence', targetSentenceIdx: curSentence.index + 1 })
         }
       }
     },
-    [
-      isStarted,
-      currentText,
-      normalizePunctuation,
-      soundEnabled,
-      chineseSentences,
-      speakSentence,
-    ]
+    [isStarted, normalizePunctuation, soundEnabled, startSpeechUtterance]
   )
 
-  // Xử lý thay đổi ô nhập liệu (Direct input hoặc sau khi IME gõ)
+  // Xử lý thay đổi ô nhập liệu: Luôn cập nhật inputValue để không vỡ IME, nhưng TUYỆT ĐỐI không chấm điểm khi đang compose
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value
-    // Nếu đang trong quá trình soạn thảo IME (Pinyin composition), chỉ cập nhật text hiển thị tạm
-    if (isComposingRef.current) {
-      setUserInput(val)
+    const nativeIsComposing = Boolean((e.nativeEvent as InputEvent | undefined)?.isComposing)
+    setInputValue(val)
+
+    if (isComposingRef.current || nativeIsComposing) {
       return
     }
     handleCommittedText(val)
@@ -1204,7 +1159,7 @@ export default function CustomParagraphMode({
   }
 
   const handleCompositionUpdate = (e: React.CompositionEvent<HTMLTextAreaElement>) => {
-    setCompositionText(e.data)
+    setCompositionText(e.data || '')
   }
 
   const handleCompositionEnd = (e: React.CompositionEvent<HTMLTextAreaElement>) => {
@@ -1212,17 +1167,20 @@ export default function CustomParagraphMode({
     setIsComposing(false)
     setCompositionText('')
 
-    // Lấy giá trị chính xác đã được xác nhận từ DOM element
-    const val = (e.target as HTMLTextAreaElement).value
+    // Lấy giá trị chữ Hán chính thức đã xuất hiện trên DOM và kích hoạt diffing
+    const val = (e.currentTarget || (e.target as HTMLTextAreaElement)).value
+    setInputValue(val)
     handleCommittedText(val)
   }
 
   // Làm lại bài
   const handleResetPractice = () => {
     stopSpeech()
-    committedLengthRef.current = 0
+    lastCommittedTextRef.current = ''
+    lastCommittedCpLenRef.current = 0
     isComposingRef.current = false
-    setUserInput('')
+    setInputValue('')
+    setCommittedInput('')
     setIsStarted(false)
     setIsCompleted(false)
     setElapsedSeconds(0)
@@ -1344,8 +1302,23 @@ export default function CustomParagraphMode({
                     }
                   }
                 }}
+                onPaste={(e) => {
+                  const pasted = e.clipboardData?.getData('text')
+                  if (!pasted) return
+                  e.preventDefault()
+                  const el = e.currentTarget
+                  const start = el.selectionStart ?? inputText.length
+                  const end = el.selectionEnd ?? inputText.length
+                  const combined = inputText.slice(0, start) + pasted + inputText.slice(end)
+                  const cleaned = sanitizeTargetText(combined)
+                  setInputText(cleaned)
+                  if (formError) setFormError('')
+                  if (editorHasPinyinAndMeaning && editorAnalyzedText) {
+                    setEditorIsOutdated(cleaned.trim() !== editorAnalyzedText.trim())
+                  }
+                }}
                 rows={9}
-                placeholder="Dán đoạn văn tiếng Trung bạn muốn luyện đánh máy vào đây... (Hỗ trợ nhiều đoạn, xuống dòng, dấu câu ，。！？ và ký tự Pinyin/Việt/Anh)"
+                placeholder="Dán đoạn văn tiếng Trung bạn muốn luyện đánh máy vào đây... (Hệ thống tự động loại bỏ khoảng trắng thừa, chuẩn hóa ngắt đoạn & dấu câu tiếng Trung)"
                 className="w-full p-4 rounded-xl border-2 border-border focus:border-app-accent bg-page text-title font-serif text-base md:text-lg placeholder:text-muted placeholder:text-sm focus:outline-none transition-colors shadow-inner leading-relaxed whitespace-pre-wrap"
                 style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
               />
@@ -1623,7 +1596,7 @@ export default function CustomParagraphMode({
               {currentTitle}
             </h3>
             <p className="text-[11px] text-muted font-serif">
-              {currentText.length} ký tự mục tiêu • {currentText.split(/\r\n|\r|\n/).length} dòng
+              {evaluation.targetChars.length} ký tự mục tiêu • {currentText ? currentText.split('\n').length : 0} dòng
             </p>
           </div>
         </div>
@@ -1802,7 +1775,7 @@ export default function CustomParagraphMode({
           <div>
             <p className="text-[11px] text-muted font-sans">Tiến độ gõ</p>
             <p className="text-lg font-serif font-bold text-title">
-              {userInput.length} / {currentText.length}
+              {evaluation.committedCharCount} / {evaluation.totalTargetChars}
             </p>
           </div>
         </div>
@@ -1837,7 +1810,7 @@ export default function CustomParagraphMode({
 
       {/* 3. KHU VỰC VĂN BẢN MẪU (SAMPLE TEXT) */}
       <div className="bg-card border border-border rounded-2xl p-5 md:p-6 shadow-sm space-y-3">
-        <div className="flex items-center justify-between text-xs font-serif text-muted">
+        <div className="flex items-center justify-between text-xs font-serif text-muted flex-wrap gap-2">
           <span className="font-medium text-title">Văn bản mẫu mục tiêu:</span>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
@@ -1861,13 +1834,25 @@ export default function CustomParagraphMode({
           /* HIỂN THỊ 3 LỚP THÔNG TIN (CHỮ HÁN - PINYIN - NGHĨA) THEO TỪNG TỪ ĐỒNG BỘ */
           <div className="space-y-3.5 max-h-80 overflow-y-auto no-scrollbar pr-1">
             {tokenizedBlocks.map((block, bIdx) => {
+              const blockStartCp = indexedTarget.utf16ToCp(block.startIndex)
+              const blockEndCp = indexedTarget.utf16ToCp(block.endIndex)
               const isBlockActive =
-                userInput.length >= block.startIndex && userInput.length <= block.endIndex && !isCompleted
-              const isBlockCompleted = userInput.length >= block.endIndex
+                evaluation.inputChars.length >= blockStartCp && evaluation.inputChars.length <= blockEndCp && !isCompleted
+              const isBlockCompleted = evaluation.inputChars.length >= blockEndCp
               const isSpeaking = speakingSentenceIndex === bIdx
 
-              const prevEnd = bIdx === 0 ? 0 : tokenizedBlocks[bIdx - 1].endIndex
-              const gapChars = currentText.slice(prevEnd, block.startIndex)
+              const prevEndUtf16 = bIdx === 0 ? 0 : tokenizedBlocks[bIdx - 1].endIndex
+              const gapStartCp = indexedTarget.utf16ToCp(prevEndUtf16)
+              const gapEndCp = blockStartCp
+              const spokenPhrase =
+                isSpeaking && speechHighlightRange
+                  ? evaluation.targetChars
+                      .slice(
+                        Math.max(blockStartCp, speechHighlightRange.startCp),
+                        Math.min(blockEndCp, speechHighlightRange.endCp)
+                      )
+                      .join('')
+                  : ''
 
               return (
                 <div
@@ -1876,9 +1861,9 @@ export default function CustomParagraphMode({
                   style={{ contentVisibility: 'auto', containIntrinsicSize: '120px' }}
                 >
                   {/* Ký tự khoảng trắng / ngắt dòng giữa các đoạn */}
-                  {gapChars && (
-                    <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1">
-                      {gapChars.split('').map((c, i) => renderCharSpan(c, prevEnd + i))}
+                  {gapEndCp > gapStartCp && (
+                    <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1 flex flex-wrap items-baseline">
+                      {indexedTarget.items.slice(gapStartCp, gapEndCp).map((it) => renderCharSpan(it.cpIdx))}
                     </div>
                   )}
 
@@ -1899,20 +1884,29 @@ export default function CustomParagraphMode({
                         <Volume2 className="w-3.5 h-3.5 animate-bounce" />
                         <span>
                           Đang đọc câu {bIdx + 1}
-                          {speakingWordIndex !== null && block.words[speakingWordIndex]?.isWord
-                            ? `: "${block.words[speakingWordIndex].text}"`
-                            : '...'}
+                          {spokenPhrase ? `: "${spokenPhrase}"` : '...'}
                         </span>
                       </div>
                     )}
 
-                    {/* Lớp 2: Pinyin phân đoạn theo từ đồng bộ */}
+                    {/* Lớp 2: Pinyin phân đoạn theo từ đồng bộ với speechHighlightRange */}
                     {showPinyin && block.segment.pinyin && (
                       <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 select-none leading-relaxed">
                         {block.words.map((w, wIdx) => {
-                          const isWordActive = isSpeaking && speakingWordIndex === wIdx && w.isWord
-                          const isWordPast = isSpeaking && speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
-                          const isSentenceFallback = isSpeaking && speakingWordIndex === null && w.isWord
+                          const wStartCp = indexedTarget.utf16ToCp(block.startIndex + w.startIndex)
+                          const wEndCp = indexedTarget.utf16ToCp(block.startIndex + w.endIndex)
+                          const isWordActive =
+                            isSpeaking &&
+                            speechHighlightRange !== null &&
+                            w.isWord &&
+                            wStartCp < speechHighlightRange.endCp &&
+                            wEndCp > speechHighlightRange.startCp
+                          const isWordPast =
+                            isSpeaking &&
+                            speechHighlightRange !== null &&
+                            w.isWord &&
+                            wEndCp <= speechHighlightRange.startCp
+                          const isSentenceFallback = isSpeaking && speechHighlightRange === null && w.isWord
 
                           if (!w.pinyin) return null
 
@@ -1936,38 +1930,34 @@ export default function CustomParagraphMode({
                       </div>
                     )}
 
-                    {/* Lớp 1: Chữ Hán gốc phân đoạn theo từ với Word-Level Highlight */}
+                    {/* Lớp 1: Chữ Hán gốc dùng từng ký tự Unicode chuẩn xác */}
                     <div
                       className="font-serif text-lg md:text-xl text-title leading-relaxed tracking-wide select-none flex flex-wrap items-baseline gap-y-1"
                       style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                     >
                       {block.words.map((w, wIdx) => {
-                        const isWordActive = isSpeaking && speakingWordIndex === wIdx && w.isWord
-                        const isWordPast = isSpeaking && speakingWordIndex !== null && wIdx < speakingWordIndex && w.isWord
-                        const isSentenceFallback = isSpeaking && speakingWordIndex === null && w.isWord
-                        const wordKey = `word-${bIdx}-${wIdx}`
+                        const wStartCp = indexedTarget.utf16ToCp(block.startIndex + w.startIndex)
+                        const wEndCp = indexedTarget.utf16ToCp(block.startIndex + w.endIndex)
+                        const isWordActive =
+                          isSpeaking &&
+                          speechHighlightRange !== null &&
+                          w.isWord &&
+                          wStartCp < speechHighlightRange.endCp &&
+                          wEndCp > speechHighlightRange.startCp
+                        const isSentenceFallback = isSpeaking && speechHighlightRange === null && w.isWord
 
                         return (
                           <span
                             key={wIdx}
-                            ref={(el) => {
-                              if (el) wordElementsRef.current.set(wordKey, el)
-                              else wordElementsRef.current.delete(wordKey)
-                            }}
-                            className={`inline-block transition-all duration-150 rounded px-0.5 py-0.25 ${
+                            className={`inline-flex flex-wrap items-baseline transition-all duration-150 rounded px-0.5 ${
                               isWordActive
-                                ? 'bg-amber-100 dark:bg-amber-950/70 ring-2 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
+                                ? 'bg-amber-100/70 dark:bg-amber-950/50 ring-1 ring-amber-400/70 font-bold'
                                 : isSentenceFallback
-                                ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
-                                : isWordPast
-                                ? 'opacity-85'
+                                ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 font-medium'
                                 : ''
                             }`}
                           >
-                            {w.text.split('').map((c, cOffset) => {
-                              const globalCharIdx = block.startIndex + w.startIndex + cOffset
-                              return renderCharSpan(c, globalCharIdx, isWordActive)
-                            })}
+                            {indexedTarget.items.slice(wStartCp, wEndCp).map((it) => renderCharSpan(it.cpIdx))}
                           </span>
                         )
                       })}
@@ -1985,65 +1975,33 @@ export default function CustomParagraphMode({
             })}
 
             {/* Các ký tự còn lại ở cuối văn bản (nếu có) */}
-            {tokenizedBlocks[tokenizedBlocks.length - 1].endIndex < currentText.length && (
-              <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1">
-                {currentText
-                  .slice(tokenizedBlocks[tokenizedBlocks.length - 1].endIndex)
-                  .split('')
-                  .map((c, i) => renderCharSpan(c, tokenizedBlocks[tokenizedBlocks.length - 1].endIndex + i))}
+            {indexedTarget.utf16ToCp(tokenizedBlocks[tokenizedBlocks.length - 1].endIndex) < evaluation.targetChars.length && (
+              <div className="text-muted/40 font-mono text-xs whitespace-pre-wrap select-none px-1 flex flex-wrap items-baseline">
+                {indexedTarget.items
+                  .slice(indexedTarget.utf16ToCp(tokenizedBlocks[tokenizedBlocks.length - 1].endIndex))
+                  .map((it) => renderCharSpan(it.cpIdx))}
               </div>
             )}
           </div>
         ) : (
-          /* VĂN BẢN GỐC THUẦN CHỮ HÁN PHÂN ĐOẠN THEO TỪ */
+          /* VĂN BẢN MẪU THUẦN: Render trực tiếp từng ký tự Array.from(cleanedTargetText) để khớp 1-1 tuyệt đối với diff & TTS */
           <div className="space-y-2">
             {speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex] && (
               <div className="p-2.5 rounded-xl bg-app-accent-soft/30 border border-app-accent/30 text-app-accent text-xs font-serif font-bold flex items-center gap-2">
                 <Volume2 className="w-4 h-4 animate-bounce flex-shrink-0" />
                 <span>
-                  Đang phát âm câu {speakingSentenceIndex + 1}: &quot;{chineseSentences[speakingSentenceIndex].text}&quot;
+                  Đang phát âm câu {speakingSentenceIndex + 1}
+                  {speechHighlightRange
+                    ? `: "${evaluation.targetChars.slice(speechHighlightRange.startCp, speechHighlightRange.endCp).join('')}"`
+                    : `: "${chineseSentences[speakingSentenceIndex].text}"`}
                 </span>
               </div>
             )}
             <div
-              className="p-4 md:p-5 rounded-xl bg-page/80 border border-border/80 max-h-72 overflow-y-auto leading-relaxed font-serif text-lg md:text-xl text-title whitespace-pre-wrap select-none no-scrollbar tracking-wide flex flex-wrap items-baseline gap-y-1"
+              className="p-4 md:p-5 rounded-xl bg-page/80 border border-border/80 max-h-72 overflow-y-auto leading-relaxed font-serif text-lg md:text-xl text-title whitespace-pre-wrap select-none no-scrollbar tracking-wide flex flex-wrap items-baseline gap-y-1.5"
               style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
             >
-              {rawWords.map((w, wIdx) => {
-                const activeSentence =
-                  speakingSentenceIndex !== null && chineseSentences[speakingSentenceIndex]
-                    ? chineseSentences[speakingSentenceIndex]
-                    : null
-                const isTokenInSpeakingSentence = activeSentence
-                  ? w.startIndex < activeSentence.endIndex && w.endIndex > activeSentence.startIndex
-                  : false
-
-                const isWordActive =
-                  speakingSentenceIndex !== null && speakingWordIndex === wIdx && w.isWord
-                const isWordPast =
-                  speakingSentenceIndex !== null && speakingWordIndex !== null && wIdx < speakingWordIndex && isTokenInSpeakingSentence && w.isWord
-                const isSentenceFallback = isTokenInSpeakingSentence && speakingWordIndex === null && w.isWord
-
-                return (
-                  <span
-                    key={wIdx}
-                    className={`inline-block transition-all duration-150 rounded px-0.5 py-0.25 ${
-                      isWordActive
-                        ? 'bg-amber-100 dark:bg-amber-950/70 ring-2 ring-amber-400/80 text-amber-950 dark:text-amber-100 font-bold shadow-xs'
-                        : isSentenceFallback
-                        ? 'bg-amber-50 dark:bg-amber-950/30 ring-1 ring-amber-300/40 text-title font-medium'
-                        : isWordPast
-                        ? 'opacity-85'
-                        : ''
-                    }`}
-                  >
-                    {w.text.split('').map((char, cOffset) => {
-                      const globalCharIdx = w.startIndex + cOffset
-                      return renderCharSpan(char, globalCharIdx, isWordActive)
-                    })}
-                  </span>
-                )
-              })}
+              {evaluation.targetChars.map((_, cpIdx) => renderCharSpan(cpIdx))}
             </div>
           </div>
         )}
@@ -2064,7 +2022,7 @@ export default function CustomParagraphMode({
         <div className="relative">
           <textarea
             ref={inputRef}
-            value={userInput}
+            value={inputValue}
             onChange={handleInputChange}
             onCompositionStart={handleCompositionStart}
             onCompositionUpdate={handleCompositionUpdate}
@@ -2118,7 +2076,7 @@ export default function CustomParagraphMode({
             <Button
               size="sm"
               onClick={handleCompletePractice}
-              disabled={isCompleted || userInput.length === 0}
+              disabled={isCompleted || evaluation.inputChars.length === 0}
               className="font-serif text-xs rounded-xl bg-app-accent hover:bg-accent-hover text-white shadow-2xs gap-1.5 px-4"
             >
               <CheckCircle2 className="w-4 h-4" />
