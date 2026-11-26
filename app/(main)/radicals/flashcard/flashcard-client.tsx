@@ -179,16 +179,17 @@ export default function FlashcardClient() {
           >
             {/* Front */}
             <div
-              className={`col-start-1 row-start-1 w-full bg-[#FAF7F2] border-2 border-[#182238] rounded-3xl p-6 sm:p-8 md:p-12 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-[0_6px_0_#182238] [backface-visibility:hidden] ${
+              className={`col-start-1 row-start-1 w-full bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-6 sm:p-8 md:p-12 flex flex-col items-center justify-center min-h-[340px] md:min-h-[400px] shadow-[0_6px_0_#182238] dark:shadow-[0_6px_0_#0D1322] [backface-visibility:hidden] relative overflow-hidden ${
                 isFlipped ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
               }`}
             >
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#182238] via-[#B8322D] to-gold" />
               <span className="text-xs font-serif font-bold text-muted mb-4 uppercase tracking-wider">
                 Nhấn để lật thẻ
               </span>
               <div className="flex items-center gap-3">
                 <span
-                  className="text-8xl md:text-[10rem] font-serif text-[#182238] leading-none"
+                  className="text-8xl md:text-[10rem] font-serif text-[#182238] dark:text-white leading-none"
                   style={{ fontFamily: 'var(--font-chinese), sans-serif' }}
                 >
                   {currentRadical.radical}
@@ -202,10 +203,10 @@ export default function FlashcardClient() {
                 />
               </div>
               <div className="mt-4 flex items-center gap-2">
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#FFF9F3] text-[#B8322D] font-bold border border-[#B8322D]/30 shadow-2xs font-sans">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#FFF9F3] dark:bg-[#202B45] text-[#B8322D] font-bold border border-[#B8322D]/30 shadow-2xs font-sans">
                   #{currentRadical.id}
                 </span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-white border border-[#182238]/20 text-[#182238] font-bold font-sans">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#FAF7F2] dark:bg-[#1F2C47] border border-[#182238]/20 dark:border-white/10 text-[#182238] dark:text-slate-200 font-bold font-sans">
                   {currentRadical.strokes} nét
                 </span>
               </div>
@@ -213,10 +214,11 @@ export default function FlashcardClient() {
 
             {/* Back */}
             <div
-              className={`col-start-1 row-start-1 w-full bg-[#FAF7F2] border-2 border-[#182238] rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col items-center justify-center min-h-[320px] md:min-h-[380px] shadow-[0_6px_0_#182238] [backface-visibility:hidden] [transform:rotateY(180deg)] ${
+              className={`col-start-1 row-start-1 w-full bg-white dark:bg-[#182238] border-2 border-[#182238] dark:border-[#384869] rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col items-center justify-center min-h-[340px] md:min-h-[400px] shadow-[0_6px_0_#182238] dark:shadow-[0_6px_0_#0D1322] [backface-visibility:hidden] [transform:rotateY(180deg)] relative overflow-hidden ${
                 !isFlipped ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
               }`}
             >
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#B8322D] via-gold to-[#10B981]" />
               <div className="flex items-center gap-3 mb-3">
                 <span
                   className="text-5xl md:text-6xl font-serif text-title leading-none"

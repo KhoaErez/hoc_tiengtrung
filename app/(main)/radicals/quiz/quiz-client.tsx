@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { radicals, type Radical } from '@/data/radicals'
 import { saveQuizScore } from '@/lib/radicals-storage'
@@ -110,16 +110,16 @@ export default function QuizClient() {
     setShowExplanation(false)
   }, [quizTypes])
 
-  const handleAnswer = (index: number) => {
+  const handleAnswer = useCallback((index: number) => {
     if (selectedAnswer !== null) return // Already answered
     setSelectedAnswer(index)
     setShowExplanation(true)
     if (index === questions[currentQ].correctIndex) {
       setScore((s) => s + 1)
     }
-  }
+  }, [selectedAnswer, questions, currentQ])
 
-  const goNext = () => {
+  const goNext = useCallback(() => {
     stopAllAudio()
     if (currentQ < questions.length - 1) {
       setCurrentQ((q) => q + 1)
@@ -135,7 +135,45 @@ export default function QuizClient() {
         type: quizTypes.join(','),
       })
     }
-  }
+  }, [currentQ, questions.length, score, selectedAnswer, quizTypes])
+
+  // Lắng nghe phím tắt: 1-4 hoặc A-D để chọn đáp án, Enter/Space để qua câu tiếp
+  useEffect(() => {
+    if (!started || isFinished || questions.length === 0) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+        return
+      }
+
+      const key = e.key.toLowerCase()
+
+      if (selectedAnswer === null) {
+        if (key === '1' || key === 'a') {
+          e.preventDefault()
+          handleAnswer(0)
+        } else if (key === '2' || key === 'b') {
+          e.preventDefault()
+          handleAnswer(1)
+        } else if (key === '3' || key === 'c') {
+          e.preventDefault()
+          handleAnswer(2)
+        } else if (key === '4' || key === 'd') {
+          e.preventDefault()
+          handleAnswer(3)
+        }
+      } else {
+        if (e.code === 'Enter' || e.code === 'Space') {
+          e.preventDefault()
+          goNext()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [started, isFinished, questions.length, selectedAnswer, handleAnswer, goNext])
 
   const toggleQuizType = (type: QuizType) => {
     setQuizTypes((prev) => {
@@ -347,18 +385,19 @@ export default function QuizClient() {
           )}
         </div>
 
-        {/* Options */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Options (Tactile EdTech Cards with Keyboard Hotkeys) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
           {question.options.map((option, index) => {
-            let optionClass = 'border-[#182238]/20 bg-white text-[#182238] hover:border-[#182238] hover:shadow-[0_2px_0_#182238]'
+            const letter = ['A', 'B', 'C', 'D'][index]
+            let optionClass = 'border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-[#182238] text-[#182238] dark:text-white shadow-[0_2px_8px_rgba(15,23,42,0.04)] hover:border-[#182238] hover:shadow-[0_4px_16px_rgba(24,34,56,0.08)]'
 
             if (selectedAnswer !== null) {
               if (index === question.correctIndex) {
-                optionClass = 'border-[#182238] bg-[#E8F5E9] text-[#2E7D32] shadow-[0_3px_0_#182238]'
+                optionClass = 'border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 shadow-[0_4px_16px_rgba(16,185,129,0.2)]'
               } else if (index === selectedAnswer && !isCorrect) {
-                optionClass = 'border-[#182238] bg-[#FFEBEE] text-[#C62828] shadow-[0_3px_0_#182238]'
+                optionClass = 'border-2 border-red-500 bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-200 shadow-[0_4px_16px_rgba(239,68,68,0.2)]'
               } else {
-                optionClass = 'border-[#182238]/10 bg-white text-muted opacity-40'
+                optionClass = 'border-[#E2E8F0]/40 dark:border-white/5 bg-white/40 dark:bg-[#182238]/40 text-muted opacity-35'
               }
             }
 
@@ -369,21 +408,34 @@ export default function QuizClient() {
                 key={index}
                 onClick={() => handleAnswer(index)}
                 disabled={selectedAnswer !== null}
-                className={`relative p-4 border-2 rounded-2xl text-center font-serif font-bold transition-all ${optionClass} ${selectedAnswer === null ? 'cursor-pointer active:translate-y-0.5' : 'cursor-default'
+                className={`relative p-4 sm:p-5 border-2 rounded-2xl flex items-center justify-between font-serif font-bold transition-all ${optionClass} ${selectedAnswer === null ? 'cursor-pointer active:scale-[0.98]' : 'cursor-default'
                   }`}
               >
+                <div className="flex items-center gap-3 w-full">
+                  <span className={`w-7 h-7 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 border ${
+                    selectedAnswer !== null && index === question.correctIndex
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : selectedAnswer !== null && index === selectedAnswer && !isCorrect
+                      ? 'bg-red-600 text-white border-red-600'
+                      : 'bg-[#FAF7F2] dark:bg-[#1F2C47] text-[#182238] dark:text-slate-300 border-[#182238]/15'
+                  }`}>
+                    {letter}
+                  </span>
+
+                  <span
+                    className={`flex-1 text-center pr-4 ${isHanzi ? 'text-3xl md:text-4xl' : 'text-sm md:text-base'}`}
+                    style={isHanzi ? { fontFamily: 'var(--font-chinese), sans-serif' } : undefined}
+                  >
+                    {option}
+                  </span>
+                </div>
+
                 {selectedAnswer !== null && index === question.correctIndex && (
-                  <CheckCircle className="absolute top-2 right-2 w-4 h-4 text-[#2E7D32]" />
+                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 ml-2" />
                 )}
                 {selectedAnswer !== null && index === selectedAnswer && !isCorrect && (
-                  <XCircle className="absolute top-2 right-2 w-4 h-4 text-[#C62828]" />
+                  <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 ml-2" />
                 )}
-                <span
-                  className={isHanzi ? 'text-3xl md:text-4xl' : 'text-sm md:text-base'}
-                  style={isHanzi ? { fontFamily: 'var(--font-chinese), sans-serif' } : undefined}
-                >
-                  {option}
-                </span>
               </button>
             )
           })}
@@ -421,15 +473,23 @@ export default function QuizClient() {
         {selectedAnswer !== null && (
           <button
             onClick={goNext}
-            className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-2xl font-serif font-bold text-sm border-2 border-[#182238] shadow-[0_4px_0_#182238] active:translate-y-0.5 active:shadow-[0_2px_0_#182238] transition-all"
+            className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#B8322D] hover:bg-[#A32A26] text-white rounded-2xl font-serif font-bold text-sm border-2 border-[#182238] shadow-[0_4px_0_#182238] active:translate-y-0.5 active:shadow-[0_2px_0_#182238] transition-all cursor-pointer"
           >
             {currentQ < questions.length - 1 ? (
               <>
-                Câu tiếp theo
-                <ArrowRight className="w-4 h-4" />
+                <span>Câu tiếp theo</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono font-normal">
+                  Enter
+                </kbd>
+                <ArrowRight className="w-4 h-4 ml-1" />
               </>
             ) : (
-              'Xem kết quả'
+              <>
+                <span>Xem kết quả</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono font-normal">
+                  Enter
+                </kbd>
+              </>
             )}
           </button>
         )}

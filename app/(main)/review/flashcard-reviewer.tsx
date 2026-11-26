@@ -532,7 +532,7 @@ export default function FlashcardReviewer({
               {/* ---------------------------------------------------- */}
               {/* MẶT TRƯỚC FLASHCARD (CHỮ HÁN NỔI BẬT & BỘ THỦ)       */}
               {/* ---------------------------------------------------- */}
-              <div className={`col-start-1 row-start-1 w-full rounded-[22px] bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md p-5 sm:p-7 md:p-8 flex flex-col justify-between items-center transition-colors [backface-visibility:hidden] relative overflow-hidden ${
+              <div className={`col-start-1 row-start-1 w-full rounded-3xl bg-white dark:bg-[#182238] border border-[#E2E8F0] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_36px_rgba(15,23,42,0.1)] p-6 sm:p-8 md:p-10 flex flex-col justify-between items-center transition-all [backface-visibility:hidden] relative overflow-hidden ${
                 showAnswer ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
               }`}>
                 
@@ -595,7 +595,7 @@ export default function FlashcardReviewer({
               {/* ---------------------------------------------------- */}
               {/* MẶT SAU FLASHCARD (PINYIN + NGHĨA + CÂU VÍ DỤ)       */}
               {/* ---------------------------------------------------- */}
-              <div className={`col-start-1 row-start-1 w-full rounded-[22px] bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md p-5 sm:p-7 md:p-8 flex flex-col justify-between items-center [backface-visibility:hidden] [transform:rotateY(180deg)] relative overflow-hidden ${
+              <div className={`col-start-1 row-start-1 w-full rounded-3xl bg-white dark:bg-[#182238] border border-[#E2E8F0] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_36px_rgba(15,23,42,0.1)] p-6 sm:p-8 md:p-10 flex flex-col justify-between items-center [backface-visibility:hidden] [transform:rotateY(180deg)] relative overflow-hidden transition-all ${
                 !showAnswer ? 'pointer-events-none select-none opacity-0 md:opacity-100' : 'opacity-100'
               }`}>
                 

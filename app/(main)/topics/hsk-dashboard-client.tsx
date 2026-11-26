@@ -718,7 +718,7 @@ export default function HskDashboardClient({
                   )}
                 </div>
 
-                {/* Lessons Grid / List */}
+                {/* Lessons Bento Grid (Figma-Standard EdTech Layout) */}
                 {filteredLessons.length === 0 ? (
                   <div className="p-10 rounded-2xl border border-dashed border-border bg-card/60 text-center space-y-3">
                     <BookOpen className="w-10 h-10 text-muted mx-auto opacity-50" />
@@ -741,32 +741,33 @@ export default function HskDashboardClient({
                     )}
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
                     {displayedLessons.map((lesson, idx) => {
                       const lessonNum = lesson.lesson_number ?? (idx + 1)
                       const formattedNum = String(lessonNum).padStart(2, '0')
-                      const isCompleted = lesson.is_completed
                       const learnedCount = lesson.learned_vocab_count || 0
+                      const isCompleted = lesson.is_completed || (learnedCount >= lesson.vocab_count && lesson.vocab_count > 0)
                       const isInProgress = !isCompleted && learnedCount > 0
+                      const percent = lesson.vocab_count > 0 ? Math.min(100, Math.round((learnedCount / lesson.vocab_count) * 100)) : 0
 
                       return (
                         <Link
                           key={lesson.id}
                           href={`/lessons/${lesson.id}`}
-                          className="w-full group block p-3.5 sm:p-5 rounded-2xl border border-[#182238]/12 dark:border-white/10 bg-white dark:bg-[#182238] shadow-xs hover:shadow-md hover:border-[#B8322D]/40 transition-all duration-200 relative overflow-hidden touch-manipulation active:scale-[0.99]"
+                          className="w-full group block p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] dark:border-white/10 bg-white dark:bg-[#182238] shadow-[0_2px_8px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-4px_rgba(15,23,42,0.08)] hover:border-[#182238]/40 dark:hover:border-white/20 transition-all duration-200 relative overflow-hidden touch-manipulation active:scale-[0.99] flex flex-col justify-between"
                         >
-                          <div className="flex items-center gap-3 sm:gap-5 justify-between">
+                          <div className="flex items-start gap-3.5 sm:gap-4 justify-between">
 
                             {/* Index Number Badge */}
                             <div
-                              className={`w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl flex items-center justify-center font-serif font-bold text-xs sm:text-base shrink-0 transition-colors border ${isCompleted
-                                  ? 'bg-jade-soft text-jade border-jade/30'
+                              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center font-serif font-bold text-xs sm:text-sm shrink-0 transition-colors border ${isCompleted
+                                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                                   : isInProgress
-                                    ? 'bg-amber-50 text-amber-700 border-amber-200/60'
-                                    : 'bg-page text-title border-border group-hover:border-app-accent/30 group-hover:text-app-accent'
+                                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                                    : 'bg-[#FAF7F2] dark:bg-[#1F2C47] text-[#182238] dark:text-slate-200 border-[#182238]/10 group-hover:border-[#B8322D]/40 group-hover:text-[#B8322D]'
                                 }`}
                             >
-                              {isCompleted ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-jade" /> : formattedNum}
+                              {isCompleted ? <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> : formattedNum}
                             </div>
 
                             {/* Lesson Info */}
@@ -778,13 +779,13 @@ export default function HskDashboardClient({
 
                                 {/* Status Badge */}
                                 {isLoggedIn && isCompleted && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-jade-soft text-jade border border-jade/20 shrink-0">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/60 shrink-0">
                                     <CheckCircle2 className="w-2.5 h-2.5" />
                                     Đã học xong
                                   </span>
                                 )}
                                 {isLoggedIn && isInProgress && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-serif font-medium bg-amber-50 text-amber-700 border border-amber-200/50 shrink-0">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-sans font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/60 shrink-0">
                                     <NotebookPen className="w-2.5 h-2.5" />
                                     Đang học ({learnedCount}/{lesson.vocab_count})
                                   </span>
@@ -792,35 +793,40 @@ export default function HskDashboardClient({
                               </div>
 
                               {lesson.subtitle && (
-                                <p className="text-xs text-muted font-serif line-clamp-2 leading-relaxed mb-2 break-words">
+                                <p className="text-xs text-muted font-serif line-clamp-2 leading-relaxed mb-2.5 break-words">
                                   {lesson.subtitle}
                                 </p>
                               )}
 
-                              {/* Meta & Mini Progress */}
-                              <div className="flex items-center gap-3 text-xs font-serif text-muted">
-                                <span className="inline-flex items-center gap-1 bg-page px-2 py-0.5 rounded-md border border-border text-[11px] text-body">
-                                  <WholeWord className="w-3 h-3 text-muted" />
-                                  {lesson.vocab_count} từ vựng
-                                </span>
+                              {/* Meta & Mini Progress Bar */}
+                              <div className="space-y-1.5 pt-1">
+                                <div className="flex items-center justify-between text-xs font-serif text-muted">
+                                  <span className="inline-flex items-center gap-1 bg-page px-2 py-0.5 rounded-md border border-border text-[11px] text-body">
+                                    <WholeWord className="w-3 h-3 text-muted" />
+                                    {lesson.vocab_count} từ vựng
+                                  </span>
+
+                                  {isLoggedIn && isInProgress && (
+                                    <span className="text-[11px] font-sans font-semibold text-amber-600 dark:text-amber-400">
+                                      {percent}%
+                                    </span>
+                                  )}
+                                </div>
 
                                 {isLoggedIn && isInProgress && (
-                                  <div className="hidden sm:flex items-center gap-2">
-                                    <span className="text-[11px] text-muted">Tiến độ bài:</span>
-                                    <div className="w-20 bg-track h-1.5 rounded-full overflow-hidden">
-                                      <div
-                                        className="bg-amber-500 h-full rounded-full"
-                                        style={{ width: `${Math.min(100, Math.round((learnedCount / lesson.vocab_count) * 100))}%` }}
-                                      />
-                                    </div>
+                                  <div className="w-full bg-[#E5DFD5] dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                      className="bg-amber-500 h-full rounded-full transition-all duration-300"
+                                      style={{ width: `${percent}%` }}
+                                    />
                                   </div>
                                 )}
                               </div>
                             </div>
 
                             {/* Arrow CTA */}
-                            <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-page group-hover:bg-app-accent group-hover:text-white text-muted flex items-center justify-center transition-colors">
-                              <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
+                            <div className="shrink-0 w-8 h-8 rounded-full bg-page group-hover:bg-[#182238] group-hover:text-white text-muted flex items-center justify-center transition-all duration-150 shadow-2xs">
+                              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                             </div>
 
                           </div>

@@ -416,8 +416,8 @@ export default function SystemLessonReader({
             aria-label={showAnswer ? 'Mặt sau thẻ từ vựng' : 'Mặt trước thẻ từ vựng, chạm để lật thẻ'}
           >
             {/* MẶT TRƯỚC FLASHCARD */}
-            <div className="backface-hidden absolute inset-0 w-full h-full rounded-[22px] bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md p-4 sm:p-6 md:p-8 flex flex-col justify-between items-center transition-all overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-border/60" />
+            <div className="backface-hidden absolute inset-0 w-full h-full rounded-3xl bg-white dark:bg-[#182238] border border-[#E2E8F0] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_36px_rgba(15,23,42,0.1)] p-5 sm:p-7 md:p-8 flex flex-col justify-between items-center transition-all overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#182238] via-[#B8322D] to-gold" />
 
               <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
                 <span className="px-2 py-0.5 rounded-md bg-page border border-border/60 text-[10px] font-sans">
@@ -457,8 +457,8 @@ export default function SystemLessonReader({
             </div>
 
             {/* MẶT SAU FLASHCARD */}
-            <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-[22px] bg-white dark:bg-[#182238] border border-[#182238]/12 dark:border-white/10 shadow-xs hover:shadow-md p-4 sm:p-6 md:p-8 flex flex-col justify-between items-center overflow-y-auto no-scrollbar">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-app-accent via-app-accent/80 to-gold" />
+            <div className="backface-hidden rotate-y-180 absolute inset-0 w-full h-full rounded-3xl bg-white dark:bg-[#182238] border border-[#E2E8F0] dark:border-white/10 shadow-[0_8px_30px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_36px_rgba(15,23,42,0.1)] p-5 sm:p-7 md:p-8 flex flex-col justify-between items-center overflow-y-auto no-scrollbar transition-all">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#B8322D] via-gold to-[#10B981]" />
 
               <div className="w-full flex items-center justify-between text-xs text-muted font-serif">
                 <span className="px-2 py-0.5 rounded-md bg-app-accent-soft text-app-accent border border-app-accent/20 text-[10px] font-sans font-medium">
@@ -533,23 +533,23 @@ export default function SystemLessonReader({
           {!showAnswer ? (
             <Button
               variant="primary"
-              className="w-full min-h-[50px] text-sm sm:text-base font-serif rounded-2xl shadow-2xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
+              className="w-full min-h-[52px] text-sm sm:text-base font-serif rounded-2xl bg-[#B8322D] hover:bg-[#9E2A25] text-white shadow-[0_3px_0_#7A1D1A] flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none"
               onClick={() => {
                 setShowAnswer(true)
                 speak(currentVocab.hanzi, { id: `fc-${currentVocab.id}` })
               }}
             >
               <span>Lật thẻ xem đáp án</span>
-              <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono font-normal">
                 Space
               </kbd>
             </Button>
           ) : (
             <div className="flex gap-3">
-              <Button
-                variant="outline"
+              <button
+                type="button"
                 disabled={isLearnPending}
-                className="flex-1 min-h-[50px] text-xs sm:text-sm font-serif border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none disabled:opacity-60"
+                className="flex-1 min-h-[52px] text-xs sm:text-sm font-serif border border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#B91C1C] rounded-2xl flex items-center justify-center gap-2 shadow-[0_2px_0_#FCA5A5] cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none disabled:opacity-60"
                 onClick={() => handleLearnAnswer(false)}
               >
                 {pendingLearnAction === 'unlearned' ? (
@@ -563,15 +563,15 @@ export default function SystemLessonReader({
                     <span>Chưa thuộc</span>
                   </>
                 )}
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-red-200/60 rounded text-[10px] font-mono">
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-red-200/60 rounded text-[10px] font-mono font-normal">
                   1
                 </kbd>
-              </Button>
+              </button>
 
-              <Button
-                variant="success"
+              <button
+                type="button"
                 disabled={isLearnPending}
-                className="flex-1 min-h-[50px] text-xs sm:text-sm font-serif rounded-2xl flex items-center justify-center gap-2 shadow-2xs cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none disabled:opacity-60"
+                className="flex-1 min-h-[52px] text-xs sm:text-sm font-serif rounded-2xl bg-[#059669] hover:bg-[#047857] text-white shadow-[0_3px_0_#047857] flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.98] touch-manipulation select-none disabled:opacity-60"
                 onClick={() => handleLearnAnswer(true)}
               >
                 {pendingLearnAction === 'learned' ? (
@@ -585,10 +585,10 @@ export default function SystemLessonReader({
                     <span>Đã thuộc</span>
                   </>
                 )}
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono">
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 bg-white/20 rounded text-[10px] font-mono font-normal">
                   2
                 </kbd>
-              </Button>
+              </button>
             </div>
           )}
         </div>
